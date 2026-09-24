@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "616207966076",
+    "project_id": "make-up--ai",
+    "storage_bucket": "make-up--ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616207966076:android:6aa54db823f48954204ef9",
+        "android_client_info": {
+          "package_name": "com.example.mackeupai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbCcqnEIHJc9LvWvuvQr4E56Irok2b73U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

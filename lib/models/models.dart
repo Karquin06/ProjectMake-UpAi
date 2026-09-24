@@ -1,0 +1,16 @@
+// Archivo "barril": importa todo con  import 'package:tu_app/models/models.dart';
+export 'enums.dart';
+export 'model_utils.dart';
+export 'usuaria.dart';
+export 'credencial.dart';
+export 'sesion.dart';
+export 'perfil_colorimetria.dart';
+export 'paleta.dart';
+export 'producto_maquillaje.dart';
+export 'prenda_ropa.dart';
+export 'recomendacion.dart';
+export 'armario_item.dart';
+export 'conversacion.dart';
+export 'prenda_analizada.dart';
+export 'plan.dart';
+export 'suscripcion.dart';
