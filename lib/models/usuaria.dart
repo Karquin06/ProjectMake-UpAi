@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'enums.dart';
 import 'model_utils.dart';
 
 /// Colección raíz: usuarias/{uid}
@@ -20,7 +19,6 @@ class Usuaria {
   final String email;
   final DateTime fechaRegistro;
   final String? fotoPerfilUrl;
-  final PlanId planActual;
   final String? tokenNotificaciones;
 
   const Usuaria({
@@ -29,7 +27,6 @@ class Usuaria {
     required this.email,
     required this.fechaRegistro,
     this.fotoPerfilUrl,
-    this.planActual = PlanId.gratis,
     this.tokenNotificaciones,
   });
 
@@ -40,8 +37,6 @@ class Usuaria {
         email: m['email'] as String? ?? '',
         fechaRegistro: dateFromFirestore(m['fechaRegistro']) ?? DateTime.now(),
         fotoPerfilUrl: m['fotoPerfilURL'] as String?,
-        planActual: enumFromName(PlanId.values, m['planActual'] as String?) ??
-            PlanId.gratis,
         tokenNotificaciones: m['tokenNotificaciones'] as String?,
       );
 
@@ -54,7 +49,6 @@ class Usuaria {
         'email': email,
         'fechaRegistro': Timestamp.fromDate(fechaRegistro),
         'fotoPerfilURL': fotoPerfilUrl,
-        'planActual': planActual.name,
         'tokenNotificaciones': tokenNotificaciones,
       };
 
@@ -62,7 +56,6 @@ class Usuaria {
     String? nombre,
     String? email,
     String? fotoPerfilUrl,
-    PlanId? planActual,
     String? tokenNotificaciones,
   }) =>
       Usuaria(
@@ -71,7 +64,6 @@ class Usuaria {
         email: email ?? this.email,
         fechaRegistro: fechaRegistro,
         fotoPerfilUrl: fotoPerfilUrl ?? this.fotoPerfilUrl,
-        planActual: planActual ?? this.planActual,
         tokenNotificaciones: tokenNotificaciones ?? this.tokenNotificaciones,
       );
 }

@@ -12,5 +12,3 @@ export 'recomendacion.dart';
 export 'armario_item.dart';
 export 'conversacion.dart';
 export 'prenda_analizada.dart';
-export 'plan.dart';
-export 'suscripcion.dart';
