@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../models/usuaria.dart';
 
 /// Repositorio de la colección `usuarias` (capítulo 14.1: Diseño de la
 /// base de datos). Se invoca justo después de un registro o de un primer
@@ -30,5 +31,15 @@ class UsuariaRepository {
   Future<Map<String, dynamic>?> obtenerUsuaria(String uid) async {
     final doc = await _db.collection('usuarias').doc(uid).get();
     return doc.data();
+  }
+
+  /// Emite la usuaria cada vez que cambia su documento, o `null` si
+  /// todavía no existe.
+  Stream<Usuaria?> escucharUsuaria(String uid) {
+    return _db
+        .collection(Usuaria.collection)
+        .doc(uid)
+        .snapshots()
+        .map((doc) => doc.exists ? Usuaria.fromFirestore(doc) : null);
   }
 }
