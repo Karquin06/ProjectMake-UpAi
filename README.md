@@ -100,7 +100,7 @@ lib/
 │   ├── routes/      app_routes, app_router
 │   ├── theme/       app_colors, app_gradients, app_text_styles, app_theme
 │   ├── utils/       validators, formatters, color_utils, image_utils, snackbar_helper
-│   └── widgets/     13 widgets reutilizables (ver guía en la FASE 2)
+│   └── widgets/     13 widgets reutilizables (ver "Guía de uso de core")
 ├── models/
 │   ├── usuaria, sesion, credencial                   Karlos
 │   ├── perfil_colorimetria, paleta                   Jaider
@@ -141,6 +141,89 @@ functions/                                            Ana (por confirmar)
 | `escanerHabilitado` | `false` | Mauricio | Habilita el acceso al Escáner en Home. |
 | `armarioHabilitado` | `false` | Mauricio | Habilita el acceso al Armario en Home. |
 | `versionConsentimiento` | `'1.0'` | Karlos | Versión del aviso de privacidad aceptado al registrarse. |
+
+---
+
+## Guía de uso de core (no dupliques nada de esto)
+
+Antes de crear un widget, validador o helper, revisa si ya existe aquí.
+Si necesitas algo que falta o un cambio en core, pídeselo a Karlos.
+
+### Widgets (`lib/core/widgets/`)
+
+| Widget | Para qué | Ejemplo |
+|---|---|---|
+| `BotonPrimario` | Acción principal (degradado). `cargando` muestra spinner; `onPressed: null` lo deshabilita. | `BotonPrimario(texto: AppStrings.confirmar, cargando: vm.cargando, onPressed: vm.guardar)` |
+| `BotonSecundario` | Acción secundaria blanca con icono. | `BotonSecundario(texto: ..., icono: Icon(Icons.share), onPressed: ...)` |
+| `CampoTexto` | Campo con etiqueta, `validator`, `icono`, `onChanged`. | `CampoTexto(etiqueta: AppStrings.correoElectronico, icono: Icons.mail_outline, validator: Validadores.correo)` |
+| `CampoContrasena` | Contraseña con mostrar/ocultar. | `CampoContrasena(controller: c, validator: Validadores.contrasena)` |
+| `GradienteFondo` | Fondo de pantalla con degradado. | `GradienteFondo(gradient: AppGradients.fondoSuave, child: ...)` |
+| `TarjetaBase` | Tarjeta blanca con radio, sombra y `onTap`. | `TarjetaBase(onTap: ..., child: ...)` |
+| `AvatarUsuaria` | Foto circular o iniciales. `mostrarEditar` agrega cámara. | `AvatarUsuaria(nombre: s.nombreVisible, fotoUrl: s.fotoUrl, radio: 40)` |
+| `DialogoConfirmacion` | Confirmar acciones; `destructiva` pinta en rojo. Devuelve `bool`. | `if (await DialogoConfirmacion.mostrar(context, titulo: ..., mensaje: ..., destructiva: true)) ...` |
+| `EstadoVacio` | Lista/pantalla sin datos, con botón opcional. | `EstadoVacio(icono: Icons.checkroom, titulo: ..., textoBoton: ..., onPressed: ...)` |
+| `MensajeError` | Error con botón "Reintentar". | `MensajeError(mensaje: vm.error!, onReintentar: vm.cargar)` |
+| `IndicadorCarga` | Spinner centrado; `.pantalla()` incluye `Scaffold`. | `IndicadorCarga(mensaje: AppStrings.cargando)` |
+| `EtiquetaEstacion` | Chip con color e icono de la estación. | `EtiquetaEstacion(estacion: EstacionColor.invierno, texto: 'Invierno frío')` |
+| `PaletaChips` | Círculos de color; seleccionables con `onSeleccionar`. | `PaletaChips(colores: hexes.map(ColorUtils.desdeHex).toList())` |
+
+**Patrón obligatorio de estados en cada pantalla:**
+
+```dart
+if (vm.cargando) return const IndicadorCarga();
+if (vm.error != null) return MensajeError(mensaje: vm.error!, onReintentar: vm.cargar);
+if (vm.items.isEmpty) return const EstadoVacio(titulo: AppStrings.estadoVacioTitulo);
+return ListView(...);
+```
+
+### Utils (`lib/core/utils/`)
+
+| Archivo | Uso |
+|---|---|
+| `validators.dart` | `Validadores.correo`, `.contrasena`, `.nombre`, `.obligatorio`, `.confirmarContrasena(() => c.text)` |
+| `formatters.dart` | `Formateadores.precio(45900)` → `$ 45.900`, `.iniciales`, `.primerNombre`, `.capitalizar` |
+| `color_utils.dart` | `ColorUtils.desdeHex('#E75480')`, `.aHex(color)`, `.colorTextoSobre(fondo)` |
+| `image_utils.dart` | `await ImageUtils.prepararParaSubir(bytes)` → JPEG de máx. 1080 px (usar antes de subir a Storage) |
+| `snackbar_helper.dart` | `SnackbarHelper.exito(context, msg)`, `.error(...)`, `.info(...)` |
+
+### Extensiones (`lib/core/extensions/`)
+
+- `context_extensions.dart`: `context.irA(AppRoutes.paleta)`, `context.reemplazarCon(...)`, `context.irYLimpiarHistorial(...)`, `context.volver()`, `context.argumentos<String>()`, `context.anchoPantalla`, `context.esPantallaPequena`, `context.ocultarTeclado()`.
+- `datetime_extensions.dart`: `fecha.fechaLegible` (`4 de octubre de 2026`), `.fechaCorta`, `.hora`, `.tiempoRelativo` (`Hace 5 min`).
+- `enum_labels.dart`: `estacion.etiqueta`, `estacion.color`, `subtono.etiqueta`, `tipo.etiqueta`, `EtiquetasTexto.ocasion(clave)`, `EtiquetasTexto.categoria(clave)`. **Nunca muestres `enum.name` en la UI.** Cada integrante agrega sus extensiones en su sección del archivo.
+
+### Errores (`lib/core/errors/`)
+
+- En el ViewModel: `catch (e) { _error = FirebaseErrorMapper.mensaje(e); }` — traduce errores de Auth, Firestore, Storage, Functions y Google.
+- En repositorios/servicios, para errores de negocio: `throw const AppException(AppStrings.miMensaje);`.
+
+### Sesión y usuaria actual (`lib/providers/`)
+
+Lee siempre `SesionProvider` (nunca `FirebaseAuth.instance` desde una vista o ViewModel):
+
+```dart
+final sesion = context.watch<SesionProvider>();
+sesion.uid;            // uid de la usuaria con sesión
+sesion.nombreVisible;  // para saludos
+sesion.usuaria;        // documento usuarias/{uid} (modelo Usuaria)
+sesion.esAdmin;        // rol admin
+```
+
+> ⚠️ `firebase_auth` también exporta una clase llamada `AuthProvider`. Si un archivo
+> necesita ambos, importa Firebase con `show` (p. ej. `import 'package:firebase_auth/firebase_auth.dart' show User;`).
+
+### Rutas (`lib/core/routes/`)
+
+- Todas las pantallas ya tienen constante en `AppRoutes` y entrada en `AppRouter`.
+- Mientras tu vista no exista, la ruta muestra "En construcción". Para conectarla busca el comentario `CONECTAR (tu nombre)` en `app_router.dart`.
+- Las protecciones son automáticas: sin sesión → login; correo sin verificar → verificar correo; rutas `/admin/...` solo con rol `admin`.
+- Para pasar datos: `context.irA(AppRoutes.detalleProducto, argumentos: producto.id)` y en la vista `context.argumentos<String>()`.
+
+### Pruebas
+
+```bash
+flutter test test/core
+```
 
 ---
 
