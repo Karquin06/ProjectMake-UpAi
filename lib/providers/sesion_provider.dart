@@ -1,8 +1,11 @@
+import '../data/repositories/credencial_repository.dart';
+import '../data/repositories/sesion_repository.dart';
 import '../models/usuaria.dart';
 import 'auth_provider.dart';
 import 'usuaria_provider.dart';
 
-/// Vista unificada de la sesión: sesión activa, usuaria actual y rol.
+/// Vista unificada de la sesión: sesión activa, usuaria actual, rol y
+/// preferencias de sesión del dispositivo.
 ///
 /// Se recrea automáticamente cada vez que cambian [AuthProvider] o
 /// [UsuariaProvider] (ver `ProxyProvider2` en `app_providers.dart`), por eso
@@ -16,8 +19,15 @@ import 'usuaria_provider.dart';
 class SesionProvider {
   final AuthProvider _auth;
   final UsuariaProvider _usuaria;
+  final SesionRepository _preferencias;
+  final CredencialRepository _credenciales;
 
-  const SesionProvider({required this._auth, required this._usuaria});
+  const SesionProvider({
+    required this._auth,
+    required this._usuaria,
+    required this._preferencias,
+    required this._credenciales,
+  });
 
   EstadoAuth get estado => _auth.estado;
 
@@ -54,4 +64,27 @@ class SesionProvider {
   }
 
   String? get fotoUrl => _usuaria.usuaria?.fotoPerfilUrl ?? _auth.fotoUrl;
+
+  /// `true` si existe `usuarias/{uid}` en el servidor. Lanza error sin
+  /// conexión.
+  Future<bool> documentoExiste() async {
+    final uid = _auth.uid;
+    return uid != null && await _usuaria.existeUsuaria(uid);
+  }
+
+  /// Cierra la sesión; todos los providers de sesión se limpian solos.
+  Future<void> cerrarSesion() => _auth.cerrarSesion();
+
+  // ---------------------------------------------------------------------
+  // Preferencias de sesión del dispositivo
+  // ---------------------------------------------------------------------
+
+  Future<bool> onboardingVisto() => _preferencias.onboardingVisto();
+  Future<void> marcarOnboardingVisto() => _preferencias.marcarOnboardingVisto();
+
+  /// "Recordarme": solo el correo, nunca la contraseña.
+  Future<String?> correoRecordado() => _credenciales.correoRecordado();
+  Future<void> recordarCorreo(String correo) =>
+      _credenciales.recordarCorreo(correo);
+  Future<void> olvidarCorreo() => _credenciales.olvidarCorreo();
 }
