@@ -27,7 +27,8 @@ class AppStrings {
 
   // Login
   static const String bienvenida = '¡Bienvenida!';
-  static const String iniciaSesionParaContinuar = 'Inicia sesión para continuar';
+  static const String iniciaSesionParaContinuar =
+      'Inicia sesión para continuar';
   static const String continuarConGoogle = 'Continuar con Google';
   static const String continuarConApple = 'Continuar con Apple';
   static const String correoElectronico = 'CORREO ELECTRÓNICO';
@@ -41,8 +42,102 @@ class AppStrings {
   static const String crearCuenta = 'Crear cuenta';
   static const String nombreCompleto = 'NOMBRE COMPLETO';
   static const String botonCrearCuentaGratis = 'Crear cuenta gratis';
-  static const String terminosYPrivacidad =
-      'Al registrarte aceptas nuestros Términos de uso y Política de privacidad.';
+  static const String confirmarContrasena = 'CONFIRMAR CONTRASEÑA';
+  static const String consentimientoPrefijo = 'He leído y acepto el ';
+  static const String consentimientoEnlace = 'Aviso de privacidad';
+  static const String errorConsentimientoRequerido =
+      'Debes aceptar el aviso de privacidad para crear tu cuenta.';
+  static const String errorConsentimientoGoogle =
+      'Para usar Make Up AI debes aceptar el aviso de privacidad.';
+  static const String recordarme = 'Recordarme';
+  static const String appleProximamente =
+      'El inicio de sesión con Apple estará disponible próximamente.';
+
+  // Aviso de privacidad
+  // BORRADOR ACADÉMICO: revisar en equipo antes de publicar. Si el texto
+  // cambia, sube AppConstants.versionConsentimiento.
+  static const String avisoPrivacidadTitulo = 'Aviso de privacidad';
+  static String avisoPrivacidadVersion(String version) =>
+      'Versión $version · Ley 1581 de 2012 (Colombia)';
+  static const String botonAcepto = 'Acepto';
+  static const List<(String, String)> avisoPrivacidadSecciones = [
+    (
+      'Responsable',
+      'Make Up AI es un proyecto académico de la asignatura Programación '
+          'Móvil de la Universidad Popular del Cesar. Su equipo de desarrollo '
+          'es responsable del tratamiento de tus datos personales.',
+    ),
+    (
+      'Datos que recopilamos',
+      'Nombre, correo electrónico y foto de perfil (opcional); las fotos que '
+          'tomes para el análisis de colorimetría y de prendas; los '
+          'resultados de tu colorimetría, tus preferencias, tus '
+          'conversaciones con el asistente y el identificador de '
+          'notificaciones de tu dispositivo.',
+    ),
+    (
+      'Para qué los usamos',
+      'Para crear y proteger tu cuenta, analizar tu colorimetría, generarte '
+          'recomendaciones personalizadas de maquillaje y ropa, responder tus '
+          'preguntas en el asistente y enviarte notificaciones si lo '
+          'autorizas. No vendemos tus datos ni los usamos con fines '
+          'publicitarios.',
+    ),
+    (
+      'Datos sensibles',
+      'Las fotos de tu rostro pueden considerarse datos sensibles. Solo se '
+          'usan para el análisis que tú solicitas y no estás obligada a '
+          'proporcionarlas.',
+    ),
+    (
+      'Dónde se almacenan',
+      'Tus datos se guardan en los servicios de Google Firebase '
+          '(Authentication, Firestore, Storage y Cloud Functions). Algunas '
+          'funciones de inteligencia artificial pueden procesar tus fotos o '
+          'mensajes con servicios de terceros únicamente para generar la '
+          'respuesta que pediste.',
+    ),
+    (
+      'Tus derechos',
+      'Puedes conocer, actualizar, rectificar y suprimir tus datos, y '
+          'revocar esta autorización en cualquier momento. Edita tu '
+          'información desde Perfil o elimina tu cuenta desde Perfil > '
+          'Eliminar cuenta; al hacerlo se borran tus datos.',
+    ),
+    (
+      'Cambios a este aviso',
+      'Si este aviso cambia, te pediremos aceptarlo de nuevo antes de '
+          'continuar usando la app.',
+    ),
+  ];
+
+  // Verificar correo
+  static const String verificarCorreoTitulo = 'Verifica tu correo';
+  static String verificarCorreoDescripcion(String correo) =>
+      'Enviamos un enlace de verificación a $correo. Ábrelo y luego toca '
+      '"Ya verifiqué". Revisa también la carpeta de spam.';
+  static const String reenviarCorreo = 'Reenviar correo';
+  static String reenviarEn(int segundos) => 'Reenviar en $segundos s';
+  static const String yaVerifique = 'Ya verifiqué';
+  static const String correoReenviado =
+      'Te enviamos un nuevo correo de verificación.';
+  static const String correoAunNoVerificado =
+      'Aún no has verificado tu correo. Abre el enlace que te enviamos.';
+  static const String usarOtraCuenta = 'Usar otra cuenta';
+  static String errorEsperaReenvio(int segundos) =>
+      'Espera $segundos segundos antes de pedir otro correo.';
+
+  // Recuperar contraseña
+  static const String recuperarTitulo = 'Recuperar contraseña';
+  static const String recuperarDescripcion =
+      'Ingresa tu correo y te enviaremos un enlace para crear una nueva '
+      'contraseña.';
+  static const String botonEnviarEnlace = 'Enviar enlace';
+  static const String recuperarEnviadoTitulo = 'Revisa tu correo';
+  static String recuperarEnviadoDescripcion(String correo) =>
+      'Si existe una cuenta con $correo, recibirás un enlace para '
+      'restablecer tu contraseña. Revisa también la carpeta de spam.';
+  static const String volverAlLogin = 'Volver a iniciar sesión';
 
   // Home
   static const String inicio = 'Inicio';
@@ -103,7 +198,8 @@ class AppStrings {
   static const String errorLimiteExcedido =
       'Se alcanzó el límite de uso. Intenta más tarde.';
   static const String errorOperacionCancelada = 'La operación fue cancelada.';
-  static const String errorDatosInvalidos = 'Los datos enviados no son válidos.';
+  static const String errorDatosInvalidos =
+      'Los datos enviados no son válidos.';
   static const String errorImagenInvalida =
       'No se pudo leer la imagen. Elige otra foto.';
 
@@ -119,7 +215,8 @@ class AppStrings {
       'No se pudo iniciar sesión con Google. Intenta nuevamente.';
 
   // Firebase Authentication
-  static const String errorAuthCorreoInvalido = 'El correo ingresado no es válido.';
+  static const String errorAuthCorreoInvalido =
+      'El correo ingresado no es válido.';
   static const String errorAuthCuentaDeshabilitada =
       'Esta cuenta ha sido deshabilitada.';
   static const String errorAuthUsuariaNoExiste =
@@ -168,8 +265,18 @@ class AppStrings {
   // Fechas (datetime_extensions)
   // ---------------------------------------------------------------------
   static const List<String> meses = [
-    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
-    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
   ];
   static const String hoy = 'Hoy';
   static const String ayer = 'Ayer';
