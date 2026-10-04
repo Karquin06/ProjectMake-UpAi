@@ -27,4 +27,10 @@ class AppColors {
   static const Color error = Color(0xFFC62366);
   static const Color exito = Color(0xFF2E7D32);
   static const Color borde = Color(0xFFEBD3E0);
+
+  // Color representativo de cada estación (etiqueta_estacion).
+  static const Color estacionPrimavera = Color(0xFFF08A5D);
+  static const Color estacionVerano = Color(0xFF8E9CCF);
+  static const Color estacionOtono = Color(0xFFA0522D);
+  static const Color estacionInvierno = Color(0xFF2E3A87);
 }
