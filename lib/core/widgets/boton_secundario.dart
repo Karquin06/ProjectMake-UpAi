@@ -35,7 +35,14 @@ class BotonSecundario extends StatelessWidget {
           children: [
             icono,
             const SizedBox(width: 10),
-            Text(texto, style: AppTextStyles.botonSecundario),
+            Flexible(
+              child: Text(
+                texto,
+                style: AppTextStyles.botonSecundario,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

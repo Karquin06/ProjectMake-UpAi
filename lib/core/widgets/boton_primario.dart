@@ -50,7 +50,14 @@ class BotonPrimario extends StatelessWidget {
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(texto, style: AppTextStyles.botonPrimario),
+                          Flexible(
+                            child: Text(
+                              texto,
+                              style: AppTextStyles.botonPrimario,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           if (icono != null) ...[
                             const SizedBox(width: 8),
                             Icon(icono, color: Colors.white, size: 18),
