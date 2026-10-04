@@ -1,57 +1,66 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../home_view_model.dart';
 
-class _AccesoDirectoData {
-  final IconData icono;
-  final String etiqueta;
-
-  /// `false` para funcionalidades de fases futuras (ver capítulo 8.5)
-  /// que aún no forman parte del alcance del MVP, como el Armario
-  /// inteligente (Fase 4). Estos accesos se muestran deshabilitados
-  /// con la etiqueta "Próximamente".
-  final bool disponible;
-
-  const _AccesoDirectoData(this.icono, this.etiqueta, {this.disponible = true});
-}
-
-/// Grilla de accesos directos a las funciones del alcance funcional
-/// (capítulo 8.1: colorimetría, paleta, recomendaciones, asistente y
-/// simulador AR) más las funcionalidades de fases futuras (capítulo 8.5:
-/// Escáner OCR — Fase 3 — y Armario inteligente — Fase 4), estas
-/// últimas mostradas como "Próximamente".
+/// Grilla de accesos directos a las funciones de la app (capítulo 8.1).
+/// Los accesos deshabilitados (Escáner y Armario mientras sus banderas en
+/// `AppConstants` estén apagadas) se muestran con "Próximamente".
 class AccesosDirectos extends StatelessWidget {
-  const AccesosDirectos({super.key});
+  final List<AccesoHome> accesos;
+  final bool Function(AccesoHome) estaHabilitado;
+  final ValueChanged<AccesoHome> onSeleccionar;
 
-  static const List<_AccesoDirectoData> _accesos = [
-    _AccesoDirectoData(Icons.face_retouching_natural, 'Colorimetría'),
-    _AccesoDirectoData(Icons.color_lens_outlined, 'Mi paleta'),
-    _AccesoDirectoData(Icons.checkroom_outlined, 'Outfits'),
-    _AccesoDirectoData(Icons.brush_outlined, 'Maquillaje'),
-    _AccesoDirectoData(Icons.smart_toy_outlined, 'Asistente IA'),
-    _AccesoDirectoData(Icons.camera_alt_outlined, 'Simulador AR'),
-    _AccesoDirectoData(Icons.qr_code_scanner, 'Escáner', disponible: false),
-    _AccesoDirectoData(Icons.checkroom, 'Armario', disponible: false),
-  ];
+  const AccesosDirectos({
+    super.key,
+    required this.accesos,
+    required this.estaHabilitado,
+    required this.onSeleccionar,
+  });
+
+  static IconData icono(AccesoHome acceso) => switch (acceso) {
+    AccesoHome.colorimetria => Icons.face_retouching_natural,
+    AccesoHome.paleta => Icons.color_lens_outlined,
+    AccesoHome.outfits => Icons.checkroom_outlined,
+    AccesoHome.maquillaje => Icons.brush_outlined,
+    AccesoHome.asistente => Icons.smart_toy_outlined,
+    AccesoHome.simuladorAr => Icons.camera_alt_outlined,
+    AccesoHome.escaner => Icons.qr_code_scanner,
+    AccesoHome.armario => Icons.checkroom,
+  };
+
+  static String etiqueta(AccesoHome acceso) => switch (acceso) {
+    AccesoHome.colorimetria => AppStrings.accesoColorimetria,
+    AccesoHome.paleta => AppStrings.accesoPaleta,
+    AccesoHome.outfits => AppStrings.accesoOutfits,
+    AccesoHome.maquillaje => AppStrings.accesoMaquillaje,
+    AccesoHome.asistente => AppStrings.accesoAsistente,
+    AccesoHome.simuladorAr => AppStrings.accesoSimulador,
+    AccesoHome.escaner => AppStrings.accesoEscaner,
+    AccesoHome.armario => AppStrings.accesoArmario,
+  };
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _accesos.length,
+      itemCount: accesos.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.78,
+        childAspectRatio: 0.72,
       ),
       itemBuilder: (context, index) {
-        final acceso = _accesos[index];
+        final acceso = accesos[index];
         return _BotonAcceso(
-          icono: acceso.icono,
-          etiqueta: acceso.etiqueta,
-          disponible: acceso.disponible,
+          icono: icono(acceso),
+          etiqueta: etiqueta(acceso),
+          disponible: estaHabilitado(acceso),
+          onTap: () => onSeleccionar(acceso),
         );
       },
     );
@@ -62,11 +71,13 @@ class _BotonAcceso extends StatelessWidget {
   final IconData icono;
   final String etiqueta;
   final bool disponible;
+  final VoidCallback onTap;
 
   const _BotonAcceso({
     required this.icono,
     required this.etiqueta,
-    this.disponible = true,
+    required this.disponible,
+    required this.onTap,
   });
 
   @override
@@ -75,22 +86,7 @@ class _BotonAcceso extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: disponible
-            ? () {
-                // TODO: conectar navegación según la funcionalidad seleccionada.
-              }
-            : () {
-                ScaffoldMessenger.of(context)
-                  ..hideCurrentSnackBar()
-                  ..showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '$etiqueta estará disponible en una fase futura '
-                        'del proyecto.',
-                      ),
-                    ),
-                  );
-              },
+        onTap: onTap,
         child: Opacity(
           opacity: disponible ? 1 : 0.55,
           child: Column(
@@ -145,7 +141,7 @@ class _BotonAcceso extends StatelessWidget {
               ),
               if (!disponible)
                 Text(
-                  'Próximamente',
+                  AppStrings.proximamente,
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

@@ -150,6 +150,15 @@ class AppRouter {
   /// Nivel de acceso de [ruta], o `null` si no está registrada.
   static NivelAcceso? nivelDe(String ruta) => _destinos[ruta]?.nivel;
 
+  /// Vista de [ruta] SIN guardia, para incrustarla como pestaña dentro de
+  /// una pantalla ya protegida (p. ej. la barra inferior de Home). Así la
+  /// pestaña muestra automáticamente la vista real cuando se conecta aquí.
+  static Widget paginaDe(String ruta) {
+    final destino = _destinos[ruta];
+    assert(destino != null, 'Ruta no registrada: $ruta');
+    return destino?.constructor() ?? _enConstruccion(ruta, '-');
+  }
+
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final destino = _destinos[settings.name];
     if (destino == null) {
