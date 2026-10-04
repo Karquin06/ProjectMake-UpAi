@@ -104,6 +104,8 @@ class AppStrings {
       'Se alcanzó el límite de uso. Intenta más tarde.';
   static const String errorOperacionCancelada = 'La operación fue cancelada.';
   static const String errorDatosInvalidos = 'Los datos enviados no son válidos.';
+  static const String errorImagenInvalida =
+      'No se pudo leer la imagen. Elige otra foto.';
 
   // Google Sign-In
   static const String errorGoogleCancelado =
