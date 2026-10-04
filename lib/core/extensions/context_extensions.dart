@@ -41,10 +41,9 @@ extension ContextExtensions on BuildContext {
   Future<T?> reemplazarCon<T extends Object?>(
     String ruta, {
     Object? argumentos,
-  }) => Navigator.of(this).pushReplacementNamed<T, Object?>(
-    ruta,
-    arguments: argumentos,
-  );
+  }) => Navigator.of(
+    this,
+  ).pushReplacementNamed<T, Object?>(ruta, arguments: argumentos);
 
   /// Abre [ruta] y elimina todo el historial (p. ej. tras cerrar sesión).
   Future<T?> irYLimpiarHistorial<T extends Object?>(

@@ -17,12 +17,8 @@ class SnackbarHelper {
   static void error(BuildContext context, String mensaje) =>
       _mostrar(context, mensaje, AppColors.error, Icons.error_outline);
 
-  static void info(BuildContext context, String mensaje) => _mostrar(
-    context,
-    mensaje,
-    AppColors.textoPrincipal,
-    Icons.info_outline,
-  );
+  static void info(BuildContext context, String mensaje) =>
+      _mostrar(context, mensaje, AppColors.textoPrincipal, Icons.info_outline);
 
   static void _mostrar(
     BuildContext context,

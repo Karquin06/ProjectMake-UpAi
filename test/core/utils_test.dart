@@ -18,7 +18,10 @@ void main() {
     });
 
     test('contraseña y confirmación', () {
-      expect(Validadores.contrasena('123'), AppStrings.validacionContrasenaCorta);
+      expect(
+        Validadores.contrasena('123'),
+        AppStrings.validacionContrasenaCorta,
+      );
       expect(Validadores.contrasena('123456'), isNull);
       final confirmar = Validadores.confirmarContrasena(() => 'secreta1');
       expect(confirmar('otra'), AppStrings.validacionContrasenasDistintas);
@@ -27,7 +30,10 @@ void main() {
 
     test('nombre', () {
       expect(Validadores.nombre('Al'), AppStrings.validacionNombreCorto);
-      expect(Validadores.nombre('Ana 123'), AppStrings.validacionNombreCaracteres);
+      expect(
+        Validadores.nombre('Ana 123'),
+        AppStrings.validacionNombreCaracteres,
+      );
       expect(Validadores.nombre('Sofía Martínez'), isNull);
     });
   });

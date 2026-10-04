@@ -29,6 +29,5 @@ class AppException implements Exception {
   }
 
   @override
-  String toString() =>
-      'AppException(${codigo ?? 'sin-codigo'}): $mensaje';
+  String toString() => 'AppException(${codigo ?? 'sin-codigo'}): $mensaje';
 }

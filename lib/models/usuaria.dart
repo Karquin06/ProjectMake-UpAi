@@ -13,14 +13,14 @@ class Consentimiento {
   const Consentimiento({required this.version, required this.fecha});
 
   factory Consentimiento.fromMap(Map<String, dynamic> m) => Consentimiento(
-        version: m['version'] as String? ?? '',
-        fecha: dateFromFirestore(m['fecha']) ?? DateTime.now(),
-      );
+    version: m['version'] as String? ?? '',
+    fecha: dateFromFirestore(m['fecha']) ?? DateTime.now(),
+  );
 
   Map<String, dynamic> toMap() => {
-        'version': version,
-        'fecha': Timestamp.fromDate(fecha),
-      };
+    'version': version,
+    'fecha': Timestamp.fromDate(fecha),
+  };
 }
 
 /// Colección raíz: usuarias/{uid}
@@ -83,16 +83,17 @@ class Usuaria {
       Usuaria.fromMap(doc.data()!, id: doc.id);
 
   Map<String, dynamic> toMap() => {
-        'uid': uid,
-        'nombre': nombre,
-        'email': email,
-        'fechaRegistro': Timestamp.fromDate(fechaRegistro),
-        'fotoPerfilURL': fotoPerfilUrl,
-        'tokenNotificaciones': tokenNotificaciones,
-        'rol': rol,
-        'consentimientos':
-            consentimientos.map((clave, c) => MapEntry(clave, c.toMap())),
-      };
+    'uid': uid,
+    'nombre': nombre,
+    'email': email,
+    'fechaRegistro': Timestamp.fromDate(fechaRegistro),
+    'fotoPerfilURL': fotoPerfilUrl,
+    'tokenNotificaciones': tokenNotificaciones,
+    'rol': rol,
+    'consentimientos': consentimientos.map(
+      (clave, c) => MapEntry(clave, c.toMap()),
+    ),
+  };
 
   /// `rol` no se incluye a propósito: no puede cambiarse desde la app.
   Usuaria copyWith({
@@ -101,25 +102,25 @@ class Usuaria {
     String? fotoPerfilUrl,
     String? tokenNotificaciones,
     Map<String, Consentimiento>? consentimientos,
-  }) =>
-      Usuaria(
-        uid: uid,
-        nombre: nombre ?? this.nombre,
-        email: email ?? this.email,
-        fechaRegistro: fechaRegistro,
-        fotoPerfilUrl: fotoPerfilUrl ?? this.fotoPerfilUrl,
-        tokenNotificaciones: tokenNotificaciones ?? this.tokenNotificaciones,
-        rol: rol,
-        consentimientos: consentimientos ?? this.consentimientos,
-      );
+  }) => Usuaria(
+    uid: uid,
+    nombre: nombre ?? this.nombre,
+    email: email ?? this.email,
+    fechaRegistro: fechaRegistro,
+    fotoPerfilUrl: fotoPerfilUrl ?? this.fotoPerfilUrl,
+    tokenNotificaciones: tokenNotificaciones ?? this.tokenNotificaciones,
+    rol: rol,
+    consentimientos: consentimientos ?? this.consentimientos,
+  );
 
   static Map<String, Consentimiento> _consentimientosDesde(dynamic raw) {
     if (raw is! Map) return const {};
     final resultado = <String, Consentimiento>{};
     raw.forEach((clave, valor) {
       if (valor is Map) {
-        resultado[clave.toString()] =
-            Consentimiento.fromMap(Map<String, dynamic>.from(valor));
+        resultado[clave.toString()] = Consentimiento.fromMap(
+          Map<String, dynamic>.from(valor),
+        );
       }
     });
     return resultado;

@@ -37,29 +37,29 @@ class Credencial {
         bloqueada: m['bloqueada'] as bool? ?? false,
       );
 
-  factory Credencial.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) =>
-      Credencial.fromMap(doc.data()!, id: doc.id);
+  factory Credencial.fromFirestore(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) => Credencial.fromMap(doc.data()!, id: doc.id);
 
   Map<String, dynamic> toMap() => {
-        'uid': uid,
-        'usuario': usuario,
-        'fechaUltimoCambio': dateToFirestore(fechaUltimoCambio),
-        'intentosFallidos': intentosFallidos,
-        'bloqueada': bloqueada,
-      };
+    'uid': uid,
+    'usuario': usuario,
+    'fechaUltimoCambio': dateToFirestore(fechaUltimoCambio),
+    'intentosFallidos': intentosFallidos,
+    'bloqueada': bloqueada,
+  };
 
   Credencial copyWith({
     String? usuario,
     DateTime? fechaUltimoCambio,
     int? intentosFallidos,
     bool? bloqueada,
-  }) =>
-      Credencial(
-        id: id,
-        uid: uid,
-        usuario: usuario ?? this.usuario,
-        fechaUltimoCambio: fechaUltimoCambio ?? this.fechaUltimoCambio,
-        intentosFallidos: intentosFallidos ?? this.intentosFallidos,
-        bloqueada: bloqueada ?? this.bloqueada,
-      );
+  }) => Credencial(
+    id: id,
+    uid: uid,
+    usuario: usuario ?? this.usuario,
+    fechaUltimoCambio: fechaUltimoCambio ?? this.fechaUltimoCambio,
+    intentosFallidos: intentosFallidos ?? this.intentosFallidos,
+    bloqueada: bloqueada ?? this.bloqueada,
+  );
 }
