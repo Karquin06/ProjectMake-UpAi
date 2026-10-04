@@ -218,6 +218,18 @@ sesion.esAdmin;        // rol admin
 - Mientras tu vista no exista, la ruta muestra "En construcción". Para conectarla busca el comentario `CONECTAR (tu nombre)` en `app_router.dart`.
 - Las protecciones son automáticas: sin sesión → login; correo sin verificar → verificar correo; rutas `/admin/...` solo con rol `admin`.
 - Para pasar datos: `context.irA(AppRoutes.detalleProducto, argumentos: producto.id)` y en la vista `context.argumentos<String>()`.
+- Las pestañas **Colorimetría** y **Asistente** de la barra inferior muestran la misma vista que `AppRoutes.colorimetria` / `AppRoutes.asistente`: al conectarla en el router aparece también en la pestaña.
+
+**Argumentos que envía Home** (léelos en tu vista con `context.argumentos<T>()`):
+
+| Ruta | Argumento | Dueño |
+|---|---|---|
+| `recomendaciones` | `TipoRecomendacion?` (outfit / maquillaje / cabello; `null` = todas) | Ana |
+| `detalleProducto` | `String` id del producto | Ana |
+| `detallePrenda` | `String` id de la prenda | Ana |
+| `paleta`, `colorimetria`, `simuladorAr`, `escaner`, `armario` | ninguno | Jaider / Mauricio |
+
+**Datos de Home:** mientras `usarMockColorimetria` / `usarMockRecomendaciones` estén en `true`, Home usa datos de ejemplo (`ui/home/home_datos_mock.dart`). Para conectar los reales busca `PUNTO DE CAMBIO` en `ui/home/home_view_model.dart`.
 
 ### Flujo de autenticación
 
