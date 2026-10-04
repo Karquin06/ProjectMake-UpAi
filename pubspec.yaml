@@ -44,6 +44,7 @@ dependencies:
   cloud_functions: ^6.5.0
   firebase_messaging: ^16.7.0
   flutter_secure_storage: ^11.2.0
+  image: ^4.10.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
