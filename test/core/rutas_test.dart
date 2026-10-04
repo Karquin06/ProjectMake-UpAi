@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/core/routes/app_router.dart';
 import 'package:mackeupai/core/routes/app_routes.dart';
 import 'package:mackeupai/core/routes/guardia_ruta.dart';
@@ -39,6 +40,8 @@ class _AuthRepoFalso extends Fake implements AuthRepository {
   User? get usuarioActual => usuario;
   @override
   Stream<User?> get cambiosDeSesion => _cambios.stream;
+  @override
+  Duration get esperaReenvioRestante => Duration.zero;
 
   void emitir(User? nuevo) {
     usuario = nuevo;
@@ -207,7 +210,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.textContaining('verificar_correo_view'), findsOneWidget);
+      expect(find.text(AppStrings.verificarCorreoTitulo), findsOneWidget);
       expect(find.textContaining('paleta_view'), findsNothing);
     },
   );
