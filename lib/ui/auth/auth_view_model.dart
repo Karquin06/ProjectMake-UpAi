@@ -1,28 +1,61 @@
 import 'package:flutter/foundation.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/errors/firebase_error_mapper.dart';
-import '../../data/repositories/auth_repository.dart';
-import '../../data/repositories/usuaria_repository.dart';
+import '../../core/routes/app_routes.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/sesion_provider.dart';
+import '../../providers/usuaria_provider.dart';
+
+/// Resultado del inicio de sesión con Google.
+enum ResultadoGoogle {
+  /// Sesión iniciada y la usuaria ya tenía documento.
+  exito,
+
+  /// Primera vez con Google: debe aceptar el aviso de privacidad antes de
+  /// crear su documento (ver [AuthViewModel.completarRegistroGoogle]).
+  requiereConsentimiento,
+
+  /// Cerró el selector de cuentas.
+  cancelado,
+
+  /// Ocurrió un error; ver [AuthViewModel.error].
+  error,
+}
 
 /// ViewModel compartido por login y registro (UC-01, capítulo 15.3).
 ///
-/// Conecta con Firebase Authentication a través de `AuthRepository` y,
-/// tras un registro o un primer login con Google, crea el documento
-/// `usuarias/{uid}` mediante `UsuariaRepository` (capítulo 14.1).
+/// Usa [AuthProvider] para Firebase Authentication y [UsuariaProvider]
+/// para crear el documento `usuarias/{uid}` (capítulo 14.1).
 class AuthViewModel extends ChangeNotifier {
-  final AuthRepository _authRepository;
-  final UsuariaRepository _usuariaRepository;
+  final AuthProvider _auth;
+  final UsuariaProvider _usuarias;
+  final SesionProvider _sesion;
 
+  /// [_sesion] solo se usa para las preferencias ("Recordarme"), que no
+  /// dependen del estado, por eso basta la instancia de la creación.
   AuthViewModel({
-    AuthRepository? authRepository,
-    UsuariaRepository? usuariaRepository,
-  }) : _authRepository = authRepository ?? AuthRepository(),
-       _usuariaRepository = usuariaRepository ?? UsuariaRepository();
+    required this._auth,
+    required this._usuarias,
+    required this._sesion,
+  });
 
   bool _cargando = false;
   String? _error;
+  bool _aceptoConsentimiento = false;
+  bool _recordarme = false;
+  String? _correoRecordado;
 
   bool get cargando => _cargando;
   String? get error => _error;
+  bool get aceptoConsentimiento => _aceptoConsentimiento;
+  bool get recordarme => _recordarme;
+
+  /// Correo guardado con "Recordarme" (para precargar el login).
+  String? get correoRecordado => _correoRecordado;
+
+  /// Adónde ir tras iniciar sesión: Home solo con el correo verificado.
+  String get rutaTrasIngresar =>
+      _auth.correoVerificado ? AppRoutes.home : AppRoutes.verificarCorreo;
 
   void _setCargando(bool valor) {
     _cargando = valor;
@@ -34,6 +67,27 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void cambiarConsentimiento(bool valor) {
+    _aceptoConsentimiento = valor;
+    if (valor && _error == AppStrings.errorConsentimientoRequerido) {
+      _error = null;
+    }
+    notifyListeners();
+  }
+
+  void cambiarRecordarme(bool valor) {
+    _recordarme = valor;
+    notifyListeners();
+  }
+
+  /// Carga el correo recordado. Devuelve el correo, o `null` si no hay.
+  Future<String?> cargarCorreoRecordado() async {
+    _correoRecordado = await _sesion.correoRecordado();
+    _recordarme = _correoRecordado != null;
+    notifyListeners();
+    return _correoRecordado;
+  }
+
   /// Inicia sesión con correo/contraseña (UC-01, flujo principal).
   /// Devuelve `true` si el login fue exitoso.
   Future<bool> iniciarSesionConCorreo({
@@ -43,10 +97,15 @@ class AuthViewModel extends ChangeNotifier {
     _error = null;
     _setCargando(true);
     try {
-      await _authRepository.iniciarSesionConCorreo(
+      await _auth.iniciarSesionConCorreo(
         correo: correo,
         contrasena: contrasena,
       );
+      if (_recordarme) {
+        await _sesion.recordarCorreo(correo);
+      } else {
+        await _sesion.olvidarCorreo();
+      }
       _setCargando(false);
       return true;
     } catch (e) {
@@ -57,26 +116,38 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   /// Inicia sesión con el selector de cuentas de Google.
-  /// Devuelve `false` tanto si hubo un error como si la usuaria canceló
-  /// el selector; en el segundo caso `error` queda en `null`.
-  Future<bool> continuarConGoogle() async {
+  Future<ResultadoGoogle> continuarConGoogle() async {
     _error = null;
     _setCargando(true);
     try {
-      final credencial = await _authRepository.iniciarSesionConGoogle();
-      if (credencial == null) {
+      final inicio = await _auth.iniciarSesionConGoogle();
+      if (!inicio) {
         _setCargando(false);
-        return false; // La usuaria cerró el selector sin elegir cuenta.
+        return ResultadoGoogle.cancelado;
       }
-      final usuaria = credencial.user;
-      if (usuaria != null) {
-        await _usuariaRepository.crearDocumentoUsuaria(
-          uid: usuaria.uid,
-          nombre: usuaria.displayName ?? '',
-          email: usuaria.email ?? '',
-          fotoPerfilURL: usuaria.photoURL,
-        );
-      }
+      final existe = await _usuarias.existeUsuaria(_auth.uid!);
+      _setCargando(false);
+      return existe
+          ? ResultadoGoogle.exito
+          : ResultadoGoogle.requiereConsentimiento;
+    } catch (e) {
+      _error = FirebaseErrorMapper.mensaje(e);
+      _setCargando(false);
+      return ResultadoGoogle.error;
+    }
+  }
+
+  /// Primera vez con Google y aceptó el aviso: crea su documento.
+  Future<bool> completarRegistroGoogle() async {
+    _error = null;
+    _setCargando(true);
+    try {
+      await _usuarias.crearUsuaria(
+        uid: _auth.uid!,
+        nombre: _auth.nombreVisible ?? '',
+        email: _auth.correo ?? '',
+        fotoPerfilUrl: _auth.fotoUrl,
+      );
       _setCargando(false);
       return true;
     } catch (e) {
@@ -86,42 +157,53 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  /// Primera vez con Google y NO aceptó el aviso: se elimina la cuenta de
+  /// Auth recién creada (no se guardan datos) y se cierra la sesión.
+  Future<void> cancelarRegistroGoogle() async {
+    _setCargando(true);
+    try {
+      await _auth.eliminarCuentaAuth();
+    } catch (_) {
+      // Si no se puede eliminar, al menos se cierra la sesión.
+    }
+    await _auth.cerrarSesion();
+    _error = AppStrings.errorConsentimientoGoogle;
+    _setCargando(false);
+  }
+
+  /// Registro con correo (HU-01). Sin aceptar el aviso de privacidad no se
+  /// crea nada. Crea la cuenta en Auth, su documento en Firestore y envía
+  /// el correo de verificación. Si falla el documento, se deshace la
+  /// cuenta de Auth para no dejar cuentas a medias.
   Future<bool> crearCuenta({
     required String nombre,
     required String correo,
     required String contrasena,
   }) async {
+    if (!_aceptoConsentimiento) {
+      _error = AppStrings.errorConsentimientoRequerido;
+      notifyListeners();
+      return false;
+    }
     _error = null;
     _setCargando(true);
     try {
-      final credencial = await _authRepository.crearCuentaConCorreo(
+      final uid = await _auth.crearCuentaConCorreo(
+        nombre: nombre,
         correo: correo,
         contrasena: contrasena,
       );
-      await _authRepository.actualizarNombre(nombre);
-      final usuaria = credencial.user;
-      if (usuaria != null) {
-        await _usuariaRepository.crearDocumentoUsuaria(
-          uid: usuaria.uid,
-          nombre: nombre,
-          email: correo,
-        );
+      try {
+        await _usuarias.crearUsuaria(uid: uid, nombre: nombre, email: correo);
+      } catch (_) {
+        await _auth.eliminarCuentaAuth();
+        rethrow;
       }
-      _setCargando(false);
-      return true;
-    } catch (e) {
-      _error = FirebaseErrorMapper.mensaje(e);
-      _setCargando(false);
-      return false;
-    }
-  }
-
-  /// Envía un correo de recuperación de contraseña.
-  Future<bool> enviarCorreoRecuperacion(String correo) async {
-    _error = null;
-    _setCargando(true);
-    try {
-      await _authRepository.enviarCorreoRecuperacion(correo);
+      try {
+        await _auth.reenviarVerificacion();
+      } catch (_) {
+        // No es fatal: puede reenviarlo desde "Verifica tu correo".
+      }
       _setCargando(false);
       return true;
     } catch (e) {

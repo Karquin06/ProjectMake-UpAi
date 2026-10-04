@@ -5,8 +5,11 @@ import 'app_routes.dart';
 import 'guardia_ruta.dart';
 import 'pantalla_en_construccion.dart';
 import '../../ui/splash/splash_view.dart';
+import '../../ui/auth/aviso_privacidad_view.dart';
 import '../../ui/auth/login_view.dart';
+import '../../ui/auth/recuperar_contrasena_view.dart';
 import '../../ui/auth/registro_view.dart';
+import '../../ui/auth/verificar_correo_view.dart';
 import '../../ui/home/main_navigation_view.dart';
 
 /// Tabla de rutas de la app: qué vista abre cada ruta y quién puede verla.
@@ -30,18 +33,15 @@ class AppRouter {
     AppRoutes.onboarding: _Destino.publica(() => const SplashView()),
     AppRoutes.login: _Destino.publica(() => const LoginView()),
     AppRoutes.registro: _Destino.publica(() => const RegistroView()),
-    // CONECTAR (Karlos, FASE 3): const AvisoPrivacidadView()
     AppRoutes.avisoPrivacidad: _Destino.publica(
-      () => _enConstruccion('aviso_privacidad_view', 'Karlos'),
+      () => const AvisoPrivacidadView(),
     ),
-    // CONECTAR (Karlos, FASE 3): const RecuperarContrasenaView()
     AppRoutes.recuperarContrasena: _Destino.publica(
-      () => _enConstruccion('recuperar_contrasena_view', 'Karlos'),
+      () => const RecuperarContrasenaView(),
     ),
-    // CONECTAR (Karlos, FASE 3): const VerificarCorreoView()
     AppRoutes.verificarCorreo: _Destino(
       NivelAcceso.verificacionPendiente,
-      () => _enConstruccion('verificar_correo_view', 'Karlos'),
+      () => const VerificarCorreoView(),
     ),
     AppRoutes.home: _Destino.autenticada(() => const MainNavigationView()),
     // CONECTAR (Karlos, FASE 5): const PerfilView()
