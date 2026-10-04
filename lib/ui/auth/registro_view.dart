@@ -36,7 +36,7 @@ class _RegistroViewState extends State<RegistroView> {
       child: Consumer<AuthViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
-            backgroundColor: AppColors.textoPrincipal.withOpacity(0.35),
+            backgroundColor: AppColors.textoPrincipal.withValues(alpha: 0.35),
             body: SafeArea(
               child: Align(
                 alignment: Alignment.bottomCenter,

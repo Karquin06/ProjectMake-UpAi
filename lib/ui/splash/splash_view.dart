@@ -67,7 +67,7 @@ class _SplashLogo extends StatelessWidget {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(color: Colors.white24, width: 1.4),
                 ),
@@ -231,7 +231,7 @@ class _PaginaOnboarding extends StatelessWidget {
             border: Border.all(color: AppColors.superficie, width: 6),
             boxShadow: [
               BoxShadow(
-                color: AppColors.violeta.withOpacity(0.15),
+                color: AppColors.violeta.withValues(alpha: 0.15),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),

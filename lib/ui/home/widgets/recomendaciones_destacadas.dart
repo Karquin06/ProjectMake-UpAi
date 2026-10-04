@@ -42,7 +42,7 @@ class RecomendacionesDestacadas extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final item = _items[index];
           return _TarjetaRecomendacion(item: item);
