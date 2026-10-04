@@ -84,6 +84,17 @@ extension TipoRecomendacionEtiqueta on TipoRecomendacion {
         return AppStrings.tipoCabello;
     }
   }
+
+  IconData get icono {
+    switch (this) {
+      case TipoRecomendacion.maquillaje:
+        return Icons.brush_outlined;
+      case TipoRecomendacion.outfit:
+        return Icons.checkroom_outlined;
+      case TipoRecomendacion.cabello:
+        return Icons.face_retouching_natural;
+    }
+  }
 }
 
 /// Etiquetas para campos que hoy se guardan como texto libre en Firestore

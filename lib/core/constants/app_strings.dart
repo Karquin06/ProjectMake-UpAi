@@ -144,6 +144,42 @@ class AppStrings {
   static const String colorimetriaTab = 'Colorimetría';
   static const String asistenteTab = 'Asistente';
   static const String perfilTab = 'Perfil';
+  static String saludo(String nombre) =>
+      nombre.isEmpty ? '¡Hola! 👋' : 'Hola, $nombre 👋';
+  static const String saludoSubtitulo = '¿Qué quieres descubrir hoy?';
+  static const String seccionExplorar = 'Explorar';
+  static const String seccionRecomendado = 'Recomendado para ti';
+  static const String verTodo = 'Ver todo';
+  static const String sinNotificaciones = 'No tienes notificaciones nuevas.';
+  static const String cerrarSesion = 'Cerrar sesión';
+
+  // Tarjeta de colorimetría
+  static const String tuEstacionDeColor = 'Tu estación de color';
+  static String estacionConSubtono(String estacion, String subtono) =>
+      '$estacion · subtono $subtono';
+  static const String verMiPaleta = 'Toca para ver tu paleta';
+  static const String sinAnalisisTitulo = 'Aún no tienes un análisis';
+  static const String sinAnalisisAccion = 'Analiza tu colorimetría ahora';
+
+  // Recomendaciones destacadas
+  static const String sinRecomendacionesTitulo =
+      'Aún no tienes recomendaciones';
+  static const String sinRecomendacionesMensaje =
+      'Haz tu análisis de colorimetría para recibir sugerencias '
+      'de maquillaje y ropa hechas para ti.';
+  static const String hacerMiAnalisis = 'Hacer mi análisis';
+
+  // Accesos directos
+  static const String accesoColorimetria = 'Colorimetría';
+  static const String accesoPaleta = 'Mi paleta';
+  static const String accesoOutfits = 'Outfits';
+  static const String accesoMaquillaje = 'Maquillaje';
+  static const String accesoAsistente = 'Asistente IA';
+  static const String accesoSimulador = 'Simulador AR';
+  static const String accesoEscaner = 'Escáner';
+  static const String accesoArmario = 'Armario';
+  static String accesoProximamente(String acceso) =>
+      '$acceso estará disponible próximamente.';
 
   // ---------------------------------------------------------------------
   // Acciones genéricas
