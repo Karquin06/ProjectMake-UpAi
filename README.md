@@ -219,10 +219,24 @@ sesion.esAdmin;        // rol admin
 - Las protecciones son automáticas: sin sesión → login; correo sin verificar → verificar correo; rutas `/admin/...` solo con rol `admin`.
 - Para pasar datos: `context.irA(AppRoutes.detalleProducto, argumentos: producto.id)` y en la vista `context.argumentos<String>()`.
 
+### Flujo de autenticación
+
+```
+Splash ─┬─ sin sesión ── onboarding (solo la 1.ª vez) ── Login ⇄ Registro
+        ├─ correo sin verificar ── Verificar correo ── "Ya verifiqué" ── Home
+        └─ sesión verificada ── Home
+Registro: datos + casilla de aviso de privacidad (obligatoria) → cuenta en Auth
+          + usuarias/{uid} (rol "usuaria", consentimiento con fecha) + correo de verificación
+Google (1.ª vez): debe aceptar el aviso; si lo rechaza se elimina la cuenta creada.
+```
+
+- "Recordarme" guarda **solo el correo** en almacenamiento seguro; nunca la contraseña.
+- El correo de verificación se puede reenviar cada 60 s (`AppConstants.esperaReenvioVerificacion`).
+
 ### Pruebas
 
 ```bash
-flutter test test/core
+flutter test test/core test/auth test/splash
 ```
 
 ---
@@ -240,7 +254,8 @@ service cloud.firestore {
     match /usuarias/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid
-                    && request.resource.data.rol == 'usuaria';
+                    && request.resource.data.rol == 'usuaria'
+                    && request.resource.data.consentimientos.avisoPrivacidad.version is string;
       allow update: if request.auth != null && request.auth.uid == uid
                     && request.resource.data.rol == resource.data.rol;
       allow delete: if false; // se elimina vía Cloud Function eliminarCuenta
