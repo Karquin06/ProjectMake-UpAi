@@ -25,7 +25,8 @@ class Sesion {
     required this.estado,
   });
 
-  factory Sesion.fromMap(Map<String, dynamic> m, {required String id}) => Sesion(
+  factory Sesion.fromMap(Map<String, dynamic> m, {required String id}) =>
+      Sesion(
         id: id,
         uid: m['uid'] as String? ?? '',
         fechaInicio: dateFromFirestore(m['fechaInicio']) ?? DateTime.now(),
@@ -40,14 +41,14 @@ class Sesion {
       Sesion.fromMap(doc.data()!, id: doc.id);
 
   Map<String, dynamic> toMap() => {
-        'uid': uid,
-        'fechaInicio': Timestamp.fromDate(fechaInicio),
-        'fechaFin': dateToFirestore(fechaFin),
-        'dispositivo': dispositivo,
-        'plataforma': plataforma,
-        'direccionIP': direccionIp,
-        'estado': estado,
-      };
+    'uid': uid,
+    'fechaInicio': Timestamp.fromDate(fechaInicio),
+    'fechaFin': dateToFirestore(fechaFin),
+    'dispositivo': dispositivo,
+    'plataforma': plataforma,
+    'direccionIP': direccionIp,
+    'estado': estado,
+  };
 
   Sesion copyWith({
     DateTime? fechaFin,
@@ -55,15 +56,14 @@ class Sesion {
     String? plataforma,
     String? direccionIp,
     String? estado,
-  }) =>
-      Sesion(
-        id: id,
-        uid: uid,
-        fechaInicio: fechaInicio,
-        fechaFin: fechaFin ?? this.fechaFin,
-        dispositivo: dispositivo ?? this.dispositivo,
-        plataforma: plataforma ?? this.plataforma,
-        direccionIp: direccionIp ?? this.direccionIp,
-        estado: estado ?? this.estado,
-      );
+  }) => Sesion(
+    id: id,
+    uid: uid,
+    fechaInicio: fechaInicio,
+    fechaFin: fechaFin ?? this.fechaFin,
+    dispositivo: dispositivo ?? this.dispositivo,
+    plataforma: plataforma ?? this.plataforma,
+    direccionIp: direccionIp ?? this.direccionIp,
+    estado: estado ?? this.estado,
+  );
 }

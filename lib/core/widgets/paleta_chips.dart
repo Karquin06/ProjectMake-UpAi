@@ -38,9 +38,7 @@ class PaletaChips extends StatelessWidget {
     return Wrap(
       spacing: 10,
       runSpacing: 10,
-      children: [
-        for (var i = 0; i < colores.length; i++) _chip(i),
-      ],
+      children: [for (var i = 0; i < colores.length; i++) _chip(i)],
     );
   }
 

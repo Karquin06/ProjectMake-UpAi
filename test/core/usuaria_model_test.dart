@@ -3,21 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/models/usuaria.dart';
 
 void main() {
-  test('documento antiguo sin rol ni consentimientos usa valores por defecto',
-      () {
-    final usuaria = Usuaria.fromMap({
-      'nombre': 'Sofía',
-      'email': 'sofia@ejemplo.com',
-      'fechaRegistro': Timestamp.fromDate(DateTime(2026, 10, 1)),
-      'fotoPerfilURL': null,
-      'tokenNotificaciones': null,
-    }, id: 'abc');
+  test(
+    'documento antiguo sin rol ni consentimientos usa valores por defecto',
+    () {
+      final usuaria = Usuaria.fromMap({
+        'nombre': 'Sofía',
+        'email': 'sofia@ejemplo.com',
+        'fechaRegistro': Timestamp.fromDate(DateTime(2026, 10, 1)),
+        'fotoPerfilURL': null,
+        'tokenNotificaciones': null,
+      }, id: 'abc');
 
-    expect(usuaria.rol, Usuaria.rolUsuaria);
-    expect(usuaria.esAdmin, isFalse);
-    expect(usuaria.consentimientos, isEmpty);
-    expect(usuaria.consentimientoPrivacidad, isNull);
-  });
+      expect(usuaria.rol, Usuaria.rolUsuaria);
+      expect(usuaria.esAdmin, isFalse);
+      expect(usuaria.consentimientos, isEmpty);
+      expect(usuaria.consentimientoPrivacidad, isNull);
+    },
+  );
 
   test('toMap y fromMap conservan rol y consentimientos', () {
     final original = Usuaria(

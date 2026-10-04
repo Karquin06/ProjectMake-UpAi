@@ -76,9 +76,7 @@ void main() {
     expect(find.text(AppStrings.reintentar), findsOneWidget);
   });
 
-  testWidgets('DialogoConfirmacion devuelve true al confirmar', (
-    tester,
-  ) async {
+  testWidgets('DialogoConfirmacion devuelve true al confirmar', (tester) async {
     bool? resultado;
     await tester.pumpWidget(
       _envolver(
