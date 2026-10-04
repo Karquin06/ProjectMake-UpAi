@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../core/constants/app_constants.dart';
+import '../core/constants/app_strings.dart';
+import '../core/errors/app_exception.dart';
 import '../core/errors/firebase_error_mapper.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/usuaria_repository.dart';
@@ -34,6 +37,50 @@ class UsuariaProvider extends ChangeNotifier {
   String? get error => _error;
   String get rol => _usuaria?.rol ?? Usuaria.rolUsuaria;
   bool get esAdmin => _usuaria?.esAdmin ?? false;
+
+  // ---------------------------------------------------------------------
+  // Operaciones (lanzan excepciones; los ViewModels las traducen).
+  // ---------------------------------------------------------------------
+
+  Future<bool> existeUsuaria(String uid) => _usuarias.existeUsuaria(uid);
+
+  /// Crea `usuarias/{uid}` con rol "usuaria" y el consentimiento vigente
+  /// ([AppConstants.versionConsentimiento]). No modifica un documento que
+  /// ya exista.
+  Future<void> crearUsuaria({
+    required String uid,
+    required String nombre,
+    required String email,
+    String? fotoPerfilUrl,
+  }) {
+    return _usuarias.crearUsuaria(
+      uid: uid,
+      nombre: nombre,
+      email: email,
+      fotoPerfilURL: fotoPerfilUrl,
+      versionConsentimiento: AppConstants.versionConsentimiento,
+    );
+  }
+
+  /// Actualiza nombre y/o foto de la usuaria con sesión.
+  Future<void> actualizarUsuaria({String? nombre, String? fotoPerfilUrl}) {
+    final uid = _uidRequerido();
+    return _usuarias.actualizarUsuaria(
+      uid,
+      nombre: nombre,
+      fotoPerfilUrl: fotoPerfilUrl,
+    );
+  }
+
+  /// Guarda el token FCM del dispositivo (o lo borra con `null`).
+  Future<void> guardarTokenFcm(String? token) =>
+      _usuarias.guardarTokenFcm(_uidRequerido(), token);
+
+  String _uidRequerido() {
+    final uid = _uid;
+    if (uid == null) throw const AppException(AppStrings.errorSesionRequerida);
+    return uid;
+  }
 
   /// Vuelve a suscribirse al documento (botón "Reintentar").
   void reintentar() {

@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/credencial_repository.dart';
+import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/usuaria_repository.dart';
 import 'auth_provider.dart';
 import 'sesion_provider.dart';
@@ -26,6 +28,8 @@ class AppProviders extends StatelessWidget {
   static List<SingleChildWidget> get _core => [
     Provider<AuthRepository>(create: (_) => AuthRepository()),
     Provider<UsuariaRepository>(create: (_) => UsuariaRepository()),
+    Provider<SesionRepository>(create: (_) => SesionRepository()),
+    Provider<CredencialRepository>(create: (_) => CredencialRepository()),
     ChangeNotifierProvider<AuthProvider>(
       create: (c) => AuthProvider(c.read<AuthRepository>()),
     ),
@@ -38,8 +42,12 @@ class AppProviders extends StatelessWidget {
     // Vista unificada de la sesión; se recrea cuando cambian los dos
     // providers anteriores. Úsalo con context.watch<SesionProvider>().
     ProxyProvider2<AuthProvider, UsuariaProvider, SesionProvider>(
-      update: (_, auth, usuaria, _) =>
-          SesionProvider(auth: auth, usuaria: usuaria),
+      update: (c, auth, usuaria, _) => SesionProvider(
+        auth: auth,
+        usuaria: usuaria,
+        preferencias: c.read<SesionRepository>(),
+        credenciales: c.read<CredencialRepository>(),
+      ),
     ),
   ];
 
