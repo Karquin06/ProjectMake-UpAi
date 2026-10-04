@@ -18,6 +18,12 @@ class AuthRepository {
   /// (inicio de sesión, cierre de sesión, token refrescado).
   Stream<User?> get cambiosDeSesion => _auth.authStateChanges();
 
+  /// Vuelve a leer la usuaria desde el servidor (p. ej. para saber si ya
+  /// verificó su correo). `authStateChanges` NO emite tras este cambio.
+  Future<void> recargarUsuaria() async {
+    await _auth.currentUser?.reload();
+  }
+
   /// Inicia sesión con correo y contraseña.
   Future<UserCredential> iniciarSesionConCorreo({
     required String correo,

@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/usuaria_repository.dart';
+import 'auth_provider.dart';
+import 'sesion_provider.dart';
+import 'usuaria_provider.dart';
 
 /// Punto ÚNICO donde se registran los providers globales de la app.
 ///
@@ -23,7 +26,21 @@ class AppProviders extends StatelessWidget {
   static List<SingleChildWidget> get _core => [
     Provider<AuthRepository>(create: (_) => AuthRepository()),
     Provider<UsuariaRepository>(create: (_) => UsuariaRepository()),
-    // FASE 2: AuthProvider, UsuariaProvider y SesionProvider.
+    ChangeNotifierProvider<AuthProvider>(
+      create: (c) => AuthProvider(c.read<AuthRepository>()),
+    ),
+    ChangeNotifierProvider<UsuariaProvider>(
+      create: (c) => UsuariaProvider(
+        usuariaRepository: c.read<UsuariaRepository>(),
+        authRepository: c.read<AuthRepository>(),
+      ),
+    ),
+    // Vista unificada de la sesión; se recrea cuando cambian los dos
+    // providers anteriores. Úsalo con context.watch<SesionProvider>().
+    ProxyProvider2<AuthProvider, UsuariaProvider, SesionProvider>(
+      update: (_, auth, usuaria, _) =>
+          SesionProvider(auth: auth, usuaria: usuaria),
+    ),
   ];
 
   /// Colorimetría, paleta y servicios compartidos — dueño: Jaider Monrroy.
