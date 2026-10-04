@@ -48,4 +48,22 @@ class Sesion {
         'direccionIP': direccionIp,
         'estado': estado,
       };
+
+  Sesion copyWith({
+    DateTime? fechaFin,
+    String? dispositivo,
+    String? plataforma,
+    String? direccionIp,
+    String? estado,
+  }) =>
+      Sesion(
+        id: id,
+        uid: uid,
+        fechaInicio: fechaInicio,
+        fechaFin: fechaFin ?? this.fechaFin,
+        dispositivo: dispositivo ?? this.dispositivo,
+        plataforma: plataforma ?? this.plataforma,
+        direccionIp: direccionIp ?? this.direccionIp,
+        estado: estado ?? this.estado,
+      );
 }
