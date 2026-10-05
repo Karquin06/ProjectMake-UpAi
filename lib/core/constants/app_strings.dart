@@ -165,8 +165,17 @@ class AppStrings {
   static const String eliminarCuenta = 'Eliminar cuenta';
   static const String eliminarCuentaSubtitulo =
       'Borra tu cuenta y todos tus datos';
-  static const String eliminarCuentaProximamente =
-      'La eliminación de cuenta estará disponible en la próxima entrega.';
+  static const String eliminarCuentaTitulo = '¿Eliminar tu cuenta?';
+  static const String eliminarCuentaMensaje =
+      'Se borrarán tu perfil, tu colorimetría, tus recomendaciones y tus '
+      'fotos. Esta acción no se puede deshacer.';
+  static const String confirmarIdentidadTitulo = 'Confirma que eres tú';
+  static const String confirmarIdentidadMensaje =
+      'Por seguridad, escribe tu contraseña para eliminar la cuenta.';
+  static const String cuentaEliminada =
+      'Tu cuenta fue eliminada. ¡Gracias por usar Make Up AI!';
+  static const String errorContrasenaIncorrecta =
+      'La contraseña no es correcta.';
   static const String seccionCuenta = 'CUENTA';
   static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
 

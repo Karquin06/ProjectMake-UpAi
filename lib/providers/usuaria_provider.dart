@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../data/services/eliminador_cuenta.dart';
 import '../data/services/subidor_foto_perfil.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/app_strings.dart';
@@ -16,6 +17,7 @@ import '../models/usuaria.dart';
 class UsuariaProvider extends ChangeNotifier {
   final UsuariaRepository _usuarias;
   final SubidorFotoPerfil _subidorFoto;
+  final EliminadorCuenta _eliminador;
   StreamSubscription<Object?>? _suscripcionAuth;
   StreamSubscription<Usuaria?>? _suscripcionDoc;
 
@@ -28,8 +30,10 @@ class UsuariaProvider extends ChangeNotifier {
     required UsuariaRepository usuariaRepository,
     required AuthRepository authRepository,
     SubidorFotoPerfil? subidorFoto,
+    EliminadorCuenta? eliminadorCuenta,
   }) : _usuarias = usuariaRepository,
-       _subidorFoto = subidorFoto ?? SubidorFotoPerfilMock() {
+       _subidorFoto = subidorFoto ?? SubidorFotoPerfilMock(),
+       _eliminador = eliminadorCuenta ?? EliminadorCuentaMock(authRepository) {
     _escucharUid(authRepository.usuarioActual?.uid);
     _suscripcionAuth = authRepository.cambiosDeSesion.listen(
       (usuaria) => _escucharUid(usuaria?.uid),
@@ -92,6 +96,13 @@ class UsuariaProvider extends ChangeNotifier {
   /// permite indicarlo explícitamente (p. ej. justo al iniciar sesión).
   Future<void> guardarTokenFcm(String? token, {String? uid}) =>
       _usuarias.guardarTokenFcm(uid ?? _uidRequerido(), token);
+
+  /// Elimina definitivamente la cuenta y sus datos (función
+  /// `eliminarCuenta`). Requiere una reautenticación reciente.
+  Future<void> eliminarCuenta() {
+    _uidRequerido();
+    return _eliminador.eliminarCuenta();
+  }
 
   String _uidRequerido() {
     final uid = _uid;
