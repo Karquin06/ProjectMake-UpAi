@@ -70,9 +70,9 @@ class _LoginViewState extends State<LoginView> {
         context.irYLimpiarHistorial(vm.rutaTrasIngresar);
       case ResultadoGoogle.requiereConsentimiento:
         // Primera vez con Google: debe aceptar el aviso de privacidad.
-        final acepto = await context.irA<bool>(AppRoutes.avisoPrivacidad);
+        final acepto = await context.irA(AppRoutes.avisoPrivacidad) == true;
         if (!mounted) return;
-        if (acepto == true) {
+        if (acepto) {
           if (await vm.completarRegistroGoogle()) {
             if (mounted) context.irYLimpiarHistorial(vm.rutaTrasIngresar);
             return;

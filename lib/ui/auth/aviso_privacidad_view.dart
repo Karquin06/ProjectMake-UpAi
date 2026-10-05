@@ -11,7 +11,7 @@ import '../../core/widgets/tarjeta_base.dart';
 ///
 /// Al tocar "Acepto" cierra la pantalla devolviendo `true`:
 /// ```dart
-/// final acepto = await context.irA<bool>(AppRoutes.avisoPrivacidad);
+/// final acepto = await context.irA(AppRoutes.avisoPrivacidad) == true;
 /// ```
 /// Para solo consultarlo (p. ej. desde Perfil) pasa `false` como argumento
 /// y no se muestra el botón.

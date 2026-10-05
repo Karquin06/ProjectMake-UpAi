@@ -33,25 +33,24 @@ extension ContextExtensions on BuildContext {
   // Navegación (usar siempre las constantes de AppRoutes)
   // ---------------------------------------------------------------------
 
-  /// Abre [ruta] encima de la pantalla actual.
-  Future<T?> irA<T extends Object?>(String ruta, {Object? argumentos}) =>
-      Navigator.of(this).pushNamed<T>(ruta, arguments: argumentos);
+  // OJO: estos métodos NO son genéricos a propósito. `onGenerateRoute`
+  // crea rutas `Route<dynamic>`, y un `pushNamed<bool>` fallaría en tiempo
+  // de ejecución. Para leer el resultado compáralo: `await irA(r) == true`.
+
+  /// Abre [ruta] encima de la pantalla actual. Devuelve lo que la pantalla
+  /// pase a `volver(resultado)`.
+  Future<Object?> irA(String ruta, {Object? argumentos}) =>
+      Navigator.of(this).pushNamed(ruta, arguments: argumentos);
 
   /// Reemplaza la pantalla actual por [ruta].
-  Future<T?> reemplazarCon<T extends Object?>(
-    String ruta, {
-    Object? argumentos,
-  }) => Navigator.of(
-    this,
-  ).pushReplacementNamed<T, Object?>(ruta, arguments: argumentos);
+  Future<Object?> reemplazarCon(String ruta, {Object? argumentos}) =>
+      Navigator.of(this).pushReplacementNamed(ruta, arguments: argumentos);
 
   /// Abre [ruta] y elimina todo el historial (p. ej. tras cerrar sesión).
-  Future<T?> irYLimpiarHistorial<T extends Object?>(
-    String ruta, {
-    Object? argumentos,
-  }) => Navigator.of(
-    this,
-  ).pushNamedAndRemoveUntil<T>(ruta, (_) => false, arguments: argumentos);
+  Future<Object?> irYLimpiarHistorial(String ruta, {Object? argumentos}) =>
+      Navigator.of(
+        this,
+      ).pushNamedAndRemoveUntil(ruta, (_) => false, arguments: argumentos);
 
   /// Cierra la pantalla actual devolviendo [resultado] opcional.
   void volver<T extends Object?>([T? resultado]) =>
