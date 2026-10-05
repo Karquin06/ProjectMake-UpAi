@@ -260,11 +260,28 @@ Google (1.ª vez): debe aceptar el aviso; si lo rechaza se elimina la cuenta cre
 - **Foto de perfil:** se reduce con `ImageUtils` y se sube con el contrato `SubidorFotoPerfil` (`lib/data/services/subidor_foto_perfil.dart`) a `perfiles/{uid}/foto.jpg`. Mientras `usarMockStorage` sea `true` no se sube (se guarda solo el nombre). **Jaider:** cuando exista tu `StorageService`, crea un adaptador que implemente `SubidorFotoPerfil` y regístralo en el `PUNTO DE CAMBIO` de `app_providers.dart`.
 - **Notificaciones push (solo Android):** al iniciar sesión se pide permiso y el token FCM se guarda en `usuarias/{uid}.tokenNotificaciones`. Al cerrar sesión se borra. Con la app abierta, los mensajes se muestran como aviso en la parte inferior. Para enviar uno desde una Cloud Function, usa ese token.
 
+- **Eliminar cuenta:** Perfil → Eliminar cuenta → confirmación → contraseña (o Google) → `EliminadorCuenta` (`lib/data/services/eliminador_cuenta.dart`) → cierre de sesión → login. Mientras `usarMockEliminarCuenta` sea `true`, solo se borra la cuenta de Auth: el documento y la foto quedan huérfanos. **Ana:** la función `eliminarCuenta` (callable, con la usuaria autenticada) debe borrar `usuarias/{uid}` con sus subcolecciones, `perfiles/{uid}/` en Storage y la cuenta de Auth (Admin SDK). **Jaider/Ana:** conecten el adaptador en el `PUNTO DE CAMBIO` de `app_providers.dart`.
+
 ### Pruebas
 
 ```bash
-flutter test test/core test/auth test/splash test/home test/perfil
+flutter test test/core test/auth test/splash test/home test/perfil test/integracion
 ```
+
+`test/integracion/flujo_completo_test.dart` arranca la app real con Firebase en memoria y recorre registro → verificación → Home → editar perfil → cerrar sesión → login → eliminar cuenta. Para inyectar dependencias falsas usa `MakeUpAiApp(dependencias: [...])`.
+
+---
+
+## Estado del módulo Core, Auth, Home y Perfil (Karlos)
+
+| Criterio | Estado |
+|---|---|
+| Core y widgets con guía de uso | ✅ Hecho (pendiente subir a `develop` por PR) |
+| Registro, verificación, login y recuperación; sin correo verificado no se entra a Home | ✅ Hecho y probado (en Firebase real falta habilitar el proveedor correo/contraseña) |
+| Home con nombre, estación y recomendaciones; Escáner y Armario deshabilitados | ✅ Nombre real · 🟡 estación y recomendaciones en mock hasta los providers de Jaider y Ana |
+| Perfil edita datos, cierra sesión y elimina la cuenta | ✅ Hecho · 🟡 foto y eliminación completa en mock hasta StorageService y la función `eliminarCuenta` |
+| Todas las rutas registradas en `app_routes` | ✅ 26 rutas (verificado por prueba) |
+| `flutter analyze` sin errores; ninguna carpeta ajena modificada | ✅ |
 
 ---
 
