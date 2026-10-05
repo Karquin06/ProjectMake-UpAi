@@ -45,7 +45,14 @@ class _ParametrosImagen {
 }
 
 Uint8List? _procesar(_ParametrosImagen p) {
-  final original = img.decodeImage(p.bytes);
+  // Con bytes corruptos o de otro formato el decodificador puede lanzar
+  // en lugar de devolver null: ambos casos son "imagen inválida".
+  img.Image? original;
+  try {
+    original = img.decodeImage(p.bytes);
+  } catch (_) {
+    return null;
+  }
   if (original == null) return null;
 
   var imagen = img.bakeOrientation(original);
