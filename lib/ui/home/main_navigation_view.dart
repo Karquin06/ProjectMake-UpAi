@@ -1,16 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_router.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/widgets/estado_vacio.dart';
-import '../../providers/sesion_provider.dart';
+import '../../core/utils/snackbar_helper.dart';
+import '../../data/services/notificaciones_service.dart';
+import '../../providers/notificaciones_provider.dart';
 import 'home_view.dart';
 
 /// Contenedor principal tras iniciar sesión: barra inferior con Inicio,
 /// Colorimetría, Asistente y Perfil. Usa `IndexedStack` para conservar el
 /// estado (scroll, formularios...) de cada pestaña al cambiar entre ellas.
+///
+/// También muestra como aviso las notificaciones push que llegan con la
+/// app abierta.
 class MainNavigationView extends StatefulWidget {
   const MainNavigationView({super.key});
 
@@ -20,17 +24,42 @@ class MainNavigationView extends StatefulWidget {
 
 class _MainNavigationViewState extends State<MainNavigationView> {
   int _indiceActual = 0;
+  StreamSubscription<NotificacionEntrante>? _subNotificaciones;
 
   /// Se crean una sola vez para que cada pestaña conserve su estado.
-  /// Colorimetría y Asistente muestran la misma vista que su ruta: cuando
-  /// Jaider y Ana la conecten en `app_router.dart`, aparecerá aquí sola.
+  /// Colorimetría, Asistente y Perfil muestran la misma vista que su ruta:
+  /// cuando Jaider y Ana la conecten en `app_router.dart`, aparecerá aquí.
   late final List<Widget> _paginas = [
     HomeView(onIrAPestana: _cambiarPestana),
     AppRouter.paginaDe(AppRoutes.colorimetria),
     AppRouter.paginaDe(AppRoutes.asistente),
-    // FASE 5: reemplazar por AppRouter.paginaDe(AppRoutes.perfil).
-    const _PantallaPerfilProvisional(),
+    AppRouter.paginaDe(AppRoutes.perfil),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Leerlo también lo inicializa (pide permiso y registra el token).
+    _subNotificaciones = context
+        .read<NotificacionesProvider>()
+        .entrantes
+        .listen(_mostrarNotificacion);
+  }
+
+  @override
+  void dispose() {
+    _subNotificaciones?.cancel();
+    super.dispose();
+  }
+
+  void _mostrarNotificacion(NotificacionEntrante n) {
+    if (!mounted) return;
+    final titulo = n.titulo ?? AppStrings.notificacionNueva;
+    SnackbarHelper.info(
+      context,
+      n.cuerpo == null ? titulo : '$titulo: ${n.cuerpo}',
+    );
+  }
 
   void _cambiarPestana(int indice) => setState(() => _indiceActual = indice);
 
@@ -70,28 +99,6 @@ class _MainNavigationViewState extends State<MainNavigationView> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Perfil provisional hasta la FASE 5 (solo permite cerrar sesión).
-class _PantallaPerfilProvisional extends StatelessWidget {
-  const _PantallaPerfilProvisional();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.fondoClaro,
-      body: EstadoVacio(
-        icono: Icons.person_outline,
-        titulo: AppStrings.enConstruccion,
-        textoBoton: AppStrings.cerrarSesion,
-        onPressed: () async {
-          final navigator = Navigator.of(context);
-          await context.read<SesionProvider>().cerrarSesion();
-          navigator.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
-        },
       ),
     );
   }

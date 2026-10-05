@@ -11,6 +11,8 @@ import '../../ui/auth/recuperar_contrasena_view.dart';
 import '../../ui/auth/registro_view.dart';
 import '../../ui/auth/verificar_correo_view.dart';
 import '../../ui/home/main_navigation_view.dart';
+import '../../ui/perfil/editar_perfil_view.dart';
+import '../../ui/perfil/perfil_view.dart';
 
 /// Tabla de rutas de la app: qué vista abre cada ruta y quién puede verla.
 ///
@@ -44,13 +46,9 @@ class AppRouter {
       () => const VerificarCorreoView(),
     ),
     AppRoutes.home: _Destino.autenticada(() => const MainNavigationView()),
-    // CONECTAR (Karlos, FASE 5): const PerfilView()
-    AppRoutes.perfil: _Destino.autenticada(
-      () => _enConstruccion('perfil_view', 'Karlos'),
-    ),
-    // CONECTAR (Karlos, FASE 5): const EditarPerfilView()
+    AppRoutes.perfil: _Destino.autenticada(() => const PerfilView()),
     AppRoutes.editarPerfil: _Destino.autenticada(
-      () => _enConstruccion('editar_perfil_view', 'Karlos'),
+      () => const EditarPerfilView(),
     ),
 
     // -------------------------------------------------------------------

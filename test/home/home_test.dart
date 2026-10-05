@@ -10,7 +10,9 @@ import 'package:mackeupai/data/repositories/auth_repository.dart';
 import 'package:mackeupai/data/repositories/credencial_repository.dart';
 import 'package:mackeupai/data/repositories/sesion_repository.dart';
 import 'package:mackeupai/data/repositories/usuaria_repository.dart';
+import 'package:mackeupai/data/services/notificaciones_service.dart';
 import 'package:mackeupai/models/models.dart';
+import 'package:mackeupai/providers/notificaciones_provider.dart';
 import 'package:mackeupai/providers/auth_provider.dart';
 import 'package:mackeupai/providers/sesion_provider.dart';
 import 'package:mackeupai/providers/usuaria_provider.dart';
@@ -38,6 +40,11 @@ class _AuthRepoFalso extends Fake implements AuthRepository {
   User? get usuarioActual => _UsuarioFalso();
   @override
   Stream<User?> get cambiosDeSesion => _cambios.stream;
+}
+
+class _NotificacionesFalsas extends Fake implements NotificacionesService {
+  @override
+  bool get soportado => false;
 }
 
 class _UsuariaRepoFalso extends Fake implements UsuariaRepository {
@@ -149,6 +156,13 @@ void main() {
               preferencias: SesionRepository(),
               credenciales: CredencialRepository(),
             ),
+          ),
+          ChangeNotifierProxyProvider<SesionProvider, NotificacionesProvider>(
+            create: (c) => NotificacionesProvider(
+              servicio: _NotificacionesFalsas(),
+              usuarias: c.read<UsuariaProvider>(),
+            ),
+            update: (_, s, n) => n!..sincronizarUsuaria(s.uidActiva),
           ),
         ],
         child: MaterialApp(
