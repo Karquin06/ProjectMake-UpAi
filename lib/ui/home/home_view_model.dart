@@ -69,6 +69,7 @@ class HomeViewModel extends ChangeNotifier {
            cargarRecomendaciones ?? _recomendacionesPorDefecto;
 
   String? _uid;
+  bool _desechado = false;
   String _nombre = '';
   bool _cargando = false;
   String? _error;
@@ -107,15 +108,25 @@ class HomeViewModel extends ChangeNotifier {
       // Se difiere para no notificar durante el build del árbol.
       Future.microtask(cargar);
     } else {
-      Future.microtask(notifyListeners);
+      Future.microtask(_notificar);
     }
+  }
+
+  void _notificar() {
+    if (!_desechado) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _desechado = true;
+    super.dispose();
   }
 
   /// Carga (o recarga, p. ej. con "Reintentar" o al deslizar hacia abajo)
   /// el perfil, la paleta y las recomendaciones.
   Future<void> cargar() async {
     final uid = _uid;
-    if (uid == null || _cargando) return;
+    if (uid == null || _cargando || _desechado) return;
     _cargando = true;
     _error = null;
     notifyListeners();
@@ -132,7 +143,7 @@ class HomeViewModel extends ChangeNotifier {
       _error = FirebaseErrorMapper.mensaje(e);
     }
     _cargando = false;
-    notifyListeners();
+    _notificar();
   }
 
   // -----------------------------------------------------------------------

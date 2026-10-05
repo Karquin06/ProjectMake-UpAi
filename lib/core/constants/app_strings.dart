@@ -153,6 +153,38 @@ class AppStrings {
   static const String sinNotificaciones = 'No tienes notificaciones nuevas.';
   static const String cerrarSesion = 'Cerrar sesión';
 
+  // Perfil
+  static const String miPerfil = 'Mi perfil';
+  static const String editarPerfil = 'Editar perfil';
+  static const String editarPerfilSubtitulo = 'Cambia tu nombre y tu foto';
+  static const String avisoPrivacidadSubtitulo = 'Cómo cuidamos tus datos';
+  static const String cerrarSesionSubtitulo = 'Sal de tu cuenta en este equipo';
+  static const String cerrarSesionTitulo = '¿Cerrar sesión?';
+  static const String cerrarSesionMensaje =
+      'Tendrás que volver a iniciar sesión para usar Make Up AI.';
+  static const String eliminarCuenta = 'Eliminar cuenta';
+  static const String eliminarCuentaSubtitulo =
+      'Borra tu cuenta y todos tus datos';
+  static const String eliminarCuentaProximamente =
+      'La eliminación de cuenta estará disponible en la próxima entrega.';
+  static const String seccionCuenta = 'CUENTA';
+  static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
+
+  // Editar perfil
+  static const String guardarCambios = 'Guardar cambios';
+  static const String cambiarFoto = 'Cambiar foto';
+  static const String tomarFoto = 'Tomar foto';
+  static const String elegirDeGaleria = 'Elegir de la galería';
+  static const String perfilActualizado = 'Tu perfil se actualizó.';
+  static const String fotoPendienteStorage =
+      'Tu nombre se guardó. La foto se subirá cuando el servicio de '
+      'almacenamiento esté listo.';
+  static const String errorImagenMuyGrande =
+      'La imagen pesa demasiado (máximo 15 MB). Elige otra.';
+
+  // Notificaciones
+  static const String notificacionNueva = 'Nueva notificación';
+
   // Tarjeta de colorimetría
   static const String tuEstacionDeColor = 'Tu estación de color';
   static String estacionConSubtono(String estacion, String subtono) =>

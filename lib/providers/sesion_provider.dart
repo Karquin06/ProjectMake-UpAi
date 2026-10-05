@@ -41,12 +41,19 @@ class SesionProvider {
   bool get sesionActiva => _auth.estado == EstadoAuth.autenticada;
 
   String? get uid => _auth.uid;
+
+  /// uid solo si la sesión está activa (correo verificado); `null` en otro
+  /// caso. Úsalo en `sincronizarUsuaria` de los providers con datos.
+  String? get uidActiva => sesionActiva ? _auth.uid : null;
   String? get correo => _usuaria.usuaria?.email ?? _auth.correo;
 
   /// Documento de Firestore de la usuaria (puede tardar en llegar).
   Usuaria? get usuaria => _usuaria.usuaria;
   bool get cargandoUsuaria => _usuaria.cargando;
   String? get errorUsuaria => _usuaria.error;
+
+  /// Vuelve a cargar el documento de la usuaria (botón "Reintentar").
+  void reintentarUsuaria() => _usuaria.reintentar();
 
   String get rol => _usuaria.rol;
   bool get esAdmin => _usuaria.esAdmin;

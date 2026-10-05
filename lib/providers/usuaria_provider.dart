@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../data/services/subidor_foto_perfil.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/app_strings.dart';
 import '../core/errors/app_exception.dart';
@@ -14,6 +15,7 @@ import '../models/usuaria.dart';
 /// documento y al cerrarla limpia todo el estado.
 class UsuariaProvider extends ChangeNotifier {
   final UsuariaRepository _usuarias;
+  final SubidorFotoPerfil _subidorFoto;
   StreamSubscription<Object?>? _suscripcionAuth;
   StreamSubscription<Usuaria?>? _suscripcionDoc;
 
@@ -25,7 +27,9 @@ class UsuariaProvider extends ChangeNotifier {
   UsuariaProvider({
     required UsuariaRepository usuariaRepository,
     required AuthRepository authRepository,
-  }) : _usuarias = usuariaRepository {
+    SubidorFotoPerfil? subidorFoto,
+  }) : _usuarias = usuariaRepository,
+       _subidorFoto = subidorFoto ?? SubidorFotoPerfilMock() {
     _escucharUid(authRepository.usuarioActual?.uid);
     _suscripcionAuth = authRepository.cambiosDeSesion.listen(
       (usuaria) => _escucharUid(usuaria?.uid),
@@ -72,9 +76,22 @@ class UsuariaProvider extends ChangeNotifier {
     );
   }
 
-  /// Guarda el token FCM del dispositivo (o lo borra con `null`).
-  Future<void> guardarTokenFcm(String? token) =>
-      _usuarias.guardarTokenFcm(_uidRequerido(), token);
+  /// Sube la nueva foto (JPEG ya reducido) y guarda su URL en el
+  /// documento. Devuelve la URL, o `null` si la subida no está disponible
+  /// todavía (`AppConstants.usarMockStorage`).
+  Future<String?> actualizarFoto(Uint8List jpeg) async {
+    final uid = _uidRequerido();
+    final url = await _subidorFoto.subirFotoPerfil(uid: uid, jpeg: jpeg);
+    if (url != null) {
+      await _usuarias.actualizarUsuaria(uid, fotoPerfilUrl: url);
+    }
+    return url;
+  }
+
+  /// Guarda el token FCM del dispositivo (o lo borra con `null`). [uid]
+  /// permite indicarlo explícitamente (p. ej. justo al iniciar sesión).
+  Future<void> guardarTokenFcm(String? token, {String? uid}) =>
+      _usuarias.guardarTokenFcm(uid ?? _uidRequerido(), token);
 
   String _uidRequerido() {
     final uid = _uid;
