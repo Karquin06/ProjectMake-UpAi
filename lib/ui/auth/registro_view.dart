@@ -35,8 +35,8 @@ class _RegistroViewState extends State<RegistroView> {
   }
 
   Future<void> _verAviso(AuthViewModel vm) async {
-    final acepto = await context.irA<bool>(AppRoutes.avisoPrivacidad);
-    if (acepto == true) vm.cambiarConsentimiento(true);
+    final acepto = await context.irA(AppRoutes.avisoPrivacidad) == true;
+    if (acepto) vm.cambiarConsentimiento(true);
   }
 
   Future<void> _crearCuenta(AuthViewModel vm) async {
