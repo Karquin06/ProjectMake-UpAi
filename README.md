@@ -209,6 +209,16 @@ sesion.usuaria;        // documento usuarias/{uid} (modelo Usuaria)
 sesion.esAdmin;        // rol admin
 ```
 
+**Si tu provider guarda datos de la usuaria** (perfil, paleta, recomendaciones, armario…), usa el mixin `LimpiezaPorSesion` (`lib/providers/limpieza_sesion.dart`) y regístralo así en tu lista de `app_providers.dart`. De este modo, al cerrar sesión o cambiar de cuenta, tus datos se borran solos:
+
+```dart
+ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
+  create: (c) => ColorimetriaProvider(...),
+  update: (_, sesion, p) => p!..sincronizarUsuaria(sesion.uidActiva),
+),
+// En tu provider: implementa limpiar() y alIniciarSesion(uid).
+```
+
 > ⚠️ `firebase_auth` también exporta una clase llamada `AuthProvider`. Si un archivo
 > necesita ambos, importa Firebase con `show` (p. ej. `import 'package:firebase_auth/firebase_auth.dart' show User;`).
 
@@ -245,10 +255,15 @@ Google (1.ª vez): debe aceptar el aviso; si lo rechaza se elimina la cuenta cre
 - "Recordarme" guarda **solo el correo** en almacenamiento seguro; nunca la contraseña.
 - El correo de verificación se puede reenviar cada 60 s (`AppConstants.esperaReenvioVerificacion`).
 
+### Perfil, foto y notificaciones
+
+- **Foto de perfil:** se reduce con `ImageUtils` y se sube con el contrato `SubidorFotoPerfil` (`lib/data/services/subidor_foto_perfil.dart`) a `perfiles/{uid}/foto.jpg`. Mientras `usarMockStorage` sea `true` no se sube (se guarda solo el nombre). **Jaider:** cuando exista tu `StorageService`, crea un adaptador que implemente `SubidorFotoPerfil` y regístralo en el `PUNTO DE CAMBIO` de `app_providers.dart`.
+- **Notificaciones push (solo Android):** al iniciar sesión se pide permiso y el token FCM se guarda en `usuarias/{uid}.tokenNotificaciones`. Al cerrar sesión se borra. Con la app abierta, los mensajes se muestran como aviso en la parte inferior. Para enviar uno desde una Cloud Function, usa ese token.
+
 ### Pruebas
 
 ```bash
-flutter test test/core test/auth test/splash
+flutter test test/core test/auth test/splash test/home test/perfil
 ```
 
 ---
