@@ -1,11 +1,12 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
+import '../core/constants/app_constants.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
-import '../core/constants/app_constants.dart';
 import '../data/repositories/usuaria_repository.dart';
+import '../data/services/eliminador_cuenta.dart';
 import '../data/services/notificaciones_service.dart';
 import '../data/services/subidor_foto_perfil.dart';
 import 'auth_provider.dart';
@@ -26,10 +27,14 @@ import 'usuaria_provider.dart';
 class AppProviders extends StatelessWidget {
   final Widget child;
 
-  const AppProviders({super.key, required this.child});
+  /// Solo para pruebas: reemplaza los repositorios y servicios de core
+  /// ([dependenciasCore]) por versiones falsas (`Provider.value`).
+  final List<SingleChildWidget>? dependencias;
 
-  /// Core, Auth, Home y Perfil — dueño: Karlos Quintero.
-  static List<SingleChildWidget> get _core => [
+  const AppProviders({super.key, required this.child, this.dependencias});
+
+  /// Repositorios y servicios de core (sin estado) — dueño: Karlos.
+  static List<SingleChildWidget> get dependenciasCore => [
     Provider<AuthRepository>(create: (_) => AuthRepository()),
     Provider<UsuariaRepository>(create: (_) => UsuariaRepository()),
     Provider<SesionRepository>(create: (_) => SesionRepository()),
@@ -47,6 +52,22 @@ class AppProviders extends StatelessWidget {
         return SubidorFotoPerfilMock();
       },
     ),
+    Provider<EliminadorCuenta>(
+      create: (c) {
+        // PUNTO DE CAMBIO (Ana/Jaider): cuando la función eliminarCuenta
+        // esté desplegada, devolver un adaptador que la llame con el
+        // servicio de Cloud Functions y poner usarMockEliminarCuenta en false.
+        assert(
+          AppConstants.usarMockEliminarCuenta,
+          'Conecta la función eliminarCuenta aquí antes de apagar el mock.',
+        );
+        return EliminadorCuentaMock(c.read<AuthRepository>());
+      },
+    ),
+  ];
+
+  /// Estado global de Core, Auth, Home y Perfil — dueño: Karlos Quintero.
+  static List<SingleChildWidget> get _core => [
     ChangeNotifierProvider<AuthProvider>(
       create: (c) => AuthProvider(c.read<AuthRepository>()),
     ),
@@ -55,6 +76,7 @@ class AppProviders extends StatelessWidget {
         usuariaRepository: c.read<UsuariaRepository>(),
         authRepository: c.read<AuthRepository>(),
         subidorFoto: c.read<SubidorFotoPerfil>(),
+        eliminadorCuenta: c.read<EliminadorCuenta>(),
       ),
     ),
     // Vista unificada de la sesión; se recrea cuando cambian los dos
@@ -102,6 +124,7 @@ class AppProviders extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ...(dependencias ?? dependenciasCore),
         ..._core,
         ..._colorimetria,
         ..._inteligenciaArtificial,

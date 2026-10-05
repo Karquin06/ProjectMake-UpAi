@@ -18,8 +18,7 @@ class NotificacionEntrante {
 class NotificacionesService {
   FirebaseMessaging? _instancia;
 
-  FirebaseMessaging get _messaging =>
-      _instancia ??= FirebaseMessaging.instance;
+  FirebaseMessaging get _messaging => _instancia ??= FirebaseMessaging.instance;
 
   /// `true` si las notificaciones push funcionan en esta plataforma.
   bool get soportado =>

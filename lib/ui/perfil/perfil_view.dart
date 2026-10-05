@@ -12,6 +12,7 @@ import '../../core/widgets/mensaje_error.dart';
 import '../../core/widgets/tarjeta_base.dart';
 import '../../providers/sesion_provider.dart';
 import 'perfil_view_model.dart';
+import 'widgets/boton_eliminar_cuenta.dart';
 import 'widgets/encabezado_perfil.dart';
 import 'widgets/opcion_perfil.dart';
 
@@ -23,7 +24,11 @@ class PerfilView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProxyProvider<SesionProvider, PerfilViewModel>(
-      create: (c) => PerfilViewModel(notificaciones: c.read()),
+      create: (c) => PerfilViewModel(
+        notificaciones: c.read(),
+        auth: c.read(),
+        usuarias: c.read(),
+      ),
       update: (_, sesion, vm) => vm!..actualizarSesion(sesion),
       child: Consumer<PerfilViewModel>(
         builder: (context, vm, _) {
@@ -89,17 +94,7 @@ class PerfilView extends StatelessWidget {
                 onTap: () => _cerrarSesion(context, vm),
               ),
               const Divider(height: 1, indent: 70, color: AppColors.borde),
-              OpcionPerfil(
-                icono: Icons.delete_outline,
-                titulo: AppStrings.eliminarCuenta,
-                subtitulo: AppStrings.eliminarCuentaSubtitulo,
-                destructiva: true,
-                // FASE 6: reautenticación + función eliminarCuenta.
-                onTap: () => SnackbarHelper.info(
-                  context,
-                  AppStrings.eliminarCuentaProximamente,
-                ),
-              ),
+              BotonEliminarCuenta(vm: vm),
             ],
           ),
         ),

@@ -1,22 +1,38 @@
 import 'package:flutter/foundation.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/errors/app_exception.dart';
 import '../../core/errors/firebase_error_mapper.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/notificaciones_provider.dart';
 import '../../providers/sesion_provider.dart';
+import '../../providers/usuaria_provider.dart';
 
 /// Datos y acciones de la pantalla de perfil.
 class PerfilViewModel extends ChangeNotifier {
   final NotificacionesProvider _notificaciones;
+  final AuthProvider _auth;
+  final UsuariaProvider _usuarias;
   SesionProvider? _sesion;
   bool _desechado = false;
   bool _cerrandoSesion = false;
+  bool _eliminandoCuenta = false;
   String? _error;
 
-  PerfilViewModel({required this._notificaciones});
+  PerfilViewModel({
+    required this._notificaciones,
+    required this._auth,
+    required this._usuarias,
+  });
 
   String get nombre => _sesion?.nombreVisible ?? '';
   String get correo => _sesion?.correo ?? '';
   String? get fotoUrl => _sesion?.fotoUrl;
   bool get cerrandoSesion => _cerrandoSesion;
+  bool get eliminandoCuenta => _eliminandoCuenta;
+
+  /// `true` si la cuenta usa contraseña (se pide para reautenticar); si
+  /// no, se reautentica con Google.
+  bool get reautenticaConContrasena => _auth.tieneProveedorContrasena;
   String? get error => _error;
 
   /// Cargando la primera vez (aún no hay ni nombre ni documento).
@@ -55,6 +71,41 @@ class PerfilViewModel extends ChangeNotifier {
       return false;
     } finally {
       _cerrandoSesion = false;
+      _notificar();
+    }
+  }
+
+  /// Elimina la cuenta: reautentica (con [contrasena] o con Google),
+  /// desregistra las notificaciones, llama a `eliminarCuenta`, olvida el
+  /// correo de "Recordarme" y cierra la sesión. Devuelve `true` si se
+  /// eliminó; `false` si falló o la usuaria canceló el selector de Google.
+  Future<bool> eliminarCuenta({String? contrasena}) async {
+    final sesion = _sesion;
+    if (sesion == null || _eliminandoCuenta) return false;
+    _eliminandoCuenta = true;
+    _error = null;
+    _notificar();
+    try {
+      if (contrasena != null) {
+        await _auth.reautenticarConContrasena(contrasena);
+      } else if (!await _auth.reautenticarConGoogle()) {
+        return false; // Cerró el selector de Google.
+      }
+      await _notificaciones.desregistrar();
+      await _usuarias.eliminarCuenta();
+      await sesion.olvidarCorreo();
+      await sesion.cerrarSesion();
+      return true;
+    } catch (e) {
+      final excepcion = AppException.desde(e);
+      _error =
+          (excepcion.codigo == 'wrong-password' ||
+              excepcion.codigo == 'invalid-credential')
+          ? AppStrings.errorContrasenaIncorrecta
+          : excepcion.mensaje;
+      return false;
+    } finally {
+      _eliminandoCuenta = false;
       _notificar();
     }
   }

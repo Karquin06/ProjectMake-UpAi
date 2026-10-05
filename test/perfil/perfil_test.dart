@@ -191,8 +191,11 @@ void main() {
       expect(notificaciones.permisoConcedido, isTrue);
       expect(usuarias.usuaria, isNotNull);
 
-      final vm = PerfilViewModel(notificaciones: notificaciones)
-        ..actualizarSesion(sesion);
+      final vm = PerfilViewModel(
+        notificaciones: notificaciones,
+        auth: auth,
+        usuarias: usuarias,
+      )..actualizarSesion(sesion);
       expect(await vm.cerrarSesion(), isTrue);
       expect(_registro.sublist(_registro.indexOf('doc.token=null')), [
         'doc.token=null',
