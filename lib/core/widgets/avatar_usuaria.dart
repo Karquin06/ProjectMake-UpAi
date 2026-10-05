@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_gradients.dart';
@@ -6,8 +7,11 @@ import '../utils/formatters.dart';
 /// Avatar circular de la usuaria: muestra la foto si hay [fotoUrl] (y
 /// carga bien) o, si no, sus iniciales sobre el degradado de marca.
 /// Con [mostrarEditar] aparece un botón de cámara (editar perfil).
+/// [fotoBytes] (p. ej. una foto recién elegida) tiene prioridad sobre
+/// [fotoUrl].
 class AvatarUsuaria extends StatelessWidget {
   final String? fotoUrl;
+  final Uint8List? fotoBytes;
   final String nombre;
   final double radio;
   final VoidCallback? onTap;
@@ -17,6 +21,7 @@ class AvatarUsuaria extends StatelessWidget {
     super.key,
     required this.nombre,
     this.fotoUrl,
+    this.fotoBytes,
     this.radio = 28,
     this.onTap,
     this.mostrarEditar = false,
@@ -47,7 +52,15 @@ class AvatarUsuaria extends StatelessWidget {
                 gradient: AppGradients.marca,
               ),
               child: ClipOval(
-                child: tieneFoto
+                child: fotoBytes != null
+                    ? Image.memory(
+                        fotoBytes!,
+                        width: diametro,
+                        height: diametro,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => iniciales,
+                      )
+                    : tieneFoto
                     ? Image.network(
                         fotoUrl!,
                         width: diametro,

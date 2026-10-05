@@ -22,6 +22,11 @@ class AppConstants {
   /// desplegada (Ana). Se simula la eliminación en el cliente.
   static const bool usarMockEliminarCuenta = true;
 
+  /// `true` mientras no exista `StorageService` (Jaider). La foto de
+  /// perfil no se sube: se guarda solo el nombre y se avisa a la usuaria.
+  /// Para apagarla, conecta el adaptador en `app_providers.dart`.
+  static const bool usarMockStorage = true;
+
   /// Habilita el acceso al Escáner en Home (Mauricio lo activa).
   static const bool escanerHabilitado = false;
 
@@ -56,4 +61,7 @@ class AppConstants {
 
   /// Calidad JPEG (0-100) al comprimir imágenes antes de subirlas.
   static const int calidadJpeg = 85;
+
+  /// Tamaño máximo (bytes) de la imagen ORIGINAL elegida por la usuaria.
+  static const int tamanoMaximoImagenBytes = 15 * 1024 * 1024;
 }

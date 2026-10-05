@@ -4,8 +4,12 @@ import 'package:provider/single_child_widget.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
+import '../core/constants/app_constants.dart';
 import '../data/repositories/usuaria_repository.dart';
+import '../data/services/notificaciones_service.dart';
+import '../data/services/subidor_foto_perfil.dart';
 import 'auth_provider.dart';
+import 'notificaciones_provider.dart';
 import 'sesion_provider.dart';
 import 'usuaria_provider.dart';
 
@@ -30,6 +34,19 @@ class AppProviders extends StatelessWidget {
     Provider<UsuariaRepository>(create: (_) => UsuariaRepository()),
     Provider<SesionRepository>(create: (_) => SesionRepository()),
     Provider<CredencialRepository>(create: (_) => CredencialRepository()),
+    Provider<NotificacionesService>(create: (_) => NotificacionesService()),
+    Provider<SubidorFotoPerfil>(
+      create: (_) {
+        // PUNTO DE CAMBIO (Jaider): cuando exista StorageService, devolver
+        // un adaptador que implemente SubidorFotoPerfil con él y poner
+        // AppConstants.usarMockStorage en false.
+        assert(
+          AppConstants.usarMockStorage,
+          'Conecta StorageService aquí antes de apagar usarMockStorage.',
+        );
+        return SubidorFotoPerfilMock();
+      },
+    ),
     ChangeNotifierProvider<AuthProvider>(
       create: (c) => AuthProvider(c.read<AuthRepository>()),
     ),
@@ -37,6 +54,7 @@ class AppProviders extends StatelessWidget {
       create: (c) => UsuariaProvider(
         usuariaRepository: c.read<UsuariaRepository>(),
         authRepository: c.read<AuthRepository>(),
+        subidorFoto: c.read<SubidorFotoPerfil>(),
       ),
     ),
     // Vista unificada de la sesión; se recrea cuando cambian los dos
@@ -49,7 +67,21 @@ class AppProviders extends StatelessWidget {
         credenciales: c.read<CredencialRepository>(),
       ),
     ),
+    // Se limpia al cerrar sesión (LimpiezaPorSesion).
+    ChangeNotifierProxyProvider<SesionProvider, NotificacionesProvider>(
+      create: (c) => NotificacionesProvider(
+        servicio: c.read<NotificacionesService>(),
+        usuarias: c.read<UsuariaProvider>(),
+      ),
+      update: (_, sesion, notificaciones) =>
+          notificaciones!..sincronizarUsuaria(sesion.uidActiva),
+    ),
   ];
+
+  // IMPORTANTE para todos: si tu provider guarda datos de la usuaria, usa
+  // el mixin LimpiezaPorSesion (providers/limpieza_sesion.dart) y regístralo
+  // con ChangeNotifierProxyProvider<SesionProvider, TuProvider> llamando a
+  // sincronizarUsuaria(sesion.uidActiva). Así se limpia al cerrar sesión.
 
   /// Colorimetría, paleta y servicios compartidos — dueño: Jaider Monrroy.
   static List<SingleChildWidget> get _colorimetria => [
