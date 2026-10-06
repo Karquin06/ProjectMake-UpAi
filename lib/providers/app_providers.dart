@@ -8,8 +8,9 @@ import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/paleta_repository.dart';
 import '../data/repositories/perfil_colorimetria_repository.dart';
 import '../data/repositories/usuaria_repository.dart';
+import '../data/services/analisis_prenda_service.dart';
 import '../data/services/cloud_functions_service.dart';
-import '../data/services/colorimetria_mock_service.dart';
+import '../data/services/colorimetria_service.dart';
 import '../data/services/permisos_service.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/eliminador_cuenta.dart';
@@ -119,10 +120,15 @@ class AppProviders extends StatelessWidget {
     Provider<PermisosService>(create: (_) => PermisosService()),
     Provider<StorageService>(create: (_) => StorageService()),
     Provider<CloudFunctionsService>(create: (_) => CloudFunctionsService()),
-    // Colorimetría (mock o real según AppConstants.usarMockColorimetria).
+    // Análisis en el teléfono o con Cloud Functions (ColorimetriaService.fuente).
     Provider<ColorimetriaService>(
-      create: (_) => ColorimetriaService.porDefecto(),
+      create: (c) => ColorimetriaService.porDefecto(
+        storage: c.read<StorageService>(),
+        funciones: c.read<CloudFunctionsService>(),
+      ),
     ),
+    // Armario (Mauricio): color de la prenda vs. paleta, en el teléfono.
+    Provider<AnalisisPrendaService>(create: (_) => AnalisisPrendaService()),
     Provider<PerfilColorimetriaRepository>(
       create: (_) => PerfilColorimetriaRepository(),
     ),
@@ -134,14 +140,14 @@ class AppProviders extends StatelessWidget {
     ),
     Provider<PaletaRepository>(create: (_) => PaletaRepository()),
     ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
-      // Con el mock no se lee Firestore; en real, Firestore y si falta la
-      // paleta, la función generarPaleta.
-      create: (c) => AppConstants.usarMockColorimetria
-          ? PaletaProvider(c.read<ColorimetriaService>())
-          : PaletaProvider.conRespaldo(
+      // Con Cloud Functions: Firestore y, si falta, generarPaleta. En el
+      // teléfono: las paletas de la app (PaletasPorEstacion).
+      create: (c) => ColorimetriaService.fuente == FuenteColorimetria.funciones
+          ? PaletaProvider.conRespaldo(
               c.read<PaletaRepository>(),
               c.read<ColorimetriaService>(),
-            ),
+            )
+          : PaletaProvider(c.read<ColorimetriaService>()),
       update: (_, colorimetria, paleta) =>
           paleta!..sincronizarEstacion(colorimetria.perfil?.estacionColor),
     ),
@@ -152,7 +158,7 @@ class AppProviders extends StatelessWidget {
     // Ej.: ChangeNotifierProvider(create: (c) => RecomendacionProvider(...)),
   ];
 
-  /// AR, escáner y armario — dueño: Mauricio Parra.
+  /// AR y armario — dueño: Mauricio Parra.
   static List<SingleChildWidget> get _realidadAumentada => [
     // Ej.: ChangeNotifierProvider(create: (c) => ArmarioProvider(...)),
   ];

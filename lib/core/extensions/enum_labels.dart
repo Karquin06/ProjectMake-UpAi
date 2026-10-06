@@ -170,5 +170,5 @@ extension IntensidadEtiqueta on Intensidad {
 // =======================================================================
 
 // =======================================================================
-// AR, escáner y armario — Mauricio: agrega aquí tus extensiones.
+// AR y armario — Mauricio: agrega aquí tus extensiones.
 // =======================================================================

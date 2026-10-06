@@ -29,7 +29,7 @@ class RecomendacionDestacada {
   });
 }
 
-/// Accesos directos de Home. Escáner y Armario dependen de banderas.
+/// Accesos directos de Home. Armario depende de su bandera.
 enum AccesoHome {
   colorimetria,
   paleta,
@@ -37,7 +37,6 @@ enum AccesoHome {
   maquillaje,
   asistente,
   simuladorAr,
-  escaner,
   armario,
 }
 
@@ -90,7 +89,6 @@ class HomeViewModel extends ChangeNotifier {
   List<AccesoHome> get accesos => AccesoHome.values;
 
   bool estaHabilitado(AccesoHome acceso) => switch (acceso) {
-    AccesoHome.escaner => AppConstants.escanerHabilitado,
     AccesoHome.armario => AppConstants.armarioHabilitado,
     _ => true,
   };

@@ -30,11 +30,9 @@ class AppRoutes {
   static const String paleta = '/paleta';
 
   // ---------------------------------------------------------------------
-  // Simulador AR, escáner y armario — Mauricio
+  // Simulador AR y armario — Mauricio
   // ---------------------------------------------------------------------
   static const String simuladorAr = '/simulador-ar';
-  static const String escaner = '/escaner';
-  static const String analisisPrenda = '/escaner/analisis-prenda';
   static const String armario = '/armario';
 
   // ---------------------------------------------------------------------

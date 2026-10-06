@@ -5,8 +5,8 @@ import '../../../core/theme/app_text_styles.dart';
 import '../home_view_model.dart';
 
 /// Grilla de accesos directos a las funciones de la app (capítulo 8.1).
-/// Los accesos deshabilitados (Escáner y Armario mientras sus banderas en
-/// `AppConstants` estén apagadas) se muestran con "Próximamente".
+/// Los accesos deshabilitados (Armario mientras su bandera en
+/// `AppConstants` esté apagada) se muestran con "Próximamente".
 class AccesosDirectos extends StatelessWidget {
   final List<AccesoHome> accesos;
   final bool Function(AccesoHome) estaHabilitado;
@@ -26,7 +26,6 @@ class AccesosDirectos extends StatelessWidget {
     AccesoHome.maquillaje => Icons.brush_outlined,
     AccesoHome.asistente => Icons.smart_toy_outlined,
     AccesoHome.simuladorAr => Icons.camera_alt_outlined,
-    AccesoHome.escaner => Icons.qr_code_scanner,
     AccesoHome.armario => Icons.checkroom,
   };
 
@@ -37,30 +36,48 @@ class AccesosDirectos extends StatelessWidget {
     AccesoHome.maquillaje => AppStrings.accesoMaquillaje,
     AccesoHome.asistente => AppStrings.accesoAsistente,
     AccesoHome.simuladorAr => AppStrings.accesoSimulador,
-    AccesoHome.escaner => AppStrings.accesoEscaner,
     AccesoHome.armario => AppStrings.accesoArmario,
   };
 
+  /// Ancho mínimo de cada acceso (con su separación).
+  static const _anchoAcceso = 100.0;
+
+  Widget _boton(AccesoHome acceso) => _BotonAcceso(
+    icono: icono(acceso),
+    etiqueta: etiqueta(acceso),
+    disponible: estaHabilitado(acceso),
+    onTap: () => onSeleccionar(acceso),
+  );
+
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: accesos.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.72,
-      ),
-      itemBuilder: (context, index) {
-        final acceso = accesos[index];
-        return _BotonAcceso(
-          icono: icono(acceso),
-          etiqueta: etiqueta(acceso),
-          disponible: estaHabilitado(acceso),
-          onTap: () => onSeleccionar(acceso),
+    return LayoutBuilder(
+      builder: (context, restricciones) {
+        // Pantallas anchas (web en PC): si todos caben en una fila, se
+        // reparten de par en par a lo ancho.
+        if (restricciones.maxWidth >= accesos.length * _anchoAcceso) {
+          return SizedBox(
+            height: 100,
+            child: Row(
+              children: [
+                for (final acceso in accesos) Expanded(child: _boton(acceso)),
+              ],
+            ),
+          );
+        }
+        // Teléfono: cuadrícula de 4 columnas (ancho / (88 + 12)).
+        return GridView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: accesos.length,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 88,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 12,
+            mainAxisExtent: 100,
+          ),
+          itemBuilder: (context, index) => _boton(accesos[index]),
         );
       },
     );

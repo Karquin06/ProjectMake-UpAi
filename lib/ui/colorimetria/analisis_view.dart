@@ -9,8 +9,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/boton_secundario.dart';
 import '../../core/widgets/estado_vacio.dart';
-import '../../data/services/colorimetria_mock_service.dart';
-import '../../data/services/storage_service.dart';
+import '../../data/services/colorimetria_service.dart';
 import '../../providers/colorimetria_provider.dart';
 import 'analisis_view_model.dart';
 
@@ -37,7 +36,6 @@ class AnalisisView extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (c) {
         final vm = AnalisisViewModel(
-          storage: c.read<StorageService>(),
           colorimetria: c.read<ColorimetriaService>(),
           uid: uid,
           selfie: selfie,
@@ -97,9 +95,14 @@ class _AnalisisState extends State<_Analisis> {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: vm.estado == EstadoAnalisis.error
-                ? _Error(vm: vm)
-                : _Progreso(vm: vm),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: vm.estado == EstadoAnalisis.error
+                    ? _Error(vm: vm)
+                    : _Progreso(vm: vm),
+              ),
+            ),
           ),
         ),
       ),

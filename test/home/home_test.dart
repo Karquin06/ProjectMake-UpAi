@@ -122,12 +122,8 @@ void main() {
       expect(vm.error, isNull);
     });
 
-    test('Escáner y Armario siguen sus banderas', () {
+    test('Armario sigue su bandera', () {
       final vm = HomeViewModel();
-      expect(
-        vm.estaHabilitado(AccesoHome.escaner),
-        AppConstants.escanerHabilitado,
-      );
       expect(
         vm.estaHabilitado(AccesoHome.armario),
         AppConstants.armarioHabilitado,
@@ -198,16 +194,15 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text(AppStrings.saludo('Sofía')), findsOneWidget);
     expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
-    expect(find.text(AppStrings.proximamente), findsNWidgets(2));
+    expect(find.text(AppStrings.proximamente), findsNothing);
     expect(find.text('Labial rojo frambuesa'), findsOneWidget);
 
-    // Acceso deshabilitado → aviso "Próximamente".
-    await tester.tap(find.text(AppStrings.accesoEscaner));
-    await tester.pump();
-    expect(
-      find.text(AppStrings.accesoProximamente(AppStrings.accesoEscaner)),
-      findsOneWidget,
-    );
+    // Armario (Mauricio) abre su pantalla, aún en construcción.
+    await tester.tap(find.text(AppStrings.accesoArmario));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('armario_view'), findsOneWidget);
+    Navigator.of(tester.element(find.textContaining('armario_view'))).pop();
+    await tester.pumpAndSettle();
 
     // "Mi paleta" abre la paleta de Jaider (sin análisis en el Firestore
     // falso → estado vacío).

@@ -18,6 +18,13 @@ class DetalleSubtono extends StatelessWidget {
         Subtono.neutro => AppStrings.subtonoNeutroDetalle,
       };
 
+  /// Qué base de maquillaje buscar según el subtono.
+  static String consejoBase(Subtono subtono) => switch (subtono) {
+        Subtono.calido => AppStrings.baseCalida,
+        Subtono.frio => AppStrings.baseFria,
+        Subtono.neutro => AppStrings.baseNeutra,
+      };
+
   static Color _muestra(Subtono subtono) => switch (subtono) {
         Subtono.calido => const Color(0xFFE0A15E),
         Subtono.frio => const Color(0xFFD98BB0),

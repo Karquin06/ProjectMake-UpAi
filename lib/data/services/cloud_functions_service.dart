@@ -6,7 +6,6 @@ import '../../models/enums.dart';
 import '../../models/paleta_model.dart';
 import '../../models/perfil_colorimetria_model.dart';
 import '../../models/resultado_analisis_prenda_model.dart';
-import 'colorimetria_mock_service.dart';
 
 /// Base para llamar Cloud Functions callable: región, timeout y errores
 /// traducidos a [AppException]. Ana extiende esta clase para sus funciones.
@@ -87,15 +86,13 @@ class CodigosFunciones {
 
 /// Funciones de colorimetría y análisis de imagen (Jaider).
 /// Ver contratos JSON en `functions/README.md`.
-class CloudFunctionsService extends CloudFunctionsBase
-    implements ColorimetriaService {
+class CloudFunctionsService extends CloudFunctionsBase {
   static const timeoutAnalisis = Duration(seconds: 60);
 
   CloudFunctionsService({super.functions});
 
   /// `analizarSelfie({rutaImagen})` → `{estacion, subtono, contraste,
   /// intensidad, confianza}`. La función borra la imagen al terminar.
-  @override
   Future<PerfilColorimetria> analizarSelfie({
     required String uid,
     required String rutaImagen,
@@ -114,7 +111,6 @@ class CloudFunctionsService extends CloudFunctionsBase
 
   /// `generarPaleta({estacion})` → `{estacion, coloresRecomendados,
   /// coloresEvitar}`.
-  @override
   Future<Paleta> generarPaleta(EstacionColor estacion) async {
     final datos = await llamar('generarPaleta', {'estacion': estacion.name});
     return Paleta.fromMap({'estacion': estacion.name, ...datos});
