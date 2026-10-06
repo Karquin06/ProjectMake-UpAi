@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,12 +9,16 @@ import 'package:mackeupai/core/routes/app_router.dart';
 import 'package:mackeupai/core/theme/app_theme.dart';
 import 'package:mackeupai/data/repositories/auth_repository.dart';
 import 'package:mackeupai/data/repositories/credencial_repository.dart';
+import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/repositories/sesion_repository.dart';
 import 'package:mackeupai/data/repositories/usuaria_repository.dart';
 import 'package:mackeupai/data/services/notificaciones_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/notificaciones_provider.dart';
 import 'package:mackeupai/providers/auth_provider.dart';
+import 'package:mackeupai/providers/colorimetria_provider.dart';
+import 'package:mackeupai/providers/paleta_provider.dart';
+import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
 import 'package:mackeupai/providers/sesion_provider.dart';
 import 'package:mackeupai/providers/usuaria_provider.dart';
 import 'package:mackeupai/ui/home/home_datos_mock.dart';
@@ -164,6 +169,18 @@ void main() {
             ),
             update: (_, s, n) => n!..sincronizarUsuaria(s.uidActiva),
           ),
+          // Pestaña Colorimetría (Jaider) con Firestore falso.
+          ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
+            create: (_) => ColorimetriaProvider(
+              PerfilColorimetriaRepository(db: FakeFirebaseFirestore()),
+            ),
+            update: (_, s, p) => p!..sincronizarUsuaria(s.uidActiva),
+          ),
+          ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
+            create: (_) => PaletaProvider(ColorimetriaMockService()),
+            update: (_, c, p) =>
+                p!..sincronizarEstacion(c.perfil?.estacionColor),
+          ),
         ],
         child: MaterialApp(
           theme: AppTheme.claro,
@@ -192,16 +209,19 @@ void main() {
       findsOneWidget,
     );
 
-    // "Mi paleta" abre la ruta de Jaider (aún en construcción).
+    // "Mi paleta" abre la paleta de Jaider (sin análisis en el Firestore
+    // falso → estado vacío).
     await tester.tap(find.text(AppStrings.accesoPaleta));
     await tester.pumpAndSettle();
-    expect(find.textContaining('paleta_view'), findsOneWidget);
-    Navigator.of(tester.element(find.textContaining('paleta_view'))).pop();
+    expect(find.text(AppStrings.paletaSinAnalisisMensaje), findsOneWidget);
+    Navigator.of(
+      tester.element(find.text(AppStrings.paletaSinAnalisisMensaje)),
+    ).pop();
     await tester.pumpAndSettle();
 
     // "Colorimetría" cambia a la pestaña de Colorimetría.
     await tester.tap(find.text(AppStrings.accesoColorimetria).first);
     await tester.pumpAndSettle();
-    expect(find.textContaining('colorimetria_view'), findsOneWidget);
+    expect(find.text(AppStrings.colorimetriaTitulo), findsOneWidget);
   });
 }

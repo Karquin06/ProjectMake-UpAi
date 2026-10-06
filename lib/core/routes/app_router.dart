@@ -10,6 +10,11 @@ import '../../ui/auth/login_view.dart';
 import '../../ui/auth/recuperar_contrasena_view.dart';
 import '../../ui/auth/registro_view.dart';
 import '../../ui/auth/verificar_correo_view.dart';
+import '../../ui/colorimetria/analisis_view.dart';
+import '../../ui/colorimetria/captura_selfie_view.dart';
+import '../../ui/colorimetria/colorimetria_view.dart';
+import '../../ui/colorimetria/paleta_view.dart';
+import '../../ui/colorimetria/resultado_view.dart';
 import '../../ui/home/main_navigation_view.dart';
 import '../../ui/perfil/editar_perfil_view.dart';
 import '../../ui/perfil/perfil_view.dart';
@@ -54,26 +59,15 @@ class AppRouter {
     // -------------------------------------------------------------------
     // Colorimetría y paleta — Jaider
     // -------------------------------------------------------------------
-    // CONECTAR (Jaider): import '../../ui/colorimetria/colorimetria_view.dart'; → const ColorimetriaView()
     AppRoutes.colorimetria: _Destino.autenticada(
-      () => _enConstruccion('colorimetria_view', 'Jaider'),
+      () => const ColorimetriaView(),
     ),
-    // CONECTAR (Jaider): import '../../ui/colorimetria/captura_selfie_view.dart'; → const CapturaSelfieView()
     AppRoutes.capturaSelfie: _Destino.autenticada(
-      () => _enConstruccion('captura_selfie_view', 'Jaider'),
+      () => const CapturaSelfieView(),
     ),
-    // CONECTAR (Jaider): import '../../ui/colorimetria/analisis_view.dart'; → const AnalisisView()
-    AppRoutes.analisis: _Destino.autenticada(
-      () => _enConstruccion('analisis_view', 'Jaider'),
-    ),
-    // CONECTAR (Jaider): import '../../ui/colorimetria/resultado_view.dart'; → const ResultadoView()
-    AppRoutes.resultado: _Destino.autenticada(
-      () => _enConstruccion('resultado_view', 'Jaider'),
-    ),
-    // CONECTAR (Jaider): import '../../ui/colorimetria/paleta_view.dart'; → const PaletaView()
-    AppRoutes.paleta: _Destino.autenticada(
-      () => _enConstruccion('paleta_view', 'Jaider'),
-    ),
+    AppRoutes.analisis: _Destino.autenticada(() => const AnalisisView()),
+    AppRoutes.resultado: _Destino.autenticada(() => const ResultadoView()),
+    AppRoutes.paleta: _Destino.autenticada(() => const PaletaView()),
 
     // -------------------------------------------------------------------
     // Simulador AR, escáner y armario — Mauricio

@@ -139,6 +139,32 @@ class EtiquetasTexto {
 // Colorimetría — Jaider: agrega aquí las extensiones de tus enums.
 // =======================================================================
 
+extension ContrasteEtiqueta on Contraste {
+  String get etiqueta {
+    switch (this) {
+      case Contraste.bajo:
+        return AppStrings.contrasteBajo;
+      case Contraste.medio:
+        return AppStrings.contrasteMedio;
+      case Contraste.alto:
+        return AppStrings.contrasteAlto;
+    }
+  }
+}
+
+extension IntensidadEtiqueta on Intensidad {
+  String get etiqueta {
+    switch (this) {
+      case Intensidad.suave:
+        return AppStrings.intensidadSuave;
+      case Intensidad.media:
+        return AppStrings.intensidadMedia;
+      case Intensidad.brillante:
+        return AppStrings.intensidadBrillante;
+    }
+  }
+}
+
 // =======================================================================
 // IA, recomendaciones y catálogo — Ana: agrega aquí tus extensiones.
 // =======================================================================
