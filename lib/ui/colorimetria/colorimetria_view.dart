@@ -13,7 +13,8 @@ import '../../core/widgets/mensaje_error.dart';
 import '../../providers/colorimetria_provider.dart';
 import 'colorimetria_view_model.dart';
 import 'widgets/consentimiento_biometrico.dart';
-import 'widgets/tarjeta_resultado.dart';
+import 'widgets/diseno_responsivo.dart';
+import 'widgets/resumen_estilo.dart';
 
 /// Entrada al módulo: muestra el resultado actual o invita a analizarse.
 /// También es la pestaña "Colorimetría" de la navegación principal.
@@ -66,18 +67,28 @@ class ColorimetriaView extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              TarjetaResultado(perfil: vm.perfil!),
-              const SizedBox(height: 24),
-              BotonPrimario(
-                texto: AppStrings.verMiPaletaBoton,
-                icono: Icons.palette_outlined,
-                onPressed: () => context.irA(AppRoutes.paleta),
-              ),
-              const SizedBox(height: 12),
-              BotonSecundario(
-                texto: AppStrings.repetirAnalisis,
-                icono: const Icon(Icons.refresh, color: AppColors.fucsia),
-                onPressed: () => _repetir(context, vm),
+              ContenidoCentrado(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ResumenPerfil(perfil: vm.perfil!),
+                    ResumenEstiloDePerfil(perfil: vm.perfil!),
+                    const SizedBox(height: 24),
+                    FilaOColumna(
+                      espacio: 12,
+                      a: BotonPrimario(
+                        texto: AppStrings.verMiPaletaBoton,
+                        icono: Icons.palette_outlined,
+                        onPressed: () => context.irA(AppRoutes.paleta),
+                      ),
+                      b: BotonSecundario(
+                        texto: AppStrings.repetirAnalisis,
+                        icono: const Icon(Icons.refresh, color: AppColors.fucsia),
+                        onPressed: () => _repetir(context, vm),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

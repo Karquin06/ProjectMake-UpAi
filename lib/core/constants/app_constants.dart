@@ -27,11 +27,9 @@ class AppConstants {
   /// Para apagarla, conecta el adaptador en `app_providers.dart`.
   static const bool usarMockStorage = true;
 
-  /// Habilita el acceso al Escáner en Home (Mauricio lo activa).
-  static const bool escanerHabilitado = false;
-
-  /// Habilita el acceso al Armario en Home (Mauricio lo activa).
-  static const bool armarioHabilitado = false;
+  /// Acceso al Armario en Home. Activo: el Armario es de Mauricio y abre su
+  /// pantalla (en construcción hasta que conecte `armario_view`).
+  static const bool armarioHabilitado = true;
 
   // ---------------------------------------------------------------------
   // Consentimiento y privacidad

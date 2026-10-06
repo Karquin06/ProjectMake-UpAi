@@ -8,6 +8,7 @@ import 'package:mackeupai/data/repositories/paleta_repository.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/services/cloud_functions_service.dart';
 import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import 'package:mackeupai/data/services/colorimetria_remota_service.dart';
 import 'package:mackeupai/data/services/storage_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';
@@ -44,27 +45,40 @@ class _ColorimetriaQueFalla extends ColorimetriaMockService {
   @override
   Future<PerfilColorimetria> analizarSelfie({
     required String uid,
-    required String rutaImagen,
+    required Uint8List selfie,
     ConsentimientoBiometrico? consentimiento,
+    void Function(double progreso)? onProgreso,
   }) async =>
       throw error;
 }
 
-AnalisisViewModel _vm(_StorageFalso storage, ColorimetriaService servicio) =>
-    AnalisisViewModel(
-      storage: storage,
+/// Cloud Functions falsas: devuelven el perfil de ejemplo.
+class _FuncionesFalsas extends CloudFunctionsService {
+  @override
+  Future<PerfilColorimetria> analizarSelfie({
+    required String uid,
+    required String rutaImagen,
+    ConsentimientoBiometrico? consentimiento,
+  }) async =>
+      ColorimetriaMockService.perfilEjemplo(uid);
+}
+
+AnalisisViewModel _vm(ColorimetriaService servicio) => AnalisisViewModel(
       colorimetria: servicio,
       uid: 'u1',
       selfie: Uint8List.fromList([1, 2, 3]),
-      subirSelfie: true,
+      duracionMinima: Duration.zero,
     );
 
 void main() {
   group('AnalisisViewModel', () {
-    test('éxito: sube, analiza, borra en Storage y suelta la foto local',
+    test('remoto: sube, analiza, borra en Storage y suelta la foto local',
         () async {
       final storage = _StorageFalso();
-      final vm = _vm(storage, ColorimetriaMockService(espera: Duration.zero));
+      final vm = _vm(ColorimetriaRemotaService(
+        storage: storage,
+        funciones: _FuncionesFalsas(),
+      ));
       await vm.analizar();
       await Future<void>.delayed(Duration.zero);
 
@@ -76,28 +90,25 @@ void main() {
     });
 
     test('rostro no detectado sugiere tomar otra foto', () async {
-      final storage = _StorageFalso();
-      final vm = _vm(
-        storage,
-        _ColorimetriaQueFalla(const AppException(
-          AppStrings.errorRostroNoDetectado,
-          codigo: CodigosFunciones.rostroNoDetectado,
-        )),
-      );
+      final vm = _vm(_ColorimetriaQueFalla(const AppException(
+        AppStrings.errorRostroNoDetectado,
+        codigo: CodigosFunciones.rostroNoDetectado,
+      )));
       await vm.analizar();
-      await Future<void>.delayed(Duration.zero);
 
       expect(vm.estado, EstadoAnalisis.error);
       expect(vm.error, AppStrings.errorRostroNoDetectado);
       expect(vm.sugiereOtraFoto, isTrue);
-      expect(storage.borrados, isNotEmpty);
     });
 
     test('sin conexión muestra el mensaje de red y permite reintentar',
         () async {
       final storage = _StorageFalso()
         ..errorSubida = const AppException('x', codigo: 'retry-limit-exceeded');
-      final vm = _vm(storage, ColorimetriaMockService(espera: Duration.zero));
+      final vm = _vm(ColorimetriaRemotaService(
+        storage: storage,
+        funciones: _FuncionesFalsas(),
+      ));
       await vm.analizar();
 
       expect(vm.error, AppStrings.errorSinConexion);

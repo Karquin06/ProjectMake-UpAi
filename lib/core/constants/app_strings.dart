@@ -217,7 +217,6 @@ class AppStrings {
   static const String accesoMaquillaje = 'Maquillaje';
   static const String accesoAsistente = 'Asistente IA';
   static const String accesoSimulador = 'Simulador AR';
-  static const String accesoEscaner = 'Escáner';
   static const String accesoArmario = 'Armario';
   static String accesoProximamente(String acceso) =>
       '$acceso estará disponible próximamente.';
@@ -479,6 +478,29 @@ class AppStrings {
   // Paleta
   static const String paletaTitulo = 'Mi paleta';
   static const String tusColores = 'Tus colores';
+  static const String pestanaRopa = 'Ropa';
+  static const String pestanaMaquillaje = 'Maquillaje';
+  static const String pestanaEvitar = 'Evitar';
+  static const String seccionBasicos = 'Básicos';
+  static const String seccionBasicosAyuda =
+      'Para prendas grandes: pantalones, abrigos, bolsos y zapatos.';
+  static const String seccionDestacar = 'Para destacar';
+  static const String seccionDestacarAyuda =
+      'Para blusas, camisas y accesorios cerca del rostro.';
+  static const String seccionLabiales = 'Labiales';
+  static const String seccionRubores = 'Rubores';
+  static const String seccionSombras = 'Sombras';
+  static const String seccionBase = 'Tu base';
+  static const String seccionEvitarAyuda =
+      'Lejos del rostro apagan tu tono; mejor no usarlos en blusas ni '
+      'maquillaje.';
+  static const String paraTuRopa = 'Para tu ropa';
+  static const String paraTuMaquillaje = 'Para tu maquillaje';
+  static const String baseCalida =
+      'Busca bases con subtono dorado o amarillo.';
+  static const String baseFria = 'Busca bases con subtono rosado.';
+  static const String baseNeutra =
+      'Busca bases neutras: ni muy rosadas ni muy amarillas.';
   static const String coloresAEvitar = 'Colores a evitar';
   static String paletaDeEstacion(String estacion) => 'Paleta de $estacion';
   static const String paletaToca =

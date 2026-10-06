@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/core/extensions/enum_labels.dart';
@@ -63,7 +64,7 @@ void main() {
 
     test('analizarSelfie devuelve Invierno frío', () async {
       final perfil =
-          await servicio.analizarSelfie(uid: 'u', rutaImagen: 'x.jpg');
+          await servicio.analizarSelfie(uid: 'u', selfie: Uint8List(0));
       expect(perfil.estacionColor, EstacionColor.invierno);
       expect(perfil.subtono, Subtono.frio);
       expect(

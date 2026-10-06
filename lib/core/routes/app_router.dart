@@ -70,31 +70,14 @@ class AppRouter {
     AppRoutes.paleta: _Destino.autenticada(() => const PaletaView()),
 
     // -------------------------------------------------------------------
-    // Simulador AR, escáner y armario — Mauricio
+    // Simulador AR y armario — Mauricio
     // -------------------------------------------------------------------
     // CONECTAR (Mauricio): import '../../ui/simulador_ar/simulador_ar_view.dart'; → const SimuladorArView()
     AppRoutes.simuladorAr: _Destino.autenticada(
       () => _enConstruccion('simulador_ar_view', 'Mauricio'),
     ),
-    // CONECTAR (Mauricio): import '../../ui/escaner/escaner_view.dart'; → const EscanerView()
-    // Mientras AppConstants.escanerHabilitado sea false se muestra "Próximamente".
-    AppRoutes.escaner: _Destino.autenticada(
-      () => _enConstruccion(
-        'escaner_view',
-        'Mauricio',
-        deshabilitada: !AppConstants.escanerHabilitado,
-      ),
-    ),
-    // CONECTAR (Mauricio): import '../../ui/escaner/analisis_prenda_view.dart'; → const AnalisisPrendaView()
-    AppRoutes.analisisPrenda: _Destino.autenticada(
-      () => _enConstruccion(
-        'analisis_prenda_view',
-        'Mauricio',
-        deshabilitada: !AppConstants.escanerHabilitado,
-      ),
-    ),
     // CONECTAR (Mauricio): import '../../ui/armario/armario_view.dart'; → const ArmarioView()
-    // Mientras AppConstants.armarioHabilitado sea false se muestra "Próximamente".
+    // Asignado a Mauricio. Si AppConstants.armarioHabilitado fuera false se mostraría "Próximamente".
     AppRoutes.armario: _Destino.autenticada(
       () => _enConstruccion(
         'armario_view',

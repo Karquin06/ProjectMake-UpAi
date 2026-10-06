@@ -160,8 +160,6 @@ void main() {
       AppRoutes.resultado,
       AppRoutes.paleta,
       AppRoutes.simuladorAr,
-      AppRoutes.escaner,
-      AppRoutes.analisisPrenda,
       AppRoutes.armario,
       AppRoutes.recomendaciones,
       AppRoutes.detallePrenda,

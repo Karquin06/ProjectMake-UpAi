@@ -1,25 +1,26 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/errors/app_exception.dart';
 import '../../data/services/cloud_functions_service.dart';
-import '../../data/services/colorimetria_mock_service.dart';
-import '../../data/services/storage_service.dart';
+import '../../data/services/colorimetria_service.dart';
 import '../../models/perfil_colorimetria_model.dart';
 
 enum EstadoAnalisis { subiendo, analizando, listo, error }
 
-/// Sube la selfie a Storage, llama a `analizarSelfie` y entrega el perfil.
-/// La selfie se borra siempre: los bytes locales al terminar con éxito y el
-/// archivo de Storage tanto con éxito como con error (la función también
-/// la borra; esto es respaldo).
+/// Analiza la selfie con [ColorimetriaService] (en el teléfono o con Cloud
+/// Functions) y entrega el perfil. La foto local se suelta al terminar con
+/// éxito; si el servicio la sube, él mismo la borra de Storage.
 class AnalisisViewModel extends ChangeNotifier {
   /// Tiempo máximo total (subida + análisis).
   static const timeoutTotal = Duration(seconds: 60);
 
   /// Cada cuánto cambia el mensaje de la animación.
-  static const intervaloMensajes = Duration(milliseconds: 2200);
+  static const intervaloMensajes = Duration(milliseconds: 1800);
+
+  /// Tiempo mínimo en pantalla del análisis (el análisis en el teléfono
+  /// tarda menos de un segundo): alcanza para ver los 5 mensajes.
+  static const duracionMinimaPorDefecto = Duration(seconds: 9);
 
   /// Errores de red que se muestran como "sin conexión".
   static const _codigosSinConexion = {
@@ -28,22 +29,19 @@ class AnalisisViewModel extends ChangeNotifier {
     'network-request-failed',
   };
 
-  final StorageService _storage;
   final ColorimetriaService _colorimetria;
   final String _uid;
-  final bool _subirSelfie;
+  final Duration _duracionMinima;
   Uint8List? _selfie;
 
   AnalisisViewModel({
-    required this._storage,
     required this._colorimetria,
     required this._uid,
     required Uint8List this._selfie,
-    bool? subirSelfie,
-  }) : // Con el mock no se sube nada: no hace falta Storage para probar.
-        _subirSelfie = subirSelfie ?? !AppConstants.usarMockColorimetria;
+    this._duracionMinima = duracionMinimaPorDefecto,
+  });
 
-  EstadoAnalisis _estado = EstadoAnalisis.subiendo;
+  EstadoAnalisis _estado = EstadoAnalisis.analizando;
   double _progreso = 0;
   int _indiceMensaje = 0;
   String? _error;
@@ -54,7 +52,7 @@ class AnalisisViewModel extends ChangeNotifier {
 
   EstadoAnalisis get estado => _estado;
 
-  /// Progreso de la subida, de 0 a 1.
+  /// Progreso de la subida (solo con Cloud Functions), de 0 a 1.
   double get progreso => _progreso;
   String get mensaje => _estado == EstadoAnalisis.subiendo
       ? AppStrings.subiendoSelfie
@@ -79,19 +77,24 @@ class AnalisisViewModel extends ChangeNotifier {
   Future<void> analizar() async {
     final selfie = _selfie;
     if (selfie == null) return;
-    _estado = EstadoAnalisis.subiendo;
+    _estado = EstadoAnalisis.analizando;
     _progreso = 0;
     _error = null;
     _codigoError = null;
+    _iniciarMensajes();
     _notificar();
 
-    final ruta = RutasStorage.selfieTemporal(_uid, RutasStorage.nuevoId());
+    final esperaMinima = Future<void>.delayed(_duracionMinima);
     try {
-      final perfil = await _subirYAnalizar(ruta, selfie).timeout(timeoutTotal);
+      final perfil = await _colorimetria
+          .analizarSelfie(uid: _uid, selfie: selfie, onProgreso: _alProgresar)
+          .timeout(timeoutTotal);
+      await esperaMinima;
       _perfil = perfil;
-      _selfie = null; // Borrar la foto local.
+      _selfie = null; // Soltar la foto local.
       _estado = EstadoAnalisis.listo;
     } catch (e) {
+      await esperaMinima;
       final error = AppException.desde(e);
       _codigoError = error.codigo;
       _error = e is TimeoutException
@@ -102,31 +105,14 @@ class AnalisisViewModel extends ChangeNotifier {
       _estado = EstadoAnalisis.error;
     } finally {
       _detenerMensajes();
-      if (_subirSelfie) unawaited(_borrarSinFallar(ruta));
     }
     _notificar();
   }
 
-  Future<PerfilColorimetria> _subirYAnalizar(String ruta, Uint8List selfie) async {
-    if (_subirSelfie) {
-      await _storage.subirArchivo(ruta, selfie, onProgreso: (p) {
-        _progreso = p;
-        _notificar();
-      });
-    }
-    _progreso = 1;
-    _estado = EstadoAnalisis.analizando;
-    _iniciarMensajes();
+  void _alProgresar(double p) {
+    _progreso = p;
+    _estado = p < 1 ? EstadoAnalisis.subiendo : EstadoAnalisis.analizando;
     _notificar();
-    return _colorimetria.analizarSelfie(uid: _uid, rutaImagen: ruta);
-  }
-
-  Future<void> _borrarSinFallar(String ruta) async {
-    try {
-      await _storage.borrar(ruta);
-    } catch (_) {
-      // limpiarImagenesTemporales la borrará en menos de una hora.
-    }
   }
 
   void _iniciarMensajes() {

@@ -157,8 +157,6 @@ class HomeView extends StatelessWidget {
         );
       case AccesoHome.simuladorAr:
         context.irA(AppRoutes.simuladorAr);
-      case AccesoHome.escaner:
-        context.irA(AppRoutes.escaner);
       case AccesoHome.armario:
         context.irA(AppRoutes.armario);
     }

@@ -53,8 +53,10 @@ void main() {
         .setMockMethodCallHandler(SystemChannels.platform, null));
 
     await _montar(tester, conPerfil: true);
-    expect(find.text(AppStrings.tusColores), findsOneWidget);
-    expect(find.text(AppStrings.coloresAEvitar), findsOneWidget);
+    expect(find.text(AppStrings.pestanaRopa), findsOneWidget);
+    expect(find.text(AppStrings.pestanaMaquillaje), findsOneWidget);
+    expect(find.text(AppStrings.pestanaEvitar), findsOneWidget);
+    expect(find.text(AppStrings.seccionBasicos), findsOneWidget);
 
     await tester.tap(find.text('Azul clásico'));
     await tester.pumpAndSettle();
@@ -66,7 +68,13 @@ void main() {
     expect(copiado, '#0F4C81');
     expect(find.text(AppStrings.hexCopiado('#0F4C81')), findsOneWidget);
 
-    await tester.tap(find.text(AppStrings.coloresAEvitar));
+    await tester.tap(find.text(AppStrings.pestanaMaquillaje));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.seccionLabiales), findsOneWidget);
+    expect(find.text('Rojo clásico'), findsOneWidget);
+    expect(find.textContaining(AppStrings.baseFria), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.pestanaEvitar));
     await tester.pumpAndSettle();
     expect(find.text('Mostaza'), findsOneWidget);
   });
