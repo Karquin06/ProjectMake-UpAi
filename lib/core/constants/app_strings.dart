@@ -374,6 +374,137 @@ class AppStrings {
   static const String subtonoFrio = 'Frío';
   static const String subtonoNeutro = 'Neutro';
 
+  // Colorimetría — Jaider
+  static const String contrasteBajo = 'Bajo';
+  static const String contrasteMedio = 'Medio';
+  static const String contrasteAlto = 'Alto';
+
+  static const String intensidadSuave = 'Suave';
+  static const String intensidadMedia = 'Media';
+  static const String intensidadBrillante = 'Brillante';
+
+  // ---------------------------------------------------------------------
+  // Colorimetría y paleta — Jaider
+  // ---------------------------------------------------------------------
+
+  // Consentimiento biométrico
+  static const String consentimientoTitulo = 'Antes de tomar tu selfie';
+  static const String consentimientoQueCapturamos =
+      'Qué capturamos: una foto de tu rostro (selfie).';
+  static const String consentimientoParaQue =
+      'Para qué: analizar el tono de tu piel, ojos y cabello y así '
+      'calcular tu estación de color, subtono y paleta.';
+  static const String consentimientoBorrado =
+      'Qué pasa con la foto: se usa solo para este análisis y se borra '
+      'automáticamente al terminar (como máximo en una hora). Solo '
+      'guardamos el resultado, nunca la imagen.';
+  static const String consentimientoEliminacion =
+      'Cómo pedir la eliminación: puedes borrar tu resultado repitiendo '
+      'el análisis o eliminando tu cuenta desde Perfil.';
+  static const String consentimientoCasilla =
+      'Acepto que se use mi selfie para el análisis de colorimetría.';
+  static const String continuar = 'Continuar';
+
+  // Permisos
+  static const String permisoCamaraDenegado =
+      'Necesitamos la cámara para tomar tu selfie.';
+  static const String permisoCamaraPermanente =
+      'Bloqueaste el acceso a la cámara. Actívalo en los ajustes del '
+      'teléfono para continuar.';
+  static const String permitirCamara = 'Permitir cámara';
+  static const String abrirAjustes = 'Abrir ajustes';
+
+  // Pantalla de colorimetría
+  static const String colorimetriaTitulo = 'Tu colorimetría';
+  static const String colorimetriaSinAnalisisMensaje =
+      'Tómate una selfie y descubre tu estación de color, tu subtono y '
+      'los colores que más te favorecen.';
+  static const String iniciarAnalisis = 'Iniciar análisis';
+  static const String repetirAnalisis = 'Repetir análisis';
+  static const String repetirAnalisisTitulo = '¿Repetir el análisis?';
+  static const String repetirAnalisisMensaje =
+      'Tu resultado actual se reemplazará por el del nuevo análisis.';
+  static const String repetir = 'Repetir';
+  static const String verMiPaletaBoton = 'Ver mi paleta';
+  static const String etiquetaSubtono = 'Subtono';
+  static const String etiquetaContraste = 'Contraste';
+  static const String etiquetaIntensidad = 'Intensidad';
+  static const String etiquetaConfianza = 'Confianza';
+  static String analizadoEl(String fecha) => 'Analizado el $fecha';
+
+  // Captura de selfie
+  static const String capturaTitulo = 'Toma tu selfie';
+  static const String capturaGuia = 'Ubica tu rostro dentro del óvalo';
+  static const List<String> capturaConsejos = [
+    'Luz natural de frente, sin sombras',
+    'Sin maquillaje, filtros ni lentes',
+    'Recoge tu cabello para que se vea tu rostro',
+  ];
+  static const String usarFoto = 'Usar foto';
+  static const String repetirFoto = 'Repetir';
+  static const String preparandoFoto = 'Preparando tu foto…';
+  static const String errorCamaraNoDisponible =
+      'No encontramos una cámara disponible en este dispositivo.';
+  static const String errorCamara =
+      'No pudimos abrir la cámara. Inténtalo de nuevo.';
+
+  // Análisis
+  static const String analisisTitulo = 'Analizando tu selfie';
+  static const String subiendoSelfie = 'Subiendo tu selfie…';
+  static const List<String> analisisMensajes = [
+    'Detectando el tono de tu piel…',
+    'Observando tus ojos y tu cabello…',
+    'Calculando tu subtono…',
+    'Midiendo tu contraste natural…',
+    'Buscando tu estación de color…',
+  ];
+  static const String analisisNoSeGuardaFoto =
+      'Tu foto se borra apenas termina el análisis.';
+  static const String tomarOtraFoto = 'Tomar otra foto';
+  static const String errorAnalisisTitulo = 'No pudimos analizar tu selfie';
+
+  // Resultado
+  static const String resultadoTitulo = 'Tu resultado';
+  static const String guardandoResultado = 'Guardando tu resultado…';
+  static const String errorGuardarResultado =
+      'No pudimos guardar tu resultado. Revisa tu conexión e inténtalo de nuevo.';
+  static const String volverAlInicio = 'Volver al inicio';
+  static const String queSignificaSubtono = '¿Qué significa tu subtono?';
+  static const String subtonoCalidoDetalle =
+      'Tu piel tiene reflejos dorados o melocotón. Te favorecen los colores '
+      'con base amarilla: corales, dorados, verdes oliva y tonos tierra.';
+  static const String subtonoFrioDetalle =
+      'Tu piel tiene reflejos rosados o azulados. Te favorecen los colores '
+      'con base azul: fucsias, azules, esmeraldas y plateados.';
+  // Paleta
+  static const String paletaTitulo = 'Mi paleta';
+  static const String tusColores = 'Tus colores';
+  static const String coloresAEvitar = 'Colores a evitar';
+  static String paletaDeEstacion(String estacion) => 'Paleta de $estacion';
+  static const String paletaToca =
+      'Toca un color para ver su nombre y código.';
+  static const String paletaSinAnalisisMensaje =
+      'Haz tu análisis de colorimetría para conocer los colores que más '
+      'te favorecen.';
+  static const String paletaVacia = 'Esta paleta aún no tiene colores.';
+  static const String copiarHex = 'Copiar código';
+  static String hexCopiado(String hex) => '$hex copiado';
+  static const String colorRecomendado = 'Te favorece';
+  static const String colorAEvitar = 'Mejor evitarlo cerca del rostro';
+  static const String errorSinPerfilColorimetria =
+      'Primero haz tu análisis de colorimetría.';
+
+  static const String subtonoNeutroDetalle =
+      'Tu piel combina reflejos cálidos y fríos. Puedes usar colores de '
+      'ambas familias, sobre todo en sus versiones intermedias.';
+
+  // Errores del análisis
+  static const String errorRostroNoDetectado =
+      'No pudimos detectar tu rostro. Toma otra foto de frente y sin '
+      'accesorios que lo cubran.';
+  static const String errorImagenOscura =
+      'La foto está muy oscura. Busca luz natural y vuelve a intentarlo.';
+
   static const String tipoMaquillaje = 'Maquillaje';
   static const String tipoOutfit = 'Outfit';
   static const String tipoCabello = 'Cabello';

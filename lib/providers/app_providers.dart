@@ -5,11 +5,19 @@ import '../core/constants/app_constants.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
+import '../data/repositories/paleta_repository.dart';
+import '../data/repositories/perfil_colorimetria_repository.dart';
 import '../data/repositories/usuaria_repository.dart';
+import '../data/services/cloud_functions_service.dart';
+import '../data/services/colorimetria_mock_service.dart';
+import '../data/services/permisos_service.dart';
+import '../data/services/storage_service.dart';
 import '../data/services/eliminador_cuenta.dart';
 import '../data/services/notificaciones_service.dart';
 import '../data/services/subidor_foto_perfil.dart';
 import 'auth_provider.dart';
+import 'colorimetria_provider.dart';
+import 'paleta_provider.dart';
 import 'notificaciones_provider.dart';
 import 'sesion_provider.dart';
 import 'usuaria_provider.dart';
@@ -107,7 +115,36 @@ class AppProviders extends StatelessWidget {
 
   /// Colorimetría, paleta y servicios compartidos — dueño: Jaider Monrroy.
   static List<SingleChildWidget> get _colorimetria => [
-    // Ej.: ChangeNotifierProvider(create: (c) => ColorimetriaProvider(...)),
+    // Servicios compartidos (los usan los cuatro módulos).
+    Provider<PermisosService>(create: (_) => PermisosService()),
+    Provider<StorageService>(create: (_) => StorageService()),
+    Provider<CloudFunctionsService>(create: (_) => CloudFunctionsService()),
+    // Colorimetría (mock o real según AppConstants.usarMockColorimetria).
+    Provider<ColorimetriaService>(
+      create: (_) => ColorimetriaService.porDefecto(),
+    ),
+    Provider<PerfilColorimetriaRepository>(
+      create: (_) => PerfilColorimetriaRepository(),
+    ),
+    // Estado compartido: perfil de la usuaria en sesión y su paleta.
+    ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
+      create: (c) => ColorimetriaProvider(c.read<PerfilColorimetriaRepository>()),
+      update: (_, sesion, colorimetria) =>
+          colorimetria!..sincronizarUsuaria(sesion.uidActiva),
+    ),
+    Provider<PaletaRepository>(create: (_) => PaletaRepository()),
+    ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
+      // Con el mock no se lee Firestore; en real, Firestore y si falta la
+      // paleta, la función generarPaleta.
+      create: (c) => AppConstants.usarMockColorimetria
+          ? PaletaProvider(c.read<ColorimetriaService>())
+          : PaletaProvider.conRespaldo(
+              c.read<PaletaRepository>(),
+              c.read<ColorimetriaService>(),
+            ),
+      update: (_, colorimetria, paleta) =>
+          paleta!..sincronizarEstacion(colorimetria.perfil?.estacionColor),
+    ),
   ];
 
   /// IA, recomendaciones y catálogo — dueña: Ana Cuellar.
