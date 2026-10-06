@@ -1,105 +1,134 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/extensions/enum_labels.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/tarjeta_base.dart';
+import '../home_view_model.dart';
 
-class _RecomendacionEjemplo {
-  final String titulo;
-  final String subtitulo;
-  final IconData icono;
-
-  const _RecomendacionEjemplo({
-    required this.titulo,
-    required this.subtitulo,
-    required this.icono,
-  });
-}
-
+/// Carrusel horizontal con las recomendaciones destacadas. Si no hay
+/// ninguna, invita a hacer el análisis de colorimetría.
 class RecomendacionesDestacadas extends StatelessWidget {
-  const RecomendacionesDestacadas({super.key});
+  final List<RecomendacionDestacada> recomendaciones;
+  final ValueChanged<RecomendacionDestacada> onSeleccionar;
+  final VoidCallback onHacerAnalisis;
 
-  static const List<_RecomendacionEjemplo> _items = [
-    _RecomendacionEjemplo(
-      titulo: 'Labial terracota',
-      subtitulo: 'Compatible con tu subtono cálido',
-      icono: Icons.brush_outlined,
-    ),
-    _RecomendacionEjemplo(
-      titulo: 'Blazer verde oliva',
-      subtitulo: 'Ideal para entrevistas de trabajo',
-      icono: Icons.checkroom_outlined,
-    ),
-    _RecomendacionEjemplo(
-      titulo: 'Tono de cabello caramelo',
-      subtitulo: 'Favorece tu estación de color',
-      icono: Icons.face_retouching_natural,
-    ),
-  ];
+  const RecomendacionesDestacadas({
+    super.key,
+    required this.recomendaciones,
+    required this.onSeleccionar,
+    required this.onHacerAnalisis,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (recomendaciones.isEmpty) {
+      return TarjetaBase(
+        child: Row(
+          children: [
+            const Icon(
+              Icons.auto_awesome_outlined,
+              color: AppColors.fucsia,
+              size: 32,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.sinRecomendacionesTitulo,
+                    style: AppTextStyles.botonSecundario.copyWith(fontSize: 14),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppStrings.sinRecomendacionesMensaje,
+                    style: AppTextStyles.subtitulo.copyWith(fontSize: 12.5),
+                  ),
+                  TextButton(
+                    onPressed: onHacerAnalisis,
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      foregroundColor: AppColors.fucsia,
+                    ),
+                    child: const Text(AppStrings.hacerMiAnalisis),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return SizedBox(
-      height: 132,
+      height: 140,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: _items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        clipBehavior: Clip.none,
+        itemCount: recomendaciones.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final item = _items[index];
-          return _TarjetaRecomendacion(item: item);
+          final item = recomendaciones[index];
+          return SizedBox(
+            width: 168,
+            child: TarjetaBase(
+              padding: const EdgeInsets.all(14),
+              onTap: () => onSeleccionar(item),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.fondoRosaSuave,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          item.tipo.icono,
+                          color: AppColors.violeta,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.tipo.etiqueta,
+                          textAlign: TextAlign.end,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.subtitulo.copyWith(
+                            fontSize: 10.5,
+                            color: AppColors.fucsia,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    item.titulo,
+                    style: AppTextStyles.botonSecundario.copyWith(
+                      fontSize: 13.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.subtitulo,
+                    style: AppTextStyles.subtitulo.copyWith(fontSize: 11.5),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
         },
-      ),
-    );
-  }
-}
-
-class _TarjetaRecomendacion extends StatelessWidget {
-  final _RecomendacionEjemplo item;
-
-  const _TarjetaRecomendacion({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.superficie,
-      borderRadius: BorderRadius.circular(18),
-      elevation: 1,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () {
-          // TODO: conectar navegación a detalle_producto_view / detalle_prenda_view.
-        },
-        child: Container(
-          width: 168,
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.fondoRosaSuave,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(item.icono, color: AppColors.violeta, size: 20),
-              ),
-              const Spacer(),
-              Text(
-                item.titulo,
-                style: AppTextStyles.botonSecundario.copyWith(fontSize: 13.5),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                item.subtitulo,
-                style: AppTextStyles.subtitulo.copyWith(fontSize: 11.5),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

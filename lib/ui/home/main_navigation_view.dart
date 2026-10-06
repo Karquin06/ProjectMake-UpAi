@@ -1,10 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/routes/app_router.dart';
 import '../../core/routes/app_routes.dart';
-import '../../core/theme/app_colors.dart';
-import '../../data/repositories/auth_repository.dart';
+import '../../core/utils/snackbar_helper.dart';
+import '../../data/services/notificaciones_service.dart';
+import '../../providers/notificaciones_provider.dart';
 import 'home_view.dart';
 
+/// Contenedor principal tras iniciar sesión: barra inferior con Inicio,
+/// Colorimetría, Asistente y Perfil. Usa `IndexedStack` para conservar el
+/// estado (scroll, formularios...) de cada pestaña al cambiar entre ellas.
+///
+/// También muestra como aviso las notificaciones push que llegan con la
+/// app abierta.
 class MainNavigationView extends StatefulWidget {
   const MainNavigationView({super.key});
 
@@ -14,118 +24,78 @@ class MainNavigationView extends StatefulWidget {
 
 class _MainNavigationViewState extends State<MainNavigationView> {
   int _indiceActual = 0;
+  StreamSubscription<NotificacionEntrante>? _subNotificaciones;
 
-  static const List<Widget> _paginas = [
-    HomeView(),
-    _PantallaProvisional(
-      icono: Icons.face_retouching_natural,
-      titulo: AppStrings.colorimetriaTab,
-    ),
-    _PantallaProvisional(
-      icono: Icons.smart_toy_outlined,
-      titulo: AppStrings.asistenteTab,
-    ),
-    _PantallaPerfilProvisional(),
+  /// Se crean una sola vez para que cada pestaña conserve su estado.
+  /// Colorimetría, Asistente y Perfil muestran la misma vista que su ruta:
+  /// cuando Jaider y Ana la conecten en `app_router.dart`, aparecerá aquí.
+  late final List<Widget> _paginas = [
+    HomeView(onIrAPestana: _cambiarPestana),
+    AppRouter.paginaDe(AppRoutes.colorimetria),
+    AppRouter.paginaDe(AppRoutes.asistente),
+    AppRouter.paginaDe(AppRoutes.perfil),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(index: _indiceActual, children: _paginas),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _indiceActual,
-        onTap: (index) => setState(() => _indiceActual = index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: AppStrings.inicio,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.face_retouching_natural_outlined),
-            activeIcon: Icon(Icons.face_retouching_natural),
-            label: AppStrings.colorimetriaTab,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.smart_toy_outlined),
-            activeIcon: Icon(Icons.smart_toy),
-            label: AppStrings.asistenteTab,
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: AppStrings.perfilTab,
-          ),
-        ],
-      ),
+  void initState() {
+    super.initState();
+    // Leerlo también lo inicializa (pide permiso y registra el token).
+    _subNotificaciones = context
+        .read<NotificacionesProvider>()
+        .entrantes
+        .listen(_mostrarNotificacion);
+  }
+
+  @override
+  void dispose() {
+    _subNotificaciones?.cancel();
+    super.dispose();
+  }
+
+  void _mostrarNotificacion(NotificacionEntrante n) {
+    if (!mounted) return;
+    final titulo = n.titulo ?? AppStrings.notificacionNueva;
+    SnackbarHelper.info(
+      context,
+      n.cuerpo == null ? titulo : '$titulo: ${n.cuerpo}',
     );
   }
-}
 
-/// Placeholder visual para las pestañas aún no implementadas.
-class _PantallaProvisional extends StatelessWidget {
-  final IconData icono;
-  final String titulo;
-
-  const _PantallaProvisional({required this.icono, required this.titulo});
+  void _cambiarPestana(int indice) => setState(() => _indiceActual = indice);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.fondoClaro,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icono, size: 48, color: AppColors.textoSecundario),
-            const SizedBox(height: 12),
-            Text(
-              '$titulo — próximamente',
-              style: const TextStyle(color: AppColors.textoSecundario),
+    // "Atrás" en Android vuelve primero a Inicio antes de salir de la app.
+    return PopScope(
+      canPop: _indiceActual == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _cambiarPestana(0);
+      },
+      child: Scaffold(
+        body: IndexedStack(index: _indiceActual, children: _paginas),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _indiceActual,
+          onTap: _cambiarPestana,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: AppStrings.inicio,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PantallaPerfilProvisional extends StatelessWidget {
-  const _PantallaPerfilProvisional();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.fondoClaro,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.person_outline,
-              size: 48,
-              color: AppColors.textoSecundario,
+            BottomNavigationBarItem(
+              icon: Icon(Icons.face_retouching_natural_outlined),
+              activeIcon: Icon(Icons.face_retouching_natural),
+              label: AppStrings.colorimetriaTab,
             ),
-            const SizedBox(height: 12),
-            Text(
-              '${AppStrings.perfilTab} — próximamente',
-              style: const TextStyle(color: AppColors.textoSecundario),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.smart_toy_outlined),
+              activeIcon: Icon(Icons.smart_toy),
+              label: AppStrings.asistenteTab,
             ),
-            const SizedBox(height: 24),
-            TextButton.icon(
-              onPressed: () async {
-                await AuthRepository().cerrarSesion();
-                if (context.mounted) {
-                  Navigator.of(
-                    context,
-                  ).pushNamedAndRemoveUntil(AppRoutes.splash, (_) => false);
-                }
-              },
-              icon: const Icon(Icons.logout, color: AppColors.error),
-              label: const Text(
-                'Cerrar sesión',
-                style: TextStyle(color: AppColors.error),
-              ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: AppStrings.perfilTab,
             ),
           ],
         ),

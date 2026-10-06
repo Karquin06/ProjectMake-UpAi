@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
@@ -9,8 +8,12 @@ import '../../core/theme/app_gradients.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
+import '../../providers/sesion_provider.dart';
 import 'splash_view_model.dart';
 
+/// Muestra el logo al menos 1,8 s y luego redirige según la sesión
+/// (ver [SplashViewModel.decidir]): onboarding, login, verificar_correo
+/// o home.
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
@@ -19,30 +22,50 @@ class SplashView extends StatefulWidget {
 }
 
 class _SplashViewState extends State<SplashView> {
-  bool _mostrarOnboarding = false;
+  final SplashViewModel _vm = SplashViewModel();
+  Timer? _temporizador;
+  bool _tiempoCumplido = false;
 
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(milliseconds: 1800), () {
-      if (!mounted) return;
-      // Si ya existe una sesión activa de Firebase Authentication,
-      // se omite el onboarding/login y se entra directo al home.
-      if (FirebaseAuth.instance.currentUser != null) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.home);
-      } else {
-        setState(() => _mostrarOnboarding = true);
-      }
+    _temporizador = Timer(const Duration(milliseconds: 1800), () {
+      _tiempoCumplido = true;
+      _intentarNavegar();
     });
   }
 
   @override
+  void dispose() {
+    _temporizador?.cancel();
+    _vm.dispose();
+    super.dispose();
+  }
+
+  Future<void> _intentarNavegar() async {
+    if (!mounted || !_tiempoCumplido || _vm.decidido) return;
+    final destino = await _vm.decidir(context.read<SesionProvider>());
+    if (!mounted) return;
+    if (destino != null) {
+      Navigator.of(context).pushReplacementNamed(destino);
+    } else {
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (!_mostrarOnboarding) {
+    // Si Firebase aún no respondía cuando terminó el temporizador, se
+    // vuelve a intentar cuando cambie la sesión.
+    context.watch<SesionProvider>();
+    if (_tiempoCumplido && !_vm.decidido) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _intentarNavegar());
+    }
+    if (!_vm.mostrarOnboarding) {
       return const _SplashLogo();
     }
-    return ChangeNotifierProvider(
-      create: (_) => SplashViewModel(),
+    return ChangeNotifierProvider.value(
+      value: _vm,
       child: const _OnboardingView(),
     );
   }
@@ -67,7 +90,7 @@ class _SplashLogo extends StatelessWidget {
                 width: 96,
                 height: 96,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.12),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(color: Colors.white24, width: 1.4),
                 ),
@@ -124,7 +147,6 @@ class _OnboardingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<SplashViewModel>();
-    final controller = PageController();
 
     return Scaffold(
       body: GradienteFondo(
@@ -163,7 +185,6 @@ class _OnboardingView extends StatelessWidget {
                 ),
                 Expanded(
                   child: PageView.builder(
-                    controller: controller,
                     itemCount: _paginas.length,
                     onPageChanged: vm.actualizarPagina,
                     itemBuilder: (context, index) {
@@ -180,15 +201,11 @@ class _OnboardingView extends StatelessWidget {
                 BotonPrimario(
                   texto: AppStrings.botonComenzar,
                   icono: Icons.arrow_forward,
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-                  },
+                  onPressed: () => _irALogin(context, vm),
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () => Navigator.of(
-                    context,
-                  ).pushReplacementNamed(AppRoutes.login),
+                  onTap: () => _irALogin(context, vm),
                   child: RichText(
                     text: TextSpan(
                       style: AppTextStyles.subtitulo,
@@ -212,6 +229,13 @@ class _OnboardingView extends StatelessWidget {
   }
 }
 
+/// Marca el onboarding como visto (no se repite) y abre el login.
+Future<void> _irALogin(BuildContext context, SplashViewModel vm) async {
+  final navigator = Navigator.of(context);
+  await vm.terminarOnboarding(context.read<SesionProvider>());
+  navigator.pushReplacementNamed(AppRoutes.login);
+}
+
 class _PaginaOnboarding extends StatelessWidget {
   final OnboardingPagina pagina;
 
@@ -231,7 +255,7 @@ class _PaginaOnboarding extends StatelessWidget {
             border: Border.all(color: AppColors.superficie, width: 6),
             boxShadow: [
               BoxShadow(
-                color: AppColors.violeta.withOpacity(0.15),
+                color: AppColors.violeta.withValues(alpha: 0.15),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),

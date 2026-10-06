@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/extensions/context_extensions.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_gradients.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/boton_secundario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
@@ -30,10 +32,68 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  AuthViewModel _crearViewModel(BuildContext c) {
+    final vm = AuthViewModel(
+      auth: c.read(),
+      usuarias: c.read(),
+      sesion: c.read(),
+    );
+    // "Recordarme": precarga el correo guardado.
+    vm.cargarCorreoRecordado().then((correo) {
+      if (mounted && correo != null && _correoController.text.isEmpty) {
+        _correoController.text = correo;
+      }
+    });
+    return vm;
+  }
+
+  Future<void> _iniciarSesion(AuthViewModel vm) async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    context.ocultarTeclado();
+    final exito = await vm.iniciarSesionConCorreo(
+      correo: _correoController.text,
+      contrasena: _contrasenaController.text,
+    );
+    if (!mounted) return;
+    if (exito) {
+      context.irYLimpiarHistorial(vm.rutaTrasIngresar);
+    } else if (vm.error != null) {
+      SnackbarHelper.error(context, vm.error!);
+    }
+  }
+
+  Future<void> _continuarConGoogle(AuthViewModel vm) async {
+    final resultado = await vm.continuarConGoogle();
+    if (!mounted) return;
+    switch (resultado) {
+      case ResultadoGoogle.exito:
+        context.irYLimpiarHistorial(vm.rutaTrasIngresar);
+      case ResultadoGoogle.requiereConsentimiento:
+        // Primera vez con Google: debe aceptar el aviso de privacidad.
+        final acepto = await context.irA(AppRoutes.avisoPrivacidad) == true;
+        if (!mounted) return;
+        if (acepto) {
+          if (await vm.completarRegistroGoogle()) {
+            if (mounted) context.irYLimpiarHistorial(vm.rutaTrasIngresar);
+            return;
+          }
+        } else {
+          await vm.cancelarRegistroGoogle();
+        }
+        if (mounted && vm.error != null) {
+          SnackbarHelper.error(context, vm.error!);
+        }
+      case ResultadoGoogle.error:
+        SnackbarHelper.error(context, vm.error!);
+      case ResultadoGoogle.cancelado:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AuthViewModel(),
+      create: _crearViewModel,
       child: Consumer<AuthViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
@@ -61,17 +121,7 @@ class _LoginViewState extends State<LoginView> {
                         icono: const _IconoGoogle(),
                         onPressed: vm.cargando
                             ? null
-                            : () async {
-                                final exito = await vm.continuarConGoogle();
-                                if (!context.mounted) return;
-                                if (exito) {
-                                  Navigator.of(
-                                    context,
-                                  ).pushReplacementNamed(AppRoutes.home);
-                                } else if (vm.error != null) {
-                                  _mostrarError(context, vm.error!);
-                                }
-                              },
+                            : () => _continuarConGoogle(vm),
                       ),
                       const SizedBox(height: 12),
                       BotonSecundario(
@@ -83,9 +133,10 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         onPressed: vm.cargando
                             ? null
-                            : () {
-                                // TODO: conectar con proveedor federado Apple.
-                              },
+                            : () => SnackbarHelper.info(
+                                context,
+                                AppStrings.appleProximamente,
+                              ),
                       ),
                       const SizedBox(height: 20),
                       Row(
@@ -104,48 +155,61 @@ class _LoginViewState extends State<LoginView> {
                         correoController: _correoController,
                         contrasenaController: _contrasenaController,
                       ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => _mostrarDialogoRecuperacion(
-                            context,
-                            vm,
-                            correoInicial: _correoController.text,
+                      const SizedBox(height: 6),
+                      // Wrap: en pantallas angostas "¿Olvidaste...?" baja de línea.
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Checkbox(
+                                value: vm.recordarme,
+                                onChanged: (v) =>
+                                    vm.cambiarRecordarme(v ?? false),
+                                activeColor: AppColors.fucsia,
+                                side: const BorderSide(
+                                  color: AppColors.borde,
+                                  width: 1.6,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    vm.cambiarRecordarme(!vm.recordarme),
+                                child: Text(
+                                  AppStrings.recordarme,
+                                  style: AppTextStyles.subtitulo.copyWith(
+                                    fontSize: 13.5,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            AppStrings.olvidasteContrasena,
-                            style: AppTextStyles.enlace,
+                          TextButton(
+                            onPressed: () => context.irA(
+                              AppRoutes.recuperarContrasena,
+                              argumentos: _correoController.text.trim(),
+                            ),
+                            child: Text(
+                              AppStrings.olvidasteContrasena,
+                              style: AppTextStyles.enlace.copyWith(
+                                fontSize: 13,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       BotonPrimario(
                         texto: AppStrings.botonIniciarSesion,
                         cargando: vm.cargando,
-                        onPressed: () async {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            final exito = await vm.iniciarSesionConCorreo(
-                              correo: _correoController.text,
-                              contrasena: _contrasenaController.text,
-                            );
-                            if (!context.mounted) return;
-                            if (exito) {
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed(AppRoutes.home);
-                            } else if (vm.error != null) {
-                              _mostrarError(context, vm.error!);
-                            }
-                          }
-                        },
+                        onPressed: () => _iniciarSesion(vm),
                       ),
                       const SizedBox(height: 20),
                       Center(
                         child: GestureDetector(
-                          onTap: () => Navigator.of(
-                            context,
-                          ).pushNamed(AppRoutes.registro),
+                          onTap: () => context.irA(AppRoutes.registro),
                           child: RichText(
                             text: TextSpan(
                               style: AppTextStyles.subtitulo,
@@ -170,63 +234,6 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-}
-
-void _mostrarError(BuildContext context, String mensaje) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(content: Text(mensaje), backgroundColor: AppColors.error),
-    );
-}
-
-Future<void> _mostrarDialogoRecuperacion(
-  BuildContext context,
-  AuthViewModel vm, {
-  required String correoInicial,
-}) async {
-  final controller = TextEditingController(text: correoInicial);
-  await showDialog<void>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        title: const Text('Recuperar contraseña'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.emailAddress,
-          decoration: const InputDecoration(hintText: 'hola@ejemplo.com'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final navigator = Navigator.of(dialogContext);
-              final mensajeroRaiz = ScaffoldMessenger.of(context);
-              final exito = await vm.enviarCorreoRecuperacion(controller.text);
-              navigator.pop();
-              mensajeroRaiz
-                ..hideCurrentSnackBar()
-                ..showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      exito
-                          ? 'Te enviamos un correo para restablecer tu '
-                                'contraseña.'
-                          : (vm.error ?? 'No se pudo enviar el correo.'),
-                    ),
-                    backgroundColor: exito ? AppColors.exito : AppColors.error,
-                  ),
-                );
-            },
-            child: const Text('Enviar'),
-          ),
-        ],
-      );
-    },
-  );
 }
 
 class _IconoGoogle extends StatelessWidget {
