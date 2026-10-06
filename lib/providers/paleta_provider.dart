@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../core/errors/firebase_error_mapper.dart';
 import '../data/repositories/paleta_repository.dart';
-import '../data/services/colorimetria_mock_service.dart';
+import '../data/services/colorimetria_service.dart';
 import '../models/enums.dart';
 import '../models/paleta_model.dart';
 

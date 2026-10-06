@@ -12,8 +12,8 @@ import '../../core/widgets/mensaje_error.dart';
 import '../../models/perfil_colorimetria_model.dart';
 import '../../providers/colorimetria_provider.dart';
 import 'resultado_view_model.dart';
-import 'widgets/detalle_subtono.dart';
-import 'widgets/tarjeta_resultado.dart';
+import 'widgets/diseno_responsivo.dart';
+import 'widgets/resumen_estilo.dart';
 
 /// Muestra el perfil recién analizado (argumento de la ruta) y lo guarda.
 class ResultadoView extends StatelessWidget {
@@ -63,20 +63,30 @@ class ResultadoView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        TarjetaResultado(perfil: vm.perfil),
-        const SizedBox(height: 16),
-        DetalleSubtono(subtono: vm.perfil.subtono),
-        const SizedBox(height: 24),
-        BotonPrimario(
-          texto: AppStrings.verMiPaletaBoton,
-          icono: Icons.palette_outlined,
-          onPressed: vm.guardado ? () => context.reemplazarCon(AppRoutes.paleta) : null,
-        ),
-        const SizedBox(height: 12),
-        BotonSecundario(
-          texto: AppStrings.volverAlInicio,
-          icono: const Icon(Icons.home_outlined, color: AppColors.fucsia),
-          onPressed: () => context.irYLimpiarHistorial(AppRoutes.home),
+        ContenidoCentrado(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ResumenPerfil(perfil: vm.perfil),
+              ResumenEstiloDePerfil(perfil: vm.perfil),
+              const SizedBox(height: 24),
+              FilaOColumna(
+                espacio: 12,
+                a: BotonPrimario(
+                  texto: AppStrings.verMiPaletaBoton,
+                  icono: Icons.palette_outlined,
+                  onPressed: vm.guardado
+                      ? () => context.reemplazarCon(AppRoutes.paleta)
+                      : null,
+                ),
+                b: BotonSecundario(
+                  texto: AppStrings.volverAlInicio,
+                  icono: const Icon(Icons.home_outlined, color: AppColors.fucsia),
+                  onPressed: () => context.irYLimpiarHistorial(AppRoutes.home),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

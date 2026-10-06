@@ -9,24 +9,39 @@ import '../../../core/widgets/boton_primario.dart';
 import '../../../core/widgets/estado_vacio.dart';
 import '../../../core/widgets/paleta_chips.dart';
 import '../../../models/paleta_model.dart';
+import 'diseno_responsivo.dart';
 
-/// Cuadrícula de colores (con `PaletaChips`). Al tocar uno abre una hoja
-/// inferior con su nombre y HEX, y la opción de copiar el código.
-class CuadriculaPaleta extends StatelessWidget {
+/// Grupo de colores con título (p. ej. "Labiales").
+class SeccionColores {
+  final String titulo;
+  final String? ayuda;
   final List<ColorPaleta> colores;
 
-  /// `true` para "Colores a evitar" (cambia el texto de la hoja).
+  const SeccionColores(this.titulo, this.colores, {this.ayuda});
+}
+
+/// Secciones de colores (con `PaletaChips`). Al tocar uno abre una hoja
+/// inferior con su nombre y HEX, y la opción de copiar el código.
+class CuadriculaPaleta extends StatelessWidget {
+  final List<SeccionColores> secciones;
+
+  /// Texto opcional arriba de las secciones (p. ej. el consejo de base).
+  final Widget? encabezado;
+
+  /// `true` para "Evitar" (cambia el texto de la hoja).
   final bool sonAEvitar;
 
   const CuadriculaPaleta({
     super.key,
-    required this.colores,
+    required this.secciones,
+    this.encabezado,
     this.sonAEvitar = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (colores.isEmpty) {
+    final conColores = secciones.where((s) => s.colores.isNotEmpty).toList();
+    if (conColores.isEmpty) {
       return const EstadoVacio(
         icono: Icons.palette_outlined,
         titulo: AppStrings.paletaVacia,
@@ -34,21 +49,38 @@ class CuadriculaPaleta extends StatelessWidget {
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(AppStrings.paletaToca, style: AppTextStyles.subtitulo),
-          const SizedBox(height: 20),
-          Center(
-            child: PaletaChips(
-              colores: [for (final c in colores) ColorUtils.desdeHex(c.hex)],
-              nombres: [for (final c in colores) c.nombre],
-              tamano: 64,
-              mostrarNombres: true,
-              onSeleccionar: (i) => _mostrarDetalle(context, colores[i]),
-            ),
-          ),
-        ],
+      child: ContenidoCentrado(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(AppStrings.paletaToca, style: AppTextStyles.subtitulo),
+            if (encabezado != null) ...[
+              const SizedBox(height: 16),
+              encabezado!,
+            ],
+            for (final seccion in conColores) ...[
+              const SizedBox(height: 24),
+              Text(
+                seccion.titulo,
+                style: AppTextStyles.tituloPantalla.copyWith(fontSize: 18),
+              ),
+              if (seccion.ayuda != null)
+                Text(seccion.ayuda!,
+                    style: AppTextStyles.subtitulo.copyWith(fontSize: 13)),
+              const SizedBox(height: 12),
+              PaletaChips(
+                colores: [
+                  for (final c in seccion.colores) ColorUtils.desdeHex(c.hex),
+                ],
+                nombres: [for (final c in seccion.colores) c.nombre],
+                tamano: 64,
+                mostrarNombres: true,
+                onSeleccionar: (i) =>
+                    _mostrarDetalle(context, seccion.colores[i]),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -31,8 +31,12 @@ class PaletaViewModel extends ChangeNotifier {
 
   String? get error => _colorimetria.error ?? _paletas.error;
   EstacionColor? get estacion => _colorimetria.perfil?.estacionColor;
+  Subtono? get subtono => _colorimetria.perfil?.subtono;
   List<ColorPaleta> get recomendados =>
       _paletas.paleta?.coloresRecomendados ?? const [];
+  List<ColorPaleta> get neutros => _paletas.paleta?.neutros ?? const [];
+  MaquillajePaleta get maquillaje =>
+      _paletas.paleta?.maquillaje ?? const MaquillajePaleta();
   List<ColorPaleta> get evitar => _paletas.paleta?.coloresEvitar ?? const [];
 
   /// Carga lo que falte (p. ej. si se abrió la paleta antes que Colorimetría).
