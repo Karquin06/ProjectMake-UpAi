@@ -542,4 +542,56 @@ class AppStrings {
   static const String rutaNoEncontrada = 'Ruta no encontrada';
   static const String funcionDeshabilitada =
       'Esta función estará disponible próximamente.';
+
+  // ---------------------------------------------------------------------
+  // Catálogo de administración — Ana
+  // ---------------------------------------------------------------------
+  static const String catalogoTitulo = 'Catálogo';
+  static const String pestanaPrendas = 'Prendas';
+  static const String pestanaProductos = 'Productos';
+  static const String buscarEnCatalogo = 'Buscar por nombre...';
+  static const String filtroTodas = 'Todas';
+  static const String filtroCategoria = 'Categoría';
+  static const String filtroEstacion = 'Estación';
+  static const String limpiarFiltros = 'Limpiar filtros';
+  static const String nuevaPrenda = 'Nueva prenda';
+  static const String nuevoProducto = 'Nuevo producto';
+  static const String editar = 'Editar';
+  static const String activar = 'Activar';
+  static const String desactivar = 'Desactivar';
+  static const String itemInactivo = 'Inactivo';
+  static const String cargarMas = 'Cargar más';
+  static const String catalogoVacioTitulo = 'El catálogo está vacío';
+  static const String catalogoVacioMensaje =
+      'Agrega el primer ítem para que las usuarias reciban recomendaciones.';
+  static const String catalogoSinResultadosTitulo = 'Sin resultados';
+  static const String catalogoSinResultadosMensaje =
+      'Ningún ítem coincide con la búsqueda o los filtros.';
+  static const String eliminarItemTitulo = '¿Eliminar este ítem?';
+  static String eliminarItemMensaje(String nombre) =>
+      '"$nombre" se borrará del catálogo junto con su imagen. '
+      'Esta acción no se puede deshacer.';
+  static const String itemEliminado = 'Ítem eliminado del catálogo';
+  static const String itemActivado = 'Ítem activado';
+  static const String itemDesactivado = 'Ítem desactivado';
+  static const String sinNombre = 'Sin nombre';
+
+  // Categorías de prenda y producto (EtiquetasTexto.categoria)
+  static const String categoriaSuperior = 'Superior';
+  static const String categoriaInferior = 'Inferior';
+  static const String categoriaVestido = 'Vestido';
+  static const String categoriaAbrigo = 'Abrigo';
+  static const String categoriaAccesorio = 'Accesorio';
+  static const String categoriaLabial = 'Labial';
+  static const String categoriaRubor = 'Rubor';
+  static const String categoriaSombra = 'Sombra';
+  static const String categoriaBase = 'Base';
+
+  // Ocasiones (EtiquetasTexto.ocasion)
+  static const String ocasionTrabajo = 'Trabajo';
+  static const String ocasionCasual = 'Casual';
+  static const String ocasionFiesta = 'Fiesta';
+  static const String ocasionEntrevista = 'Entrevista';
+  static const String ocasionCita = 'Cita';
+  static const String ocasionDeporte = 'Deporte';
 }
