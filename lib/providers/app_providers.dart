@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import '../core/constants/app_constants.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/catalogo_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/paleta_repository.dart';
@@ -155,7 +156,9 @@ class AppProviders extends StatelessWidget {
 
   /// IA, recomendaciones y catálogo — dueña: Ana Cuellar.
   static List<SingleChildWidget> get _inteligenciaArtificial => [
-    // Ej.: ChangeNotifierProvider(create: (c) => RecomendacionProvider(...)),
+    // Catálogo global de prendas y productos (lo usan el catálogo admin,
+    // las recomendaciones y el simulador AR).
+    Provider<CatalogoRepository>(create: (_) => CatalogoRepository()),
   ];
 
   /// AR y armario — dueño: Mauricio Parra.
