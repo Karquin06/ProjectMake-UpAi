@@ -27,6 +27,9 @@ class PerfilViewModel extends ChangeNotifier {
   String get nombre => _sesion?.nombreVisible ?? '';
   String get correo => _sesion?.correo ?? '';
   String? get fotoUrl => _sesion?.fotoUrl;
+
+  /// `true` solo para la cuenta administradora (muestra el catálogo).
+  bool get esAdmin => _sesion?.esAdmin ?? false;
   bool get cerrandoSesion => _cerrandoSesion;
   bool get eliminandoCuenta => _eliminandoCuenta;
 
