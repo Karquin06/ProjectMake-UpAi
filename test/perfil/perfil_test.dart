@@ -251,6 +251,9 @@ void main() {
     expect(find.text('Sofía Martínez'), findsOneWidget);
     expect(find.text(AppStrings.cerrarSesion), findsOneWidget);
     expect(find.text(AppStrings.eliminarCuenta), findsOneWidget);
+    // Una usuaria normal no ve el acceso al catálogo (solo admin).
+    expect(find.text(AppStrings.seccionAdministracion), findsNothing);
+    expect(find.text(AppStrings.catalogoTitulo), findsNothing);
 
     await tester.pumpWidget(app(const EditarPerfilView()));
     await tester.pumpAndSettle();

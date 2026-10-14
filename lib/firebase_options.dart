@@ -16,23 +16,23 @@ class DefaultFirebaseOptions {
   }
 
   // Valores del fragmento "firebaseConfig" de la app Web.
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyB13iMLyKFWYuA26Sg-nKqPRd--XG5pKdc',
-    appId: '1:616207966076:web:8415ccf153789eb9204ef9',
-    messagingSenderId: '616207966076',
-    projectId: 'make-up--ai',
-    authDomain: 'make-up--ai.firebaseapp.com',
-    storageBucket: 'make-up--ai.firebasestorage.app',
-    measurementId: 'G-KM0LDLMWGB',
-  );
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyBssNCBBXZ7TPc3IvmKAVEypYyI_8AlrkM',
+    appId: '1:423754930566:web:b13df98e31b53dea857407',
+    messagingSenderId: '423754930566',
+    projectId: 'macke-up-ai',
+    authDomain: 'macke-up-ai.firebaseapp.com',
+    storageBucket: 'macke-up-ai.firebasestorage.app',
+    measurementId: 'G-G3288E4W59',
+  );
   // Valores de google-services.json de la app Android:
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDbCcqnEIHJc9LvWvuvQr4E56Irok2b73U',
-    appId: '1:616207966076:android:6aa54db823f48954204ef9',
-    messagingSenderId: '616207966076',
-    projectId: 'make-up--ai',
-    storageBucket: 'make-up--ai.firebasestorage.app',
+    apiKey: 'AIzaSyAlwVgsHRA4VrYe5VAbnJNfZ5ckN4APjK0',
+    appId: '1:423754930566:android:ad081d6a16fd763d857407',
+    messagingSenderId: '423754930566',
+    projectId: 'macke-up-ai',
+    storageBucket: 'macke-up-ai.firebasestorage.app',
   );
 }

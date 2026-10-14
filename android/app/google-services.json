@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "616207966076",
-    "project_id": "make-up--ai",
-    "storage_bucket": "make-up--ai.firebasestorage.app"
+    "project_number": "423754930566",
+    "project_id": "macke-up-ai",
+    "storage_bucket": "macke-up-ai.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:616207966076:android:6aa54db823f48954204ef9",
+        "mobilesdk_app_id": "1:423754930566:android:ad081d6a16fd763d857407",
         "android_client_info": {
           "package_name": "com.example.mackeupai"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "616207966076-9p86sdshe9e59i6h67jo3nmumah4jcne.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.mackeupai",
-            "certificate_hash": "b4b765e4a0103f3d2a17abcd07081eb048c124ff"
-          }
-        },
-        {
-          "client_id": "616207966076-jb7va406i478uo3mvaqjotp7m3bsch1k.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDbCcqnEIHJc9LvWvuvQr4E56Irok2b73U"
+          "current_key": "AIzaSyAlwVgsHRA4VrYe5VAbnJNfZ5ckN4APjK0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "616207966076-jb7va406i478uo3mvaqjotp7m3bsch1k.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

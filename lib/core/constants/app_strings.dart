@@ -178,6 +178,9 @@ class AppStrings {
       'La contraseña no es correcta.';
   static const String seccionCuenta = 'CUENTA';
   static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
+  static const String seccionAdministracion = 'ADMINISTRACIÓN';
+  static const String catalogoAdminSubtitulo =
+      'Agrega y edita productos de maquillaje y prendas';
 
   // Editar perfil
   static const String guardarCambios = 'Guardar cambios';

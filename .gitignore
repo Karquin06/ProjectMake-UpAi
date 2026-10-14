@@ -48,3 +48,5 @@ hs_err_pid*.log
 replay_pid*.log
 *.hprof
 serviceAccountKey.json
+# Claves de cuentas de servicio de Firebase (nunca subirlas)
+*firebase-adminsdk*.json

@@ -71,6 +71,20 @@ class PerfilView extends StatelessWidget {
             onTap: () => context.irA(AppRoutes.editarPerfil),
           ),
         ),
+        // Solo la cuenta admin ve el acceso al catálogo.
+        if (vm.esAdmin) ...[
+          const SizedBox(height: 20),
+          const _TituloGrupo(AppStrings.seccionAdministracion),
+          TarjetaBase(
+            padding: EdgeInsets.zero,
+            child: OpcionPerfil(
+              icono: Icons.inventory_2_outlined,
+              titulo: AppStrings.catalogoTitulo,
+              subtitulo: AppStrings.catalogoAdminSubtitulo,
+              onTap: () => context.irA(AppRoutes.catalogoAdmin),
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         const _TituloGrupo(AppStrings.seccionPrivacidad),
         TarjetaBase(
