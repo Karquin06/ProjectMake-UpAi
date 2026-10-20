@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
@@ -13,6 +12,7 @@ import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
 import '../../providers/sesion_provider.dart';
 import 'splash_view_model.dart';
+import 'widgets/logo_animado.dart';
 
 /// Anima el logo (fade y escala) y, cuando la animación termina, redirige
 /// según la sesión (ver [SplashViewModel.decidir]): onboarding, login,
@@ -27,12 +27,10 @@ class SplashView extends StatefulWidget {
 class _SplashViewState extends State<SplashView>
     with SingleTickerProviderStateMixin {
   /// Tiempo mínimo que se ve el splash: lo que dura la animación.
-  static const Duration _duracion = Duration(milliseconds: 1800);
+  static const Duration _duracion = Duration(milliseconds: 2800);
 
   final SplashViewModel _vm = SplashViewModel();
   late final AnimationController _controlador;
-  late final Animation<double> _opacidad;
-  late final Animation<double> _escala;
   Timer? _limiteSesion;
   bool _tiempoCumplido = false;
 
@@ -40,16 +38,6 @@ class _SplashViewState extends State<SplashView>
   void initState() {
     super.initState();
     _controlador = AnimationController(vsync: this, duration: _duracion);
-    _opacidad = CurvedAnimation(
-      parent: _controlador,
-      curve: const Interval(0, 0.6, curve: Curves.easeOut),
-    );
-    _escala = Tween<double>(begin: 0.85, end: 1).animate(
-      CurvedAnimation(
-        parent: _controlador,
-        curve: const Interval(0, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
     _controlador.addStatusListener((estado) {
       if (estado == AnimationStatus.completed) {
         _tiempoCumplido = true;
@@ -101,7 +89,7 @@ class _SplashViewState extends State<SplashView>
       WidgetsBinding.instance.addPostFrameCallback((_) => _intentarNavegar());
     }
     if (!_vm.mostrarOnboarding) {
-      return _SplashLogo(opacidad: _opacidad, escala: _escala);
+      return _SplashLogo(animacion: _controlador);
     }
     return ChangeNotifierProvider.value(
       value: _vm,
@@ -110,70 +98,19 @@ class _SplashViewState extends State<SplashView>
   }
 }
 
-/// Splash puro: el logo (que ya incluye nombre y eslogan) aparece con fade
-/// y escala. El JPEG no es transparente, así que va dentro de una tarjeta
-/// blanca redondeada sobre el degradado de marca.
+/// Splash puro: el logo animado (ver [LogoAnimado]) centrado sobre el
+/// degradado de marca.
 class _SplashLogo extends StatelessWidget {
-  final Animation<double> opacidad;
-  final Animation<double> escala;
+  final Animation<double> animacion;
 
-  const _SplashLogo({required this.opacidad, required this.escala});
+  const _SplashLogo({required this.animacion});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GradienteFondo(
         gradient: AppGradients.splash,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FadeTransition(
-                opacity: opacidad,
-                child: ScaleTransition(
-                  scale: escala,
-                  child: Container(
-                    width: 260,
-                    height: 260,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(36),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.violetaOscuro.withValues(
-                            alpha: 0.35,
-                          ),
-                          blurRadius: 32,
-                          offset: const Offset(0, 14),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(36),
-                      child: Image.asset(
-                        AppAssets.logo,
-                        fit: BoxFit.cover,
-                        semanticLabel: AppStrings.nombreApp,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 36),
-              FadeTransition(
-                opacity: opacidad,
-                child: const SizedBox(
-                  width: 26,
-                  height: 26,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.2,
-                    color: Colors.white70,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: Center(child: LogoAnimado(animacion: animacion)),
       ),
     );
   }
