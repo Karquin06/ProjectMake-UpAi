@@ -1,6 +1,6 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
@@ -11,9 +11,9 @@ import '../../core/widgets/gradiente_fondo.dart';
 import '../../providers/sesion_provider.dart';
 import 'splash_view_model.dart';
 
-/// Muestra el logo al menos 1,8 s y luego redirige según la sesión
-/// (ver [SplashViewModel.decidir]): onboarding, login, verificar_correo
-/// o home.
+/// Anima el logo (fade y escala) y, cuando la animación termina, redirige
+/// según la sesión (ver [SplashViewModel.decidir]): onboarding, login,
+/// verificar_correo o home.
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
@@ -21,23 +21,43 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView> {
+class _SplashViewState extends State<SplashView>
+    with SingleTickerProviderStateMixin {
+  /// Tiempo mínimo que se ve el splash: lo que dura la animación.
+  static const Duration _duracion = Duration(milliseconds: 1800);
+
   final SplashViewModel _vm = SplashViewModel();
-  Timer? _temporizador;
+  late final AnimationController _controlador;
+  late final Animation<double> _opacidad;
+  late final Animation<double> _escala;
   bool _tiempoCumplido = false;
 
   @override
   void initState() {
     super.initState();
-    _temporizador = Timer(const Duration(milliseconds: 1800), () {
-      _tiempoCumplido = true;
-      _intentarNavegar();
+    _controlador = AnimationController(vsync: this, duration: _duracion);
+    _opacidad = CurvedAnimation(
+      parent: _controlador,
+      curve: const Interval(0, 0.6, curve: Curves.easeOut),
+    );
+    _escala = Tween<double>(begin: 0.85, end: 1).animate(
+      CurvedAnimation(
+        parent: _controlador,
+        curve: const Interval(0, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
+    _controlador.addStatusListener((estado) {
+      if (estado == AnimationStatus.completed) {
+        _tiempoCumplido = true;
+        _intentarNavegar();
+      }
     });
+    _controlador.forward();
   }
 
   @override
   void dispose() {
-    _temporizador?.cancel();
+    _controlador.dispose();
     _vm.dispose();
     super.dispose();
   }
@@ -62,7 +82,7 @@ class _SplashViewState extends State<SplashView> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _intentarNavegar());
     }
     if (!_vm.mostrarOnboarding) {
-      return const _SplashLogo();
+      return _SplashLogo(opacidad: _opacidad, escala: _escala);
     }
     return ChangeNotifierProvider.value(
       value: _vm,
@@ -71,9 +91,14 @@ class _SplashViewState extends State<SplashView> {
   }
 }
 
-/// Splash puro: logo, nombre de marca y eslogan.
+/// Splash puro: el logo (que ya incluye nombre y eslogan) aparece con fade
+/// y escala. El JPEG no es transparente, así que va dentro de una tarjeta
+/// blanca redondeada sobre el degradado de marca.
 class _SplashLogo extends StatelessWidget {
-  const _SplashLogo();
+  final Animation<double> opacidad;
+  final Animation<double> escala;
+
+  const _SplashLogo({required this.opacidad, required this.escala});
 
   @override
   Widget build(BuildContext context) {
@@ -84,36 +109,47 @@ class _SplashLogo extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Marcador del isotipo del logo. Reemplazar por
-              // Image.asset(AppAssets.logo) cuando el asset esté disponible.
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white24, width: 1.4),
+              FadeTransition(
+                opacity: opacidad,
+                child: ScaleTransition(
+                  scale: escala,
+                  child: Container(
+                    width: 260,
+                    height: 260,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(36),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.violetaOscuro.withValues(
+                            alpha: 0.35,
+                          ),
+                          blurRadius: 32,
+                          offset: const Offset(0, 14),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(36),
+                      child: Image.asset(
+                        AppAssets.logo,
+                        fit: BoxFit.cover,
+                        semanticLabel: AppStrings.nombreApp,
+                      ),
+                    ),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.face_retouching_natural,
-                  color: Colors.white,
-                  size: 46,
-                ),
-              ),
-              const SizedBox(height: 22),
-              Text(AppStrings.nombreApp, style: AppTextStyles.logo),
-              const SizedBox(height: 6),
-              Text(
-                AppStrings.eslogan,
-                style: AppTextStyles.subtitulo.copyWith(color: Colors.white70),
               ),
               const SizedBox(height: 36),
-              const SizedBox(
-                width: 26,
-                height: 26,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Colors.white70,
+              FadeTransition(
+                opacity: opacidad,
+                child: const SizedBox(
+                  width: 26,
+                  height: 26,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Colors.white70,
+                  ),
                 ),
               ),
             ],
