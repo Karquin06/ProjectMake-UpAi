@@ -60,6 +60,8 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   fake_cloud_firestore: ^4.3.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 dependency_overrides:
   # 14.x exige compileSdk 37 y el Android Gradle Plugin del proyecto (9.0.1)
@@ -110,3 +112,33 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Ícono de la app (flutter_launcher_icons). Las imágenes fuente están en
+# assets/icon/ (NO se empaquetan en la app). Regenerar con:
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icono_app.png"
+  adaptive_icon_background: "#F7F7F7"
+  adaptive_icon_foreground: "assets/icon/icono_adaptativo.png"
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/icon/icono_app.png"
+    background_color: "#F7F7F7"
+    theme_color: "#D6247A"
+
+# Pantalla nativa de arranque (flutter_native_splash): mismo degradado y
+# misma tarjeta con el logo que el splash de Flutter, para que el cambio no
+# se note. Regenerar con:
+#   dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#3A0F35"
+  background_image: "assets/icon/splash_fondo.png"
+  image: "assets/icon/splash_logo.png"
+  android_12:
+    color: "#3A0F35"
+    image: "assets/icon/icono_adaptativo.png"
+    icon_background_color: "#F7F7F7"
+  web: false
