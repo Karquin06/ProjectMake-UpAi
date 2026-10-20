@@ -16,6 +16,8 @@ class AppStrings {
       'Prueba tu maquillaje con realidad aumentada y evita compras '
       'que no te favorecen.';
 
+  static const String errorSesionSplash =
+      'No pudimos verificar tu sesión. Revisa tu conexión e inicia sesión.';
   static const String onboardingTitulo3 = 'Un asistente que te conoce';
   static const String onboardingDescripcion3 =
       'Resuelve tus dudas de estilo con un asistente de IA que entiende '
@@ -499,15 +501,13 @@ class AppStrings {
       'maquillaje.';
   static const String paraTuRopa = 'Para tu ropa';
   static const String paraTuMaquillaje = 'Para tu maquillaje';
-  static const String baseCalida =
-      'Busca bases con subtono dorado o amarillo.';
+  static const String baseCalida = 'Busca bases con subtono dorado o amarillo.';
   static const String baseFria = 'Busca bases con subtono rosado.';
   static const String baseNeutra =
       'Busca bases neutras: ni muy rosadas ni muy amarillas.';
   static const String coloresAEvitar = 'Colores a evitar';
   static String paletaDeEstacion(String estacion) => 'Paleta de $estacion';
-  static const String paletaToca =
-      'Toca un color para ver su nombre y código.';
+  static const String paletaToca = 'Toca un color para ver su nombre y código.';
   static const String paletaSinAnalisisMensaje =
       'Haz tu análisis de colorimetría para conocer los colores que más '
       'te favorecen.';

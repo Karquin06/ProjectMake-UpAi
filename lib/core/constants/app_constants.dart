@@ -51,6 +51,18 @@ class AppConstants {
   static const int longitudMinimaContrasena = 6;
 
   // ---------------------------------------------------------------------
+  // Splash
+  // ---------------------------------------------------------------------
+
+  /// Tiempo máximo que el splash espera a que Firebase confirme la sesión.
+  /// Pasado este tiempo se va a login con un aviso, sin quedarse trabado.
+  static const Duration esperaMaximaSesion = Duration(seconds: 8);
+
+  /// Tiempo máximo para comprobar en el servidor que existe el documento de
+  /// la usuaria. Si se agota se trata como falta de conexión (se deja entrar).
+  static const Duration esperaComprobarUsuaria = Duration(seconds: 5);
+
+  // ---------------------------------------------------------------------
   // Imágenes
   // ---------------------------------------------------------------------
 

@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_assets.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_gradients.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
 import '../../providers/sesion_provider.dart';
@@ -30,6 +33,7 @@ class _SplashViewState extends State<SplashView>
   late final AnimationController _controlador;
   late final Animation<double> _opacidad;
   late final Animation<double> _escala;
+  Timer? _limiteSesion;
   bool _tiempoCumplido = false;
 
   @override
@@ -53,10 +57,12 @@ class _SplashViewState extends State<SplashView>
       }
     });
     _controlador.forward();
+    _limiteSesion = Timer(AppConstants.esperaMaximaSesion, _alAgotarseElTiempo);
   }
 
   @override
   void dispose() {
+    _limiteSesion?.cancel();
     _controlador.dispose();
     _vm.dispose();
     super.dispose();
@@ -66,7 +72,20 @@ class _SplashViewState extends State<SplashView>
     if (!mounted || !_tiempoCumplido || _vm.decidido) return;
     final destino = await _vm.decidir(context.read<SesionProvider>());
     if (!mounted) return;
+    _navegar(destino);
+  }
+
+  /// Firebase no respondió a tiempo: se sale a login con un aviso.
+  void _alAgotarseElTiempo() {
+    if (!mounted) return;
+    _navegar(_vm.tiempoAgotado());
+  }
+
+  void _navegar(String? destino) {
     if (destino != null) {
+      _limiteSesion?.cancel();
+      final error = _vm.mensajeError;
+      if (error != null) SnackbarHelper.error(context, error);
       Navigator.of(context).pushReplacementNamed(destino);
     } else {
       setState(() {});
