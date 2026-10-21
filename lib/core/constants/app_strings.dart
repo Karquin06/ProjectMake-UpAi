@@ -655,4 +655,83 @@ class AppStrings {
       'Se cargaron $total ítems de ejemplo con sus imágenes';
   static String catalogoEjemploSinImagenes(String motivo) =>
       'Se cargó el catálogo, pero sin imágenes nuevas: $motivo';
+
+  // Recomendaciones — Ana
+  static const String recomendacionesTitulo = 'Recomendaciones';
+  static const String tipoRopa = 'Ropa';
+  static const String filtroTodasOcasiones = 'Todas';
+  static String porcentajeCompatible(int puntaje) => '$puntaje % compatible';
+  static const String compatibilidadAlta = 'Ideal para ti';
+  static const String compatibilidadMedia = 'Te puede quedar bien';
+  static const String compatibilidadBaja = 'Úsalo con moderación';
+  static const String recomendacionesVaciasTitulo = 'Aún no hay recomendaciones';
+  static const String recomendacionesVaciasMensaje =
+      'Todavía no hay productos en el catálogo para mostrarte.';
+  static const String recomendacionesSinPerfilMensaje =
+      'Haz tu análisis de colorimetría para recibir recomendaciones que de '
+      'verdad te favorezcan.';
+  static const String recomendacionesCalculoLocal =
+      'Calculadas en tu teléfono mientras se activa el servidor.';
+  static const String recomendacionesVaciasOcasion =
+      'No encontramos prendas para esta ocasión. Prueba con otra.';
+
+  // Detalle de prenda y producto — Ana
+  static const String porQueTeQuedaBien = 'Por qué te queda bien';
+  static const String califica = 'Califica esta recomendación';
+  static const String calificaAyuda =
+      'Tu opinión mejora el orden de tus próximas recomendaciones.';
+  static const String calificacionGuardada = '¡Gracias! Guardamos tu calificación';
+  static const String probarEnAr = 'Probar en AR';
+  static const String detalleColor = 'Color';
+  static const String detalleEstaciones = 'Estaciones';
+  static const String detalleOcasiones = 'Ocasiones';
+  static const String detalleSubtonos = 'Subtonos';
+  static const String detalleAcabado = 'Acabado';
+  static const String detalleTalla = 'Talla';
+  static const String detalleMaterial = 'Material';
+  static const String detalleEnlace = 'Dónde comprarlo';
+  static const String enlaceCopiado = 'Enlace copiado';
+  static const String itemNoDisponible = 'Este ítem ya no está disponible.';
+  static const String detalleDescripcion = 'Descripción';
+  static const String detalleTono = 'Tono';
+  static const String detalleCategoria = 'Categoría';
+  static const String copiarEnlace = 'Copiar enlace';
+  static const String motivoSinPerfil =
+      'Haz tu análisis de colorimetría para saber qué tanto te favorece.';
+  static String tuSubtono(String subtono) => 'Subtono $subtono';
+  static String estrellas(int n) => n == 1 ? '1 estrella' : '$n estrellas';
+
+  // Asistente de IA — Ana
+  static const String asistenteTitulo = 'Asistente';
+  static const String nuevaConversacion = 'Nueva conversación';
+  static const String asistenteBienvenidaTitulo = '¡Hola! Soy tu asesora de imagen';
+  static const String asistenteBienvenidaMensaje =
+      'Pregúntame qué colores, prendas o maquillaje te favorecen según tu '
+      'colorimetría.';
+  static const String asistenteSinPerfil =
+      'Aún no tienes análisis de colorimetría: mis consejos serán generales.';
+  static const String hacerAnalisis = 'Hacer análisis';
+  static const String escribeTuPregunta = 'Escribe tu pregunta...';
+  static const String enviar = 'Enviar';
+  static const String asistenteEscribiendo = 'Escribiendo...';
+  static const String mensajeNoEnviado = 'No se envió. Toca para reintentar.';
+  static const String asistenteSinRespuesta =
+      'No tengo una respuesta para eso. ¿Puedes preguntarlo de otra forma?';
+  static const String asistenteNoDisponible =
+      'El asistente aún no está disponible. Intenta más tarde.';
+  static const String sugerenciaEntrevista = '¿Qué me pongo para una entrevista?';
+  static const String sugerenciaLabial = 'Labial para mi subtono';
+  static const String sugerenciaFiesta = 'Look para una fiesta';
+  static const String sugerenciaEvitar = '¿Qué colores debo evitar?';
+  static const String sugerenciaBase = '¿Qué base me recomiendas?';
+
+  // Errores de las funciones de Ana
+  static const String errorLimiteMensajes =
+      'Enviaste muchos mensajes seguidos. Espera un minuto.';
+  static const String errorIaNoDisponible =
+      'El asistente no pudo responder ahora. Intenta de nuevo.';
+  static const String errorMensajeLargo =
+      'El mensaje es muy largo (máximo 500 caracteres).';
+  static const String errorReautenticacionRequerida =
+      'Por seguridad, vuelve a confirmar tu identidad para eliminar la cuenta.';
 }

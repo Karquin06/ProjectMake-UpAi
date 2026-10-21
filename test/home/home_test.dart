@@ -195,7 +195,8 @@ void main() {
     expect(find.text(AppStrings.saludo('Sofía')), findsOneWidget);
     expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
     expect(find.text(AppStrings.proximamente), findsNothing);
-    expect(find.text('Labial rojo frambuesa'), findsOneWidget);
+    // Las recomendaciones de Home ya son reales (Ana): aquí no hay catálogo.
+    expect(find.text('Labial rojo frambuesa'), findsNothing);
 
     // Armario (Mauricio) abre su pantalla, aún en construcción.
     await tester.tap(find.text(AppStrings.accesoArmario));

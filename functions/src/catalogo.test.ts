@@ -8,7 +8,12 @@ import {
   PRODUCTOS,
 } from "./datos/catalogo";
 import { PALETAS } from "./datos/paletas";
-import { documentoPrenda, documentoProducto } from "./scripts/documentos_catalogo";
+import {
+  conservarFotoPropia,
+  documentoPrenda,
+  documentoProducto,
+  rutaFotoEjemplo,
+} from "./scripts/documentos_catalogo";
 
 const HEX = /^#[0-9A-F]{6}$/;
 const ESTACIONES = ["primavera", "verano", "otono", "invierno"];
@@ -112,5 +117,24 @@ describe("catálogo de prueba", () => {
       assert.ok(Object.values(doc).every((v) => v !== null && v !== undefined));
       assert.ok(Array.isArray(doc.subtonoCompatible));
     }
+  });
+
+  it("las fotos se guardan en Storage y se respetan las subidas por la admin", () => {
+    assert.equal(
+      rutaFotoEjemplo("productos", "producto-labial-coral-mac"),
+      "catalogo/productos/producto-labial-coral-mac/ejemplo.jpg",
+    );
+    // Documento nuevo o con foto de ejemplo: se reemplaza.
+    assert.equal(conservarFotoPropia(undefined), false);
+    assert.equal(conservarFotoPropia({ imagenURL: "https://images.pexels.com/x.jpg" }), false);
+    assert.equal(
+      conservarFotoPropia({ imagenURL: "https://f/x", imagenRuta: "catalogo/productos/p/ejemplo.jpg" }),
+      false,
+    );
+    // Foto subida con "Editar": se conserva.
+    assert.equal(
+      conservarFotoPropia({ imagenURL: "https://f/x", imagenRuta: "catalogo/productos/p/1712.jpg" }),
+      true,
+    );
   });
 });

@@ -155,7 +155,7 @@ En Flutter: `CloudFunctionsService().analizarPrenda(ruta)` →
 
 ## Catálogo de prueba — Ana (`src/datos/catalogo.ts`)
 
-16 prendas (Zara, Mango, Studio F, Koaj, H&M, ELA) y 24 productos de
+30 prendas (Zara, Mango, Studio F, Koaj, H&M, ELA) y 38 productos de
 maquillaje (L'Oréal Paris, MAC, Maybelline, Bloomshell, NYX, Revlon, Vogue,
 Samy, Esika) para que el equipo pueda probar el catálogo, las
 recomendaciones y el simulador. Nombres descriptivos y precios (COP)
@@ -171,8 +171,9 @@ npm run sembrar:catalogo
 
 - Ids fijos (`prenda-…`, `producto-…`): si se corre otra vez, actualiza los
   mismos documentos, no duplica.
-- Quedan sin imagen; se les agrega desde la app con la cuenta admin
-  (Perfil → Administración → Catálogo → Editar).
+- Cada ítem tiene una foto real de Pexels (licencia libre). El script la
+  descarga y la **guarda en Storage** (`catalogo/{prendas|productos}/{id}/ejemplo.jpg`),
+  así la app no depende de Pexels. Respeta las fotos subidas con "Editar".
 - `npm test` valida los datos (colores de la paleta, subtonos, campos).
 - La app tiene una copia generada en `lib/data/datos/catalogo_ejemplo.dart`
   y el catálogo admin la carga con el botón "Cargar catálogo de ejemplo"

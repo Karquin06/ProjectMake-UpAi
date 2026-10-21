@@ -328,12 +328,20 @@ void main() {
       for (final d in productos) {
         expect(_productoValido(d.data()), isTrue, reason: d.id);
       }
-      // La lista de la pestaña actual (prendas) ya se recargó.
-      expect(vm.items, hasLength(CatalogoEjemplo.prendas.length));
+      // La lista de la pestaña actual (prendas) ya se recargó (primera
+      // página: el catálogo se pide de a CatalogoRepository.tamanoPagina).
+      expect(
+        vm.items,
+        hasLength(
+          CatalogoEjemplo.prendas.length < CatalogoRepository.tamanoPagina
+              ? CatalogoEjemplo.prendas.length
+              : CatalogoRepository.tamanoPagina,
+        ),
+      );
       vm.dispose();
     });
 
-    test('respeta la foto real puesta con Editar', () async {
+    test('respeta la foto guardada en Storage (Editar o script)', () async {
       final vm = CatalogoAdminViewModel(repo, storage);
       await vm.cargarEjemplo();
       final id = CatalogoEjemplo.productos.first.id;
@@ -346,6 +354,17 @@ void main() {
       await vm.cargarEjemplo();
       expect((await repo.obtenerProducto(id))!.imagenUrl,
           'https://imagenes/foto-real.jpg');
+
+      // También la copia que guarda el script en Storage (ejemplo.jpg).
+      final otro = CatalogoEjemplo.prendas.first.id;
+      final prenda = (await repo.obtenerPrenda(otro))!;
+      await repo.guardarPrenda(prenda.copyWith(
+        imagenUrl: 'https://storage/copia.jpg',
+        imagenRuta: CatalogoRepository.rutaImagenEjemplo('prendas', otro),
+      ));
+      await vm.cargarEjemplo();
+      expect((await repo.obtenerPrenda(otro))!.imagenUrl,
+          'https://storage/copia.jpg');
       vm.dispose();
     });
 
