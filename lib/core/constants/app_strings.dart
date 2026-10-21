@@ -545,6 +545,19 @@ class AppStrings {
   static const String rutaNoEncontrada = 'Ruta no encontrada';
   static const String funcionDeshabilitada =
       'Esta función estará disponible próximamente.';
+  // Simulador AR — Mauricio
+  static const String arTitulo = 'Simulador de maquillaje';
+  static const String arCamaraPausada = 'Cámara en pausa';
+  static const String arSinCamaraFrontal =
+      'No hay una cámara frontal disponible.';
+  static const String arPermisoExplicacion =
+      'Necesitamos la cámara frontal para mostrarte en el simulador.';
+  static const String arGuiaCamara =
+      'Coloca tu rostro frente a la cámara con buena iluminación.';
+  static const String arErrorAjustes =
+      'No pudimos abrir los ajustes del sistema.';
+  static const String arErrorCerrarCamara =
+      'No pudimos cerrar la cámara correctamente.';
 
   // ---------------------------------------------------------------------
   // Catálogo de administración — Ana
