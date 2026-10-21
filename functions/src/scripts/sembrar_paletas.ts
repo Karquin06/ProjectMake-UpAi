@@ -12,7 +12,7 @@ import { getFirestore } from "firebase-admin/firestore";
 import { PALETAS } from "../datos/paletas";
 
 async function main() {
-  initializeApp({ projectId: process.env.GCLOUD_PROJECT ?? "make-up--ai" });
+  initializeApp({ projectId: process.env.GCLOUD_PROJECT ?? "macke-up-ai" });
   const db = getFirestore();
   const lote = db.batch();
   for (const paleta of Object.values(PALETAS)) {

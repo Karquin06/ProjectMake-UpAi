@@ -178,6 +178,9 @@ class AppStrings {
       'La contraseña no es correcta.';
   static const String seccionCuenta = 'CUENTA';
   static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
+  static const String seccionAdministracion = 'ADMINISTRACIÓN';
+  static const String catalogoAdminSubtitulo =
+      'Agrega y edita productos de maquillaje y prendas';
 
   // Editar perfil
   static const String guardarCambios = 'Guardar cambios';
@@ -555,4 +558,114 @@ class AppStrings {
       'No pudimos abrir los ajustes del sistema.';
   static const String arErrorCerrarCamara =
       'No pudimos cerrar la cámara correctamente.';
+
+  // ---------------------------------------------------------------------
+  // Catálogo de administración — Ana
+  // ---------------------------------------------------------------------
+  static const String catalogoTitulo = 'Catálogo';
+  static const String pestanaPrendas = 'Prendas';
+  static const String pestanaProductos = 'Productos';
+  static const String buscarEnCatalogo = 'Buscar por nombre...';
+  static const String filtroTodas = 'Todas';
+  static const String filtroCategoria = 'Categoría';
+  static const String filtroEstacion = 'Estación';
+  static const String limpiarFiltros = 'Limpiar filtros';
+  static const String nuevaPrenda = 'Nueva prenda';
+  static const String nuevoProducto = 'Nuevo producto';
+  static const String editar = 'Editar';
+  static const String activar = 'Activar';
+  static const String desactivar = 'Desactivar';
+  static const String itemInactivo = 'Inactivo';
+  static const String cargarMas = 'Cargar más';
+  static const String catalogoVacioTitulo = 'El catálogo está vacío';
+  static const String catalogoVacioMensaje =
+      'Agrega el primer ítem para que las usuarias reciban recomendaciones.';
+  static const String catalogoSinResultadosTitulo = 'Sin resultados';
+  static const String catalogoSinResultadosMensaje =
+      'Ningún ítem coincide con la búsqueda o los filtros.';
+  static const String eliminarItemTitulo = '¿Eliminar este ítem?';
+  static String eliminarItemMensaje(String nombre) =>
+      '"$nombre" se borrará del catálogo junto con su imagen. '
+      'Esta acción no se puede deshacer.';
+  static const String itemEliminado = 'Ítem eliminado del catálogo';
+  static const String itemActivado = 'Ítem activado';
+  static const String itemDesactivado = 'Ítem desactivado';
+  static const String sinNombre = 'Sin nombre';
+
+  // Categorías de prenda y producto (EtiquetasTexto.categoria)
+  static const String categoriaSuperior = 'Superior';
+  static const String categoriaInferior = 'Inferior';
+  static const String categoriaVestido = 'Vestido';
+  static const String categoriaAbrigo = 'Abrigo';
+  static const String categoriaAccesorio = 'Accesorio';
+  static const String categoriaLabial = 'Labial';
+  static const String categoriaRubor = 'Rubor';
+  static const String categoriaSombra = 'Sombra';
+  static const String categoriaBase = 'Base';
+
+  // Ocasiones (EtiquetasTexto.ocasion)
+  static const String ocasionTrabajo = 'Trabajo';
+  static const String ocasionCasual = 'Casual';
+  static const String ocasionFiesta = 'Fiesta';
+  static const String ocasionEntrevista = 'Entrevista';
+  static const String ocasionCita = 'Cita';
+  static const String ocasionDeporte = 'Deporte';
+
+  // Formularios de catálogo — Ana
+  static const String editarPrenda = 'Editar prenda';
+  static const String editarProducto = 'Editar producto';
+  static const String campoNombre = 'Nombre';
+  static const String campoDescripcion = 'Descripción';
+  static const String campoMarca = 'Marca';
+  static const String campoCategoria = 'Categoría';
+  static const String campoTipoProducto = 'Tipo de producto';
+  static const String campoColor = 'Color (HEX)';
+  static const String campoNombreColor = 'Nombre del color';
+  static const String hintNombreColor = 'Ej.: Coral, Azul marino';
+  static const String campoOcasiones = 'Ocasiones';
+  static const String campoEstaciones = 'Estaciones compatibles';
+  static const String campoSubtonos = 'Subtonos compatibles';
+  static const String campoImagen = 'Imagen';
+  static const String campoPrecio = 'Precio (opcional)';
+  static const String campoEnlace = 'Enlace de compra (opcional)';
+  static const String campoActivo = 'Visible para las usuarias';
+  static const String campoActivoAyuda =
+      'Si lo apagas, solo se verá en el catálogo de administración.';
+  static const String hintNombrePrenda = 'Ej.: Blusa de lino';
+  static const String hintNombreProducto = 'Ej.: Labial mate Rubí';
+  static const String hintDescripcion = 'Detalles, tela, textura, cómo usarlo...';
+  static const String hintColor = '#C2185B';
+  static const String hintEnlace = 'https://...';
+  static const String coloresRapidos = 'Colores rápidos';
+  static const String elegirImagen = 'Elegir de la galería';
+  static const String cambiarImagen = 'Cambiar imagen';
+  static const String procesandoImagen = 'Preparando imagen...';
+  static String subiendoImagen(int porcentaje) =>
+      'Subiendo imagen... $porcentaje %';
+  static const String guardar = 'Guardar';
+  static const String guardando = 'Guardando...';
+  static const String itemGuardado = 'Guardado en el catálogo';
+  static const String itemNoEncontrado = 'Este ítem ya no existe en el catálogo.';
+  static const String validacionColor = 'Escribe un color HEX válido, p. ej. #C2185B';
+  static const String validacionPrecio = 'Escribe un precio válido (solo números)';
+  static const String validacionEnlace = 'El enlace debe empezar por http:// o https://';
+  static const String validacionCategoria = 'Elige una opción';
+  static const String validacionEstaciones = 'Elige al menos una estación';
+  static const String validacionSubtonos = 'Elige al menos un subtono';
+  static const String validacionImagen = 'La imagen es obligatoria';
+  static const String revisaFormulario = 'Revisa los campos marcados en rojo';
+  static const String salirSinGuardarTitulo = '¿Salir sin guardar?';
+  static const String salirSinGuardarMensaje =
+      'Los cambios que hiciste en este formulario se perderán.';
+  static const String salir = 'Salir';
+  static const String cargar = 'Cargar';
+  static const String cargarCatalogoEjemplo = 'Cargar catálogo de ejemplo';
+  static String cargarCatalogoEjemploMensaje(int total) =>
+      'Se agregarán $total prendas y productos de ejemplo (L\'Oréal Paris, '
+      'MAC, Maybelline, Bloomshell, Zara, Mango...). Si ya estaban, se '
+      'actualizan sin duplicarse.';
+  static String catalogoEjemploCargado(int total) =>
+      'Se cargaron $total ítems de ejemplo con sus imágenes';
+  static String catalogoEjemploSinImagenes(String motivo) =>
+      'Se cargó el catálogo, pero sin imágenes nuevas: $motivo';
 }

@@ -106,10 +106,29 @@ class EtiquetasTexto {
   EtiquetasTexto._();
 
   /// Ana: registra aquí las ocasiones conocidas (clave → etiqueta).
-  static const Map<String, String> _ocasiones = {};
+  static const Map<String, String> _ocasiones = {
+    'trabajo': AppStrings.ocasionTrabajo,
+    'casual': AppStrings.ocasionCasual,
+    'fiesta': AppStrings.ocasionFiesta,
+    'entrevista': AppStrings.ocasionEntrevista,
+    'cita': AppStrings.ocasionCita,
+    'deporte': AppStrings.ocasionDeporte,
+  };
 
   /// Ana: registra aquí las categorías de producto/prenda (clave → etiqueta).
-  static const Map<String, String> _categorias = {};
+  static const Map<String, String> _categorias = {
+    // Prendas (PrendaRopa.tipoPrenda)
+    'superior': AppStrings.categoriaSuperior,
+    'inferior': AppStrings.categoriaInferior,
+    'vestido': AppStrings.categoriaVestido,
+    'abrigo': AppStrings.categoriaAbrigo,
+    'accesorio': AppStrings.categoriaAccesorio,
+    // Productos (ProductoMaquillaje.categoria)
+    'labial': AppStrings.categoriaLabial,
+    'rubor': AppStrings.categoriaRubor,
+    'sombra': AppStrings.categoriaSombra,
+    'base': AppStrings.categoriaBase,
+  };
 
   static String ocasion(String? clave) => _resolver(_ocasiones, clave);
 

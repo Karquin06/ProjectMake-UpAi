@@ -6,6 +6,9 @@ import 'guardia_ruta.dart';
 import 'pantalla_en_construccion.dart';
 import '../../ui/splash/splash_view.dart';
 import '../../ui/simulador_ar/simulador_ar_view.dart';
+import '../../ui/admin/catalogo_admin_view.dart';
+import '../../ui/admin/formulario_prenda_view.dart';
+import '../../ui/admin/formulario_producto_view.dart';
 import '../../ui/auth/aviso_privacidad_view.dart';
 import '../../ui/auth/login_view.dart';
 import '../../ui/auth/recuperar_contrasena_view.dart';
@@ -103,17 +106,12 @@ class AppRouter {
     AppRoutes.asistente: _Destino.autenticada(
       () => _enConstruccion('asistente_view', 'Ana'),
     ),
-    // CONECTAR (Ana): import '../../ui/admin/catalogo_admin_view.dart'; → const CatalogoAdminView()
-    AppRoutes.catalogoAdmin: _Destino.admin(
-      () => _enConstruccion('catalogo_admin_view', 'Ana'),
-    ),
-    // CONECTAR (Ana): import '../../ui/admin/formulario_prenda_view.dart'; → const FormularioPrendaView()
+    AppRoutes.catalogoAdmin: _Destino.admin(() => const CatalogoAdminView()),
     AppRoutes.formularioPrenda: _Destino.admin(
-      () => _enConstruccion('formulario_prenda_view', 'Ana'),
+      () => const FormularioPrendaView(),
     ),
-    // CONECTAR (Ana): import '../../ui/admin/formulario_producto_view.dart'; → const FormularioProductoView()
     AppRoutes.formularioProducto: _Destino.admin(
-      () => _enConstruccion('formulario_producto_view', 'Ana'),
+      () => const FormularioProductoView(),
     ),
   };
 
