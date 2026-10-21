@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_strings.dart';
@@ -69,6 +70,28 @@ class _ContenidoCatalogoState extends State<_ContenidoCatalogo> {
           title: const Text(AppStrings.catalogoTitulo),
           backgroundColor: Colors.transparent,
           elevation: 0,
+          actions: [
+            // Solo en modo depuración (flutter run): no aparece en la app
+            // publicada.
+            if (kDebugMode)
+              vm.cargandoEjemplo
+                  ? const Padding(
+                      padding: EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.fucsia,
+                        ),
+                      ),
+                    )
+                  : IconButton(
+                      tooltip: AppStrings.cargarCatalogoEjemplo,
+                      icon: const Icon(Icons.playlist_add),
+                      onPressed: () => _cargarEjemplo(vm),
+                    ),
+          ],
           bottom: TabBar(
             labelColor: AppColors.fucsia,
             indicatorColor: AppColors.fucsia,
@@ -118,6 +141,11 @@ class _ContenidoCatalogoState extends State<_ContenidoCatalogo> {
                   vm.limpiarFiltros();
                 },
               ),
+              if (vm.cargandoEjemplo)
+                LinearProgressIndicator(
+                  value: vm.progresoEjemplo,
+                  color: AppColors.fucsia,
+                ),
               Expanded(child: _cuerpo(vm)),
             ],
           ),
@@ -191,6 +219,31 @@ class _ContenidoCatalogoState extends State<_ContenidoCatalogo> {
       argumentos: item?.id,
     );
     if (mounted) vm.cargar();
+  }
+
+  Future<void> _cargarEjemplo(CatalogoAdminViewModel vm) async {
+    final confirmado = await DialogoConfirmacion.mostrar(
+      context,
+      titulo: AppStrings.cargarCatalogoEjemplo,
+      mensaje: AppStrings.cargarCatalogoEjemploMensaje(vm.totalEjemplo),
+      textoConfirmar: AppStrings.cargar,
+    );
+    if (!confirmado || !mounted) return;
+    final resultado = await vm.cargarEjemplo();
+    if (!mounted) return;
+    if (!resultado.exito) {
+      SnackbarHelper.error(context, resultado.error!);
+    } else if (resultado.errorImagenes != null) {
+      SnackbarHelper.info(
+        context,
+        AppStrings.catalogoEjemploSinImagenes(resultado.errorImagenes!),
+      );
+    } else {
+      SnackbarHelper.exito(
+        context,
+        AppStrings.catalogoEjemploCargado(vm.totalEjemplo),
+      );
+    }
   }
 
   Future<void> _eliminar(CatalogoAdminViewModel vm, ItemCatalogo item) async {

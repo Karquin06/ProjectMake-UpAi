@@ -152,3 +152,28 @@ Errores:
 En Flutter: `CloudFunctionsService().analizarPrenda(ruta)` →
 `ResultadoAnalisisPrenda`. Subir la foto con
 `StorageService.subirArchivo(RutasStorage.prendaTemporal(uid, id), jpeg)`.
+
+## Catálogo de prueba — Ana (`src/datos/catalogo.ts`)
+
+16 prendas (Zara, Mango, Studio F, Koaj, H&M, ELA) y 24 productos de
+maquillaje (L'Oréal Paris, MAC, Maybelline, Bloomshell, NYX, Revlon, Vogue,
+Samy, Esika) para que el equipo pueda probar el catálogo, las
+recomendaciones y el simulador. Nombres descriptivos y precios (COP)
+aproximados: son datos de prueba. Los colores salen de las
+paletas de cada estación (`src/datos/paletas.ts`) y los subtonos siguen la
+regla primavera/otoño → cálido, verano/invierno → frío. Los campos son los
+mismos que escriben `PrendaRopa.toMap` y `ProductoMaquillaje.toMap`.
+
+```bash
+gcloud auth application-default login   # una vez (o GOOGLE_APPLICATION_CREDENTIALS)
+npm run sembrar:catalogo
+```
+
+- Ids fijos (`prenda-…`, `producto-…`): si se corre otra vez, actualiza los
+  mismos documentos, no duplica.
+- Quedan sin imagen; se les agrega desde la app con la cuenta admin
+  (Perfil → Administración → Catálogo → Editar).
+- `npm test` valida los datos (colores de la paleta, subtonos, campos).
+- La app tiene una copia generada en `lib/data/datos/catalogo_ejemplo.dart`
+  y el catálogo admin la carga con el botón "Cargar catálogo de ejemplo"
+  (solo en modo depuración), sin necesitar credenciales.

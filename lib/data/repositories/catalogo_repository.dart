@@ -161,8 +161,64 @@ class CatalogoRepository {
   Future<void> eliminarProducto(String id) => _eliminar(_productos, id);
 
   // ---------------------------------------------------------------------
+  // Carga masiva
+  // ---------------------------------------------------------------------
+
+  /// Guarda varias prendas y productos de una vez (lotes de Firestore).
+  /// Usa el `id` de cada ítem: si ya existe, lo reemplaza (no duplica).
+  Future<void> guardarLote({
+    List<PrendaRopa> prendas = const [],
+    List<ProductoMaquillaje> productos = const [],
+  }) async {
+    try {
+      final ahora = DateTime.now();
+      final escrituras = <(DocumentReference<Map<String, dynamic>>, Map<String, dynamic>)>[
+        for (final p in prendas)
+          (
+            _prendas.doc(p.id),
+            p.copyWith(fechaActualizacion: ahora).toMap(),
+          ),
+        for (final p in productos)
+          (
+            _productos.doc(p.id),
+            p.copyWith(fechaActualizacion: ahora).toMap(),
+          ),
+      ];
+      // Firestore permite hasta 500 escrituras por lote.
+      for (var i = 0; i < escrituras.length; i += 450) {
+        final lote = _db.batch();
+        for (final (ref, datos) in escrituras.skip(i).take(450)) {
+          lote.set(ref, datos);
+        }
+        await lote.commit();
+      }
+    } catch (e) {
+      throw AppException.desde(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Comunes
   // ---------------------------------------------------------------------
+
+  /// Nombre fijo de las imágenes generadas para el catálogo de ejemplo
+  /// (al recargar el ejemplo se sobrescriben en vez de acumularse).
+  static const nombreImagenEjemplo = 'ejemplo.jpg';
+
+  /// Ruta de la imagen generada de un ítem de ejemplo.
+  /// [carpeta]: `prendas` o `productos`.
+  static String rutaImagenEjemplo(String carpeta, String id) =>
+      'catalogo/$carpeta/$id/$nombreImagenEjemplo';
+
+  /// Ruta en Storage para una imagen NUEVA de la prenda [id]. Cada imagen
+  /// tiene nombre único: así no queda la anterior en caché y se puede
+  /// borrar la vieja después de guardar.
+  static String rutaImagenPrenda(String id) =>
+      'catalogo/prendas/$id/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+  /// Ruta en Storage para una imagen NUEVA del producto [id].
+  static String rutaImagenProducto(String id) =>
+      'catalogo/productos/$id/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
   /// Id nuevo para una prenda (útil para subir la imagen antes de guardar).
   String nuevoIdPrenda() => _prendas.doc().id;
