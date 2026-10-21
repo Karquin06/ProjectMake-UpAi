@@ -294,7 +294,8 @@ void main() {
     await esperar();
     expect(find.text(AppStrings.saludo('Sofía')), findsOneWidget);
     expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
-    expect(find.text('Labial rojo frambuesa'), findsOneWidget);
+    // Las recomendaciones de Home ya son reales (Ana): aquí no hay catálogo.
+    expect(find.text('Labial rojo frambuesa'), findsNothing);
 
     // 4. Perfil → editar nombre.
     await tocar(find.text(AppStrings.perfilTab));

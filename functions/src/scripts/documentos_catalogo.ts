@@ -47,3 +47,27 @@ export function documentoProducto(p: ProductoSemilla): Record<string, unknown> {
     activo: true,
   };
 }
+
+/** Nombre fijo de la foto de ejemplo en Storage (igual que en la app). */
+export const NOMBRE_FOTO_EJEMPLO = "ejemplo.jpg";
+
+/** `catalogo/{prendas|productos}/{id}/ejemplo.jpg` */
+export function rutaFotoEjemplo(carpeta: "prendas" | "productos", id: string): string {
+  return `catalogo/${carpeta}/${id}/${NOMBRE_FOTO_EJEMPLO}`;
+}
+
+/**
+ * `true` si el documento actual tiene una foto que la admin subió con
+ * "Editar" (está en Storage y no es la foto de ejemplo): no se reemplaza.
+ */
+export function conservarFotoPropia(actual: Record<string, unknown> | undefined): boolean {
+  const url = actual?.imagenURL;
+  const ruta = actual?.imagenRuta;
+  return (
+    typeof url === "string" &&
+    url.length > 0 &&
+    typeof ruta === "string" &&
+    ruta.length > 0 &&
+    !ruta.endsWith(`/${NOMBRE_FOTO_EJEMPLO}`)
+  );
+}

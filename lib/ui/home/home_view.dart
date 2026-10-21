@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/routes/app_routes.dart';
@@ -10,6 +11,7 @@ import '../../core/widgets/indicador_carga.dart';
 import '../../core/widgets/mensaje_error.dart';
 import '../../models/enums.dart';
 import '../../providers/sesion_provider.dart';
+import '../recomendaciones/destacadas_home.dart';
 import 'home_view_model.dart';
 import 'widgets/accesos_directos.dart';
 import 'widgets/recomendaciones_destacadas.dart';
@@ -30,7 +32,12 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProxyProvider<SesionProvider, HomeViewModel>(
-      create: (_) => HomeViewModel(),
+      create: (c) => HomeViewModel(
+        // Recomendaciones reales (Ana) cuando se apaga el mock.
+        cargarRecomendaciones: AppConstants.usarMockRecomendaciones
+            ? null
+            : (_) => cargarDestacadasHome(c),
+      ),
       update: (_, sesion, vm) => vm!..actualizarSesion(sesion),
       child: Consumer<HomeViewModel>(
         builder: (context, vm, _) {

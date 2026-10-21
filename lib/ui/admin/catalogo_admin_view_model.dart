@@ -349,10 +349,9 @@ class CatalogoAdminViewModel extends ChangeNotifier {
       required String? rutaActual,
       required String fotoEjemplo,
     }) async {
-      // Foto subida a mano con "Editar" (está en Storage): se respeta.
-      if (imagenActual.isNotEmpty &&
-          rutaActual != null &&
-          !rutaActual.endsWith(CatalogoRepository.nombreImagenEjemplo)) {
+      // Foto que ya está guardada en Storage (subida con "Editar" o copiada
+      // por `npm run sembrar:catalogo`): se respeta.
+      if (imagenActual.isNotEmpty && rutaActual != null) {
         return (imagenActual, rutaActual);
       }
       // Foto real del ejemplo (Pexels): se usa directamente.

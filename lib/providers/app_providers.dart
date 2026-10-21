@@ -4,6 +4,8 @@ import 'package:provider/single_child_widget.dart';
 import '../core/constants/app_constants.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/catalogo_repository.dart';
+import '../data/repositories/conversacion_repository.dart';
+import '../data/repositories/recomendacion_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/paleta_repository.dart';
@@ -15,11 +17,15 @@ import '../data/services/colorimetria_service.dart';
 import '../data/services/permisos_service.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/eliminador_cuenta.dart';
+import '../data/services/funciones_ia_service.dart';
 import '../data/services/notificaciones_service.dart';
 import '../data/services/subidor_foto_perfil.dart';
+import 'asistente_provider.dart';
 import 'auth_provider.dart';
 import 'colorimetria_provider.dart';
 import 'paleta_provider.dart';
+import 'producto_provider.dart';
+import 'recomendacion_provider.dart';
 import 'notificaciones_provider.dart';
 import 'sesion_provider.dart';
 import 'usuaria_provider.dart';
@@ -159,6 +165,42 @@ class AppProviders extends StatelessWidget {
     // Catálogo global de prendas y productos (lo usan el catálogo admin,
     // las recomendaciones y el simulador AR).
     Provider<CatalogoRepository>(create: (_) => CatalogoRepository()),
+    // Cloud Functions de Ana: generarRecomendaciones, chatAsistente,
+    // eliminarCuenta y enviarNotificacion.
+    Provider<FuncionesIaService>(create: (_) => FuncionesIaService()),
+    Provider<RecomendacionRepository>(create: (_) => RecomendacionRepository()),
+    Provider<ConversacionRepository>(create: (_) => ConversacionRepository()),
+    // Recomendaciones de la usuaria (se limpian al cerrar sesión).
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        RecomendacionProvider>(
+      create: (c) => RecomendacionProvider(
+        funciones: c.read<FuncionesIaService>(),
+        catalogo: c.read<CatalogoRepository>(),
+        recomendaciones: c.read<RecomendacionRepository>(),
+      ),
+      update: (_, sesion, colorimetria, recomendaciones) => recomendaciones!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..actualizarPerfil(colorimetria.perfil),
+    ),
+    // Productos compatibles con su estación (los usa Mauricio en AR).
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        ProductoProvider>(
+      create: (c) => ProductoProvider(c.read<CatalogoRepository>()),
+      update: (_, sesion, colorimetria, productos) => productos!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..sincronizarEstacion(colorimetria.perfil?.estacionColor),
+    ),
+    // Chat con el asistente de IA.
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        AsistenteProvider>(
+      create: (c) => AsistenteProvider(
+        funciones: c.read<FuncionesIaService>(),
+        conversaciones: c.read<ConversacionRepository>(),
+      ),
+      update: (_, sesion, colorimetria, asistente) => asistente!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..actualizarPerfil(colorimetria.perfil),
+    ),
   ];
 
   /// AR y armario — dueño: Mauricio Parra.

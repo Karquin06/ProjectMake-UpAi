@@ -14,9 +14,9 @@ class AppConstants {
   /// Home y Perfil muestran un perfil de colorimetría de ejemplo.
   static const bool usarMockColorimetria = true;
 
-  /// `true` mientras no exista el `recomendacion_provider` real (Ana).
-  /// Home muestra recomendaciones de ejemplo.
-  static const bool usarMockRecomendaciones = true;
+  /// `true` muestra en Home recomendaciones de ejemplo. Ana ya conectó las
+  /// reales (`recomendacion_provider`, catálogo de Firestore).
+  static const bool usarMockRecomendaciones = false;
 
   /// `true` mientras la Cloud Function `eliminarCuenta` no esté
   /// desplegada (Ana). Se simula la eliminación en el cliente.

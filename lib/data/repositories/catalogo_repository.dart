@@ -161,6 +161,31 @@ class CatalogoRepository {
   Future<void> eliminarProducto(String id) => _eliminar(_productos, id);
 
   // ---------------------------------------------------------------------
+  // Catálogo completo (vistas de la usuaria)
+  // ---------------------------------------------------------------------
+
+  /// Todas las prendas activas (lo que ven las usuarias). El catálogo es
+  /// pequeño (decenas o pocos cientos de ítems), así que se trae completo.
+  Future<List<PrendaRopa>> prendasActivas() async {
+    try {
+      final snap = await _prendas.where('activo', isEqualTo: true).get();
+      return snap.docs.map(PrendaRopa.fromFirestore).toList();
+    } catch (e) {
+      throw AppException.desde(e);
+    }
+  }
+
+  /// Todos los productos de maquillaje activos.
+  Future<List<ProductoMaquillaje>> productosActivos() async {
+    try {
+      final snap = await _productos.where('activo', isEqualTo: true).get();
+      return snap.docs.map(ProductoMaquillaje.fromFirestore).toList();
+    } catch (e) {
+      throw AppException.desde(e);
+    }
+  }
+
+  // ---------------------------------------------------------------------
   // Carga masiva
   // ---------------------------------------------------------------------
 
