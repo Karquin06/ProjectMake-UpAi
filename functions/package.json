@@ -9,6 +9,7 @@
     "build": "tsc",
     "test": "tsc && node --test \"lib/**/*.test.js\"",
     "hacer:admin": "tsc && node lib/scripts/hacer_admin.js",
+    "sembrar:catalogo": "tsc && node lib/scripts/sembrar_catalogo.js",
     "sembrar:paletas": "tsc && node lib/scripts/sembrar_paletas.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "deploy": "firebase deploy --only functions",

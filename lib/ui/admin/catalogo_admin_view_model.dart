@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart' show DocumentSnapshot;
 import 'package:flutter/foundation.dart';
 import '../../core/errors/firebase_error_mapper.dart';
+import '../../data/datos/catalogo_ejemplo.dart';
+import '../../data/datos/imagen_catalogo.dart';
 import '../../data/repositories/catalogo_repository.dart';
 import '../../data/services/storage_service.dart';
 import '../../models/enums.dart';
@@ -90,6 +92,19 @@ class _EstadoLista {
 
   /// Evita que una respuesta vieja pise una consulta más nueva.
   int consulta = 0;
+}
+
+/// Resultado de cargar el catálogo de ejemplo.
+class ResultadoCargaEjemplo {
+  /// Error al guardar en Firestore (no se cargó nada).
+  final String? error;
+
+  /// Error al subir imágenes (se cargó todo, pero sin imágenes nuevas).
+  final String? errorImagenes;
+
+  const ResultadoCargaEjemplo({this.error, this.errorImagenes});
+
+  bool get exito => error == null;
 }
 
 /// Lógica del catálogo de administración: pestañas, búsqueda, filtros,
@@ -296,6 +311,125 @@ class CatalogoAdminViewModel extends ChangeNotifier {
 
   /// Elimina [item] y su imagen de Storage. Devuelve el mensaje de error,
   /// o `null` si salió bien.
+  bool _cargandoEjemplo = false;
+  int _hechosEjemplo = 0;
+  bool get cargandoEjemplo => _cargandoEjemplo;
+
+  int get totalEjemplo =>
+      CatalogoEjemplo.prendas.length + CatalogoEjemplo.productos.length;
+
+  /// Avance de la carga del ejemplo (0 a 1), o `null` si no está cargando.
+  double? get progresoEjemplo =>
+      _cargandoEjemplo ? _hechosEjemplo / totalEjemplo : null;
+
+  /// Carga el catálogo de ejemplo (prendas y productos de marcas reales)
+  /// de una sola vez, cada uno con su foto real (Pexels). Si algún ítem no
+  /// trae foto, se le genera una ilustración con su color y su estación.
+  /// Si ya estaban, los actualiza sin duplicar y conserva las fotos que se
+  /// les hayan subido con "Editar".
+  Future<ResultadoCargaEjemplo> cargarEjemplo() async {
+    if (_cargandoEjemplo) return const ResultadoCargaEjemplo();
+    _cargandoEjemplo = true;
+    _hechosEjemplo = 0;
+    _notificar();
+
+    // Si Storage falla una vez (p. ej. faltan permisos), se sigue sin
+    // imágenes para no repetir el error 40 veces.
+    var subirImagenes = _storage != null;
+    String? errorImagenes;
+
+    Future<(String, String?)> imagen({
+      required String carpeta,
+      required String id,
+      required String categoria,
+      required String colorHex,
+      required List<EstacionColor> estaciones,
+      required String marca,
+      required String imagenActual,
+      required String? rutaActual,
+      required String fotoEjemplo,
+    }) async {
+      // Foto subida a mano con "Editar" (está en Storage): se respeta.
+      if (imagenActual.isNotEmpty &&
+          rutaActual != null &&
+          !rutaActual.endsWith(CatalogoRepository.nombreImagenEjemplo)) {
+        return (imagenActual, rutaActual);
+      }
+      // Foto real del ejemplo (Pexels): se usa directamente.
+      if (fotoEjemplo.isNotEmpty) return (fotoEjemplo, null);
+      // Sin foto: se genera una ilustración con su color y su estación.
+      if (!subirImagenes) return ('', null);
+      try {
+        final bytes = await ImagenCatalogo.generar(
+          categoria: categoria,
+          colorHex: colorHex,
+          estaciones: estaciones,
+          marca: marca,
+        );
+        final storage = _storage!;
+        final ruta = CatalogoRepository.rutaImagenEjemplo(carpeta, id);
+        await storage.subirArchivo(ruta, bytes);
+        return (await storage.obtenerUrl(ruta), ruta);
+      } catch (e) {
+        subirImagenes = false;
+        errorImagenes = FirebaseErrorMapper.mensaje(e);
+        return ('', null);
+      }
+    }
+
+    try {
+      final prendas = <PrendaRopa>[];
+      for (final p in CatalogoEjemplo.prendas) {
+        final actual = await _repositorio.obtenerPrenda(p.id);
+        final (url, ruta) = await imagen(
+          carpeta: 'prendas',
+          id: p.id,
+          categoria: p.tipoPrenda,
+          colorHex: p.colorHex,
+          estaciones: p.estacionesCompatibles,
+          marca: p.marca,
+          imagenActual: actual?.imagenUrl ?? '',
+          rutaActual: actual?.imagenRuta,
+          fotoEjemplo: p.imagenUrl,
+        );
+        prendas.add(p.copyWith(imagenUrl: url, imagenRuta: ruta));
+        _hechosEjemplo++;
+        _notificar();
+      }
+
+      final productos = <ProductoMaquillaje>[];
+      for (final p in CatalogoEjemplo.productos) {
+        final actual = await _repositorio.obtenerProducto(p.id);
+        final (url, ruta) = await imagen(
+          carpeta: 'productos',
+          id: p.id,
+          categoria: p.categoria,
+          colorHex: p.colorHex,
+          estaciones: p.estacionesCompatibles,
+          marca: p.marca,
+          imagenActual: actual?.imagenUrl ?? '',
+          rutaActual: actual?.imagenRuta,
+          fotoEjemplo: p.imagenUrl,
+        );
+        productos.add(p.copyWith(imagenUrl: url, imagenRuta: ruta));
+        _hechosEjemplo++;
+        _notificar();
+      }
+
+      await _repositorio.guardarLote(prendas: prendas, productos: productos);
+      for (final lista in _listas.values) {
+        lista.cargado = false;
+      }
+      _cargandoEjemplo = false;
+      await cargar();
+      return ResultadoCargaEjemplo(errorImagenes: errorImagenes);
+    } catch (e) {
+      _cargandoEjemplo = false;
+      _notificar();
+      return ResultadoCargaEjemplo(error: FirebaseErrorMapper.mensaje(e));
+    }
+  }
+
   Future<String?> eliminar(ItemCatalogo item) async {
     return _accion(item.id, () async {
       if (item.tipo == TipoCatalogo.prendas) {

@@ -19,6 +19,16 @@ class PrendaRopa {
     'accesorio',
   ];
 
+  /// Claves de ocasión (etiquetas en `EtiquetasTexto.ocasion`).
+  static const ocasionesDisponibles = [
+    'trabajo',
+    'casual',
+    'fiesta',
+    'entrevista',
+    'cita',
+    'deporte',
+  ];
+
   final String id;
   final String nombre;
   final String descripcion;
@@ -103,7 +113,9 @@ class PrendaRopa {
   factory PrendaRopa.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) =>
       PrendaRopa.fromMap(doc.data()!, id: doc.id);
 
-  Map<String, dynamic> toMap() => {
+  /// Los campos vacíos opcionales (`null`) NO se escriben: así no chocan
+  /// con las reglas de Firestore que exigen `is string` / `is list`.
+  Map<String, dynamic> toMap() => _sinNulos({
         'nombre': nombre,
         // Para buscar por nombre sin importar mayúsculas.
         'nombreMinusculas': nombreVisible.trim().toLowerCase(),
@@ -126,7 +138,7 @@ class PrendaRopa {
         'imagenRuta': imagenRuta,
         'activo': activo,
         'fechaActualizacion': dateToFirestore(fechaActualizacion),
-      };
+      });
 
   PrendaRopa copyWith({
     String? id,
@@ -174,3 +186,6 @@ class PrendaRopa {
         fechaActualizacion: fechaActualizacion ?? this.fechaActualizacion,
       );
 }
+
+Map<String, dynamic> _sinNulos(Map<String, dynamic> datos) =>
+    datos..removeWhere((_, valor) => valor == null);
