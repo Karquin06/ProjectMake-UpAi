@@ -5,6 +5,7 @@ import 'app_routes.dart';
 import 'guardia_ruta.dart';
 import 'pantalla_en_construccion.dart';
 import '../../ui/splash/splash_view.dart';
+import '../../ui/simulador_ar/simulador_ar_view.dart';
 import '../../ui/auth/aviso_privacidad_view.dart';
 import '../../ui/auth/login_view.dart';
 import '../../ui/auth/recuperar_contrasena_view.dart';
@@ -72,10 +73,7 @@ class AppRouter {
     // -------------------------------------------------------------------
     // Simulador AR y armario — Mauricio
     // -------------------------------------------------------------------
-    // CONECTAR (Mauricio): import '../../ui/simulador_ar/simulador_ar_view.dart'; → const SimuladorArView()
-    AppRoutes.simuladorAr: _Destino.autenticada(
-      () => _enConstruccion('simulador_ar_view', 'Mauricio'),
-    ),
+    AppRoutes.simuladorAr: _Destino.autenticada(() => const SimuladorArView()),
     // CONECTAR (Mauricio): import '../../ui/armario/armario_view.dart'; → const ArmarioView()
     // Asignado a Mauricio. Si AppConstants.armarioHabilitado fuera false se mostraría "Próximamente".
     AppRoutes.armario: _Destino.autenticada(
