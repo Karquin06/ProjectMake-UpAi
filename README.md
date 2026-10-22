@@ -38,7 +38,7 @@ Make Up AI pone esa asesoría en el teléfono:
 
 - **Analiza la selfie** de la usuaria y determina su estación de color, subtono (cálido, frío o neutro), contraste e intensidad.
 - **Muestra su paleta personal**: colores básicos y para destacar en ropa, tonos de labial, rubor, sombra y base, y los colores que conviene evitar.
-- **Recomienda** maquillaje y prendas acordes con su paleta.
+- **Recomienda** maquillaje y prendas acordes con su paleta, con filtros por tipo y ocasión y detalle de cada ítem.
 - **Simula** el maquillaje en tiempo real con la cámara frontal (realidad aumentada).
 - **Analiza prendas** del armario: indica si el color de una prenda combina con la paleta.
 - **Gestiona un catálogo** de prendas y productos mediante un panel de administración (solo rol admin).
@@ -131,7 +131,7 @@ lib/
 │                     paleta, producto de maquillaje, prenda, recomendación…
 ├── data/
 │   ├── repositories/ auth, usuaria, sesion, credencial, perfil de colorimetría,
-│   │                 paleta, catálogo
+│   │                 paleta, catálogo, recomendaciones, conversaciones
 │   ├── services/     storage, permisos, cloud functions, análisis de color y
 │   │                 de prendas, notificaciones, eliminación de cuenta
 │   └── datos/        paletas por estación y catálogo de ejemplo
@@ -143,6 +143,7 @@ lib/
     ├── home/         inicio y navegación inferior
     ├── perfil/       perfil, edición y eliminación de cuenta
     ├── colorimetria/ selfie, análisis, resultado y paleta
+    ├── recomendaciones/ recomendaciones, filtros y detalle
     ├── simulador_ar/ simulador con cámara frontal
     └── admin/        catálogo de prendas y productos
 
@@ -181,6 +182,10 @@ Proyecto de Firebase: `macke-up-ai`.
 | `generarPaleta` | Devuelve la paleta de una estación |
 | `limpiarImagenesTemporales` | Tarea programada que elimina imágenes temporales vencidas |
 | `analizarPrenda` | Compara el color de una prenda con la paleta de la usuaria |
+| `generarRecomendaciones` | Genera recomendaciones de maquillaje y vestuario a partir del perfil y el catálogo |
+| `chatAsistente` | Respuestas del asistente de IA |
+| `eliminarCuenta` | Elimina la cuenta y los datos de la usuaria |
+| `enviarNotificacion` | Envía notificaciones push |
 
 ## Privacidad y seguridad
 
@@ -212,7 +217,6 @@ flutter run
 | Bandera | Efecto |
 |---|---|
 | `usarMockColorimetria` | Home y Perfil usan un perfil de colorimetría de ejemplo |
-| `usarMockRecomendaciones` | Home usa recomendaciones de ejemplo |
 | `usarMockEliminarCuenta` | Simula la eliminación completa de la cuenta en el cliente |
 | `usarMockStorage` | La foto de perfil no se sube a Storage |
 | `armarioHabilitado` | Muestra el acceso al Armario en Home |
@@ -242,19 +246,19 @@ El archivo recomendado queda en `build/app/outputs/flutter-apk/app-arm64-v8a-rel
 |---|---|
 | Autenticación (registro, verificación, login, recuperación, privacidad) | Disponible |
 | Splash con logo animado, onboarding, ícono y pantalla de arranque | Disponible |
-| Home y navegación | Disponible (estación y recomendaciones con datos de ejemplo hasta conectar todo) |
+| Home y navegación | Disponible (la estación usa datos de ejemplo hasta activar el perfil real de colorimetría) |
 | Perfil (edición, foto, cierre de sesión, eliminación de cuenta) | Disponible (foto y eliminación completa con modo simulado hasta desplegar la función) |
 | Colorimetría y paleta | Disponible |
 | Catálogo de administración (prendas y productos) | Disponible |
 | Simulador AR | En desarrollo (cámara frontal y permisos listos) |
-| Recomendaciones personalizadas | En integración |
-| Asistente de IA | Planeado |
+| Recomendaciones personalizadas (lista, filtros y detalle de prendas y productos) | Disponible |
+| Asistente de IA | En desarrollo (función en la nube y repositorio listos; pantalla pendiente) |
 | Armario y escáner de prendas | En desarrollo (análisis de prendas disponible; pantalla pendiente) |
 
 **Limitaciones conocidas:**
 
 - El inicio de sesión con Google en Android requiere completar la configuración descrita en [Puesta en marcha](#puesta-en-marcha).
-- La función `eliminarCuenta` aún no está desplegada; mientras tanto la eliminación se simula en el cliente.
+- La eliminación completa de la cuenta se simula en el cliente (`usarMockEliminarCuenta`) hasta que la función `eliminarCuenta` esté desplegada y la bandera se apague.
 - Las reglas de seguridad de Firestore y Storage deben revisarse y publicarse en el proyecto `macke-up-ai`.
 - La configuración de Firebase para iOS no está completa.
 
