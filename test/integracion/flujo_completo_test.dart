@@ -254,8 +254,8 @@ void main() {
       await esperar();
     }
 
-    // 1. Splash (1,8 s) → onboarding → login.
-    await tester.pump(const Duration(seconds: 2));
+    // 1. Splash (2,8 s) → onboarding → login.
+    await tester.pump(const Duration(seconds: 3));
     await esperar();
     expect(find.text(AppStrings.botonComenzar), findsOneWidget);
     await tocar(find.text(AppStrings.botonComenzar));

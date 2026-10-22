@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/core/routes/app_routes.dart';
 import 'package:mackeupai/data/repositories/auth_repository.dart';
 import 'package:mackeupai/data/repositories/credencial_repository.dart';
@@ -55,8 +56,12 @@ class _UsuariaRepoFalso extends Fake implements UsuariaRepository {
 
 class _PreferenciasFalsas extends Fake implements SesionRepository {
   bool visto = false;
+  bool falla = false;
   @override
-  Future<bool> onboardingVisto() async => visto;
+  Future<bool> onboardingVisto() async {
+    if (falla) throw Exception('fallo al leer');
+    return visto;
+  }
 }
 
 void main() {
@@ -126,5 +131,31 @@ void main() {
     usuariaRepo.sinConexion = true;
     expect(await decidir(), AppRoutes.home);
     expect(authRepo.cerroSesion, isFalse);
+  });
+
+  test('fallo al leer las preferencias → login con mensaje', () async {
+    preferencias.falla = true;
+    final vm = SplashViewModel();
+    final s = sesion();
+    await Future<void>.delayed(Duration.zero);
+    expect(await vm.decidir(s), AppRoutes.login);
+    expect(vm.mensajeError, AppStrings.errorSesionSplash);
+  });
+
+  test('tiempo agotado → login con mensaje, una sola vez', () {
+    final vm = SplashViewModel();
+    expect(vm.tiempoAgotado(), AppRoutes.login);
+    expect(vm.mensajeError, AppStrings.errorSesionSplash);
+    expect(vm.tiempoAgotado(), isNull);
+  });
+
+  test('tiempo agotado no pisa una decisión ya tomada', () async {
+    preferencias.visto = true;
+    final vm = SplashViewModel();
+    final s = sesion();
+    await Future<void>.delayed(Duration.zero);
+    expect(await vm.decidir(s), AppRoutes.login);
+    expect(vm.tiempoAgotado(), isNull);
+    expect(vm.mensajeError, isNull);
   });
 }

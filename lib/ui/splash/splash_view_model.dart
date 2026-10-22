@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../providers/sesion_provider.dart';
 
@@ -17,10 +19,15 @@ class SplashViewModel extends ChangeNotifier {
   bool _mostrarOnboarding = false;
   bool _decidido = false;
   bool _decidiendo = false;
+  String? _mensajeError;
 
   int get paginaActual => _paginaActual;
   bool get mostrarOnboarding => _mostrarOnboarding;
   bool get decidido => _decidido;
+
+  /// Aviso para la usuaria cuando la redirección fue por un fallo (no por
+  /// una sesión normal). `null` si no hubo error.
+  String? get mensajeError => _mensajeError;
 
   void actualizarPagina(int index) {
     _paginaActual = index;
@@ -41,15 +48,31 @@ class SplashViewModel extends ChangeNotifier {
     _decidiendo = true;
     try {
       final destino = await _calcularDestino(sesion);
+      if (_decidido) return null; // Ya se resolvió por tiempo agotado.
       _decidido = true;
       if (destino == null) {
         _mostrarOnboarding = true;
         notifyListeners();
       }
       return destino;
+    } catch (_) {
+      // Fallo al leer la sesión o las preferencias: a login con aviso.
+      return _fallar();
     } finally {
       _decidiendo = false;
     }
+  }
+
+  /// Firebase no confirmó la sesión a tiempo: va a login con aviso.
+  /// Devuelve `null` si ya se había decidido (no hay nada que hacer).
+  String? tiempoAgotado() => _decidido ? null : _fallar();
+
+  String? _fallar() {
+    if (_decidido) return null;
+    _decidido = true;
+    _mensajeError = AppStrings.errorSesionSplash;
+    notifyListeners();
+    return AppRoutes.login;
   }
 
   Future<String?> _calcularDestino(SesionProvider sesion) async {
@@ -59,9 +82,14 @@ class SplashViewModel extends ChangeNotifier {
     if (!sesion.correoVerificado) return AppRoutes.verificarCorreo;
     if (sesion.usuaria != null) return AppRoutes.home;
     try {
-      if (await sesion.documentoExiste()) return AppRoutes.home;
+      if (await sesion.documentoExiste().timeout(
+        AppConstants.esperaComprobarUsuaria,
+      )) {
+        return AppRoutes.home;
+      }
     } catch (_) {
-      // Sin conexión: no se puede comprobar; se deja entrar.
+      // Sin conexión (o respuesta tardía): no se puede comprobar; se
+      // deja entrar.
       return AppRoutes.home;
     }
     await sesion.cerrarSesion();
