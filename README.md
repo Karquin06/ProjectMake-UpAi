@@ -20,7 +20,7 @@ flutter run
 ```
 
 - Flutter 3.44 (canal stable) / Dart 3.12.
-- Proyecto Firebase: `make-up--ai` (Android y web configurados en `lib/firebase_options.dart`).
+- Proyecto Firebase: `macke-up-ai` (Android y web configurados en `lib/firebase_options.dart`).
 - **Windows:** activa el *Modo de desarrollador* (`start ms-settings:developers`); los plugins de Flutter lo necesitan para compilar.
 
 ---
