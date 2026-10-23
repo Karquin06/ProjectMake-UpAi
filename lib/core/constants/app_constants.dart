@@ -10,9 +10,9 @@ class AppConstants {
   // Banderas de módulos
   // ---------------------------------------------------------------------
 
-  /// `true` mientras no exista el `colorimetria_provider` real (Jaider).
-  /// Home y Perfil muestran un perfil de colorimetría de ejemplo.
-  static const bool usarMockColorimetria = true;
+  /// `true` muestra en Home un perfil "Invierno frío" de ejemplo. Jaider ya
+  /// conectó el real (`ColorimetriaProvider`, análisis de la selfie).
+  static const bool usarMockColorimetria = false;
 
   /// `true` muestra en Home recomendaciones de ejemplo. Ana ya conectó las
   /// reales (`recomendacion_provider`, catálogo de Firestore).

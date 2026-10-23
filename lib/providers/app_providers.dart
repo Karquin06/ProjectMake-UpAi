@@ -56,6 +56,10 @@ class AppProviders extends StatelessWidget {
     Provider<SesionRepository>(create: (_) => SesionRepository()),
     Provider<CredencialRepository>(create: (_) => CredencialRepository()),
     Provider<NotificacionesService>(create: (_) => NotificacionesService()),
+    // Perfil de colorimetría (Jaider): aquí para poder reemplazarlo en pruebas.
+    Provider<PerfilColorimetriaRepository>(
+      create: (_) => PerfilColorimetriaRepository(),
+    ),
     Provider<SubidorFotoPerfil>(
       create: (_) {
         // PUNTO DE CAMBIO (Jaider): cuando exista StorageService, devolver
@@ -136,9 +140,6 @@ class AppProviders extends StatelessWidget {
     ),
     // Armario (Mauricio): color de la prenda vs. paleta, en el teléfono.
     Provider<AnalisisPrendaService>(create: (_) => AnalisisPrendaService()),
-    Provider<PerfilColorimetriaRepository>(
-      create: (_) => PerfilColorimetriaRepository(),
-    ),
     // Estado compartido: perfil de la usuaria en sesión y su paleta.
     ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
       create: (c) => ColorimetriaProvider(c.read<PerfilColorimetriaRepository>()),

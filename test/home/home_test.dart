@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/core/constants/app_constants.dart';
 import 'package:mackeupai/core/constants/app_strings.dart';
+import 'package:mackeupai/core/extensions/enum_labels.dart';
 import 'package:mackeupai/core/routes/app_router.dart';
 import 'package:mackeupai/core/theme/app_theme.dart';
 import 'package:mackeupai/data/repositories/auth_repository.dart';
@@ -18,6 +20,7 @@ import 'package:mackeupai/providers/notificaciones_provider.dart';
 import 'package:mackeupai/providers/auth_provider.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';
 import 'package:mackeupai/providers/paleta_provider.dart';
+import 'package:mackeupai/data/datos/paletas_por_estacion.dart';
 import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
 import 'package:mackeupai/providers/sesion_provider.dart';
 import 'package:mackeupai/providers/usuaria_provider.dart';
@@ -135,65 +138,18 @@ void main() {
   testWidgets('Home se renderiza en 360 px y navega desde sus accesos', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(360, 780);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-
-    final repo = _AuthRepoFalso();
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => AuthProvider(repo)),
-          ChangeNotifierProvider(
-            create: (_) => UsuariaProvider(
-              usuariaRepository: _UsuariaRepoFalso(),
-              authRepository: repo,
-            ),
-          ),
-          ProxyProvider2<AuthProvider, UsuariaProvider, SesionProvider>(
-            update: (_, a, u, _) => SesionProvider(
-              auth: a,
-              usuaria: u,
-              preferencias: SesionRepository(),
-              credenciales: CredencialRepository(),
-            ),
-          ),
-          ChangeNotifierProxyProvider<SesionProvider, NotificacionesProvider>(
-            create: (c) => NotificacionesProvider(
-              servicio: _NotificacionesFalsas(),
-              usuarias: c.read<UsuariaProvider>(),
-            ),
-            update: (_, s, n) => n!..sincronizarUsuaria(s.uidActiva),
-          ),
-          // Pestaña Colorimetría (Jaider) con Firestore falso.
-          ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
-            create: (_) => ColorimetriaProvider(
-              PerfilColorimetriaRepository(db: FakeFirebaseFirestore()),
-            ),
-            update: (_, s, p) => p!..sincronizarUsuaria(s.uidActiva),
-          ),
-          ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
-            create: (_) => PaletaProvider(ColorimetriaMockService()),
-            update: (_, c, p) =>
-                p!..sincronizarEstacion(c.perfil?.estacionColor),
-          ),
-        ],
-        child: MaterialApp(
-          theme: AppTheme.claro,
-          onGenerateRoute: AppRouter.onGenerateRoute,
-          home: const MainNavigationView(),
-        ),
-      ),
+    await _montarHome(
+      tester,
+      PerfilColorimetriaRepository(db: FakeFirebaseFirestore()),
     );
-    // Indicador de carga mientras llegan los datos mock.
-    await tester.pump();
-    expect(find.text(AppStrings.cargando), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text(AppStrings.saludo('Sofía')), findsOneWidget);
-    expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
+    // Sin análisis en el Firestore falso: ya no aparece el perfil de ejemplo.
+    expect(find.text(AppStrings.sinAnalisisTitulo), findsOneWidget);
+    expect(find.text(AppStrings.tuEstacionDeColor), findsNothing);
     expect(find.text(AppStrings.proximamente), findsNothing);
     // Las recomendaciones de Home ya son reales (Ana): aquí no hay catálogo.
     expect(find.text('Labial rojo frambuesa'), findsNothing);
@@ -220,4 +176,120 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.colorimetriaTitulo), findsOneWidget);
   });
+
+  testWidgets(
+    'Home muestra el perfil real y se actualiza con un análisis nuevo',
+    (tester) async {
+      final repo = PerfilColorimetriaRepository(db: FakeFirebaseFirestore());
+      PerfilColorimetria perfil(EstacionColor estacion, Subtono subtono) =>
+          PerfilColorimetria(
+            uid: 'u1',
+            estacionColor: estacion,
+            subtono: subtono,
+            contraste: Contraste.medio,
+            intensidad: Intensidad.suave,
+            confianza: 0.8,
+            fechaAnalisis: DateTime.now(),
+          );
+      await repo.guardarPerfil(perfil(EstacionColor.verano, Subtono.frio));
+
+      await _montarHome(tester, repo);
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
+      expect(
+        find.text(
+          AppStrings.estacionConSubtono(
+            EstacionColor.verano.etiqueta,
+            Subtono.frio.etiqueta.toLowerCase(),
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // La usuaria repite el análisis: Home cambia sin recargar a mano.
+      final colorimetria = Provider.of<ColorimetriaProvider>(
+        tester.element(find.byType(MainNavigationView)),
+        listen: false,
+      );
+      await colorimetria.guardarPerfil(
+        perfil(EstacionColor.otono, Subtono.calido),
+      );
+      await tester.pump(); // HomeView recibe el perfil nuevo.
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          AppStrings.estacionConSubtono(
+            EstacionColor.otono.etiqueta,
+            Subtono.calido.etiqueta.toLowerCase(),
+          ),
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+}
+
+Future<void> _montarHome(
+  WidgetTester tester,
+  PerfilColorimetriaRepository perfiles,
+) async {
+  tester.view.physicalSize = const Size(360, 780);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
+  final repo = _AuthRepoFalso();
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider(repo)),
+        ChangeNotifierProvider(
+          create: (_) => UsuariaProvider(
+            usuariaRepository: _UsuariaRepoFalso(),
+            authRepository: repo,
+          ),
+        ),
+        ProxyProvider2<AuthProvider, UsuariaProvider, SesionProvider>(
+          update: (_, a, u, _) => SesionProvider(
+            auth: a,
+            usuaria: u,
+            preferencias: SesionRepository(),
+            credenciales: CredencialRepository(),
+          ),
+        ),
+        ChangeNotifierProxyProvider<SesionProvider, NotificacionesProvider>(
+          create: (c) => NotificacionesProvider(
+            servicio: _NotificacionesFalsas(),
+            usuarias: c.read<UsuariaProvider>(),
+          ),
+          update: (_, s, n) => n!..sincronizarUsuaria(s.uidActiva),
+        ),
+        // Pestaña Colorimetría (Jaider) con Firestore falso.
+        Provider<ColorimetriaService>(create: (_) => _PaletaInmediata()),
+        ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
+          create: (_) => ColorimetriaProvider(perfiles),
+          update: (_, s, p) => p!..sincronizarUsuaria(s.uidActiva),
+        ),
+        ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
+          create: (_) => PaletaProvider(_PaletaInmediata()),
+          update: (_, c, p) => p!..sincronizarEstacion(c.perfil?.estacionColor),
+        ),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.claro,
+        onGenerateRoute: AppRouter.onGenerateRoute,
+        home: const MainNavigationView(),
+      ),
+    ),
+  );
+}
+
+/// Paleta sin esperas (el mock usa `Future.delayed`, que en el reloj falso
+/// de las pruebas no siempre avanza).
+class _PaletaInmediata extends ColorimetriaMockService {
+  @override
+  Future<Paleta> generarPaleta(EstacionColor estacion) =>
+      SynchronousFuture(PaletasPorEstacion.de(estacion));
 }

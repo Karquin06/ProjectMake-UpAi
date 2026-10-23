@@ -10,7 +10,9 @@ import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/indicador_carga.dart';
 import '../../core/widgets/mensaje_error.dart';
 import '../../models/enums.dart';
+import '../../providers/colorimetria_provider.dart';
 import '../../providers/sesion_provider.dart';
+import '../colorimetria/colorimetria_home.dart';
 import '../recomendaciones/destacadas_home.dart';
 import 'home_view_model.dart';
 import 'widgets/accesos_directos.dart';
@@ -31,14 +33,27 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProxyProvider<SesionProvider, HomeViewModel>(
+    return ChangeNotifierProxyProvider2<
+      SesionProvider,
+      ColorimetriaProvider,
+      HomeViewModel
+    >(
       create: (c) => HomeViewModel(
+        // Perfil y paleta reales (Jaider) cuando se apaga el mock.
+        cargarPerfil: AppConstants.usarMockColorimetria
+            ? null
+            : (_) => cargarPerfilHome(c),
+        cargarPaleta: AppConstants.usarMockColorimetria
+            ? null
+            : (_) => cargarPaletaHome(c),
         // Recomendaciones reales (Ana) cuando se apaga el mock.
         cargarRecomendaciones: AppConstants.usarMockRecomendaciones
             ? null
             : (_) => cargarDestacadasHome(c),
       ),
-      update: (_, sesion, vm) => vm!..actualizarSesion(sesion),
+      update: (_, sesion, colorimetria, vm) => vm!
+        ..actualizarSesion(sesion)
+        ..actualizarColorimetria(colorimetria.perfil),
       child: Consumer<HomeViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
