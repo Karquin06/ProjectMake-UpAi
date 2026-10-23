@@ -439,6 +439,10 @@ class AppStrings {
   // Captura de selfie
   static const String capturaTitulo = 'Toma tu selfie';
   static const String capturaGuia = 'Ubica tu rostro dentro del óvalo';
+  static const String encuadreLejos = 'Acércate un poco más';
+  static const String encuadreCerca = 'Aléjate un poco';
+  static const String encuadreDescentrado = 'Centra tu rostro en el óvalo';
+  static const String encuadreCentrado = '¡Perfecto! Ya puedes tomar la foto';
   static const List<String> capturaConsejos = [
     'Luz natural de frente, sin sombras',
     'Sin maquillaje, filtros ni lentes',

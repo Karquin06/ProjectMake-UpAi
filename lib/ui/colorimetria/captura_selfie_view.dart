@@ -74,7 +74,8 @@ class _CapturaSelfieState extends State<_CapturaSelfie>
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CapturaSelfieViewModel>();
-    final oscuro = vm.estado == EstadoCaptura.lista ||
+    final oscuro =
+        vm.estado == EstadoCaptura.lista ||
         vm.estado == EstadoCaptura.capturando ||
         vm.estado == EstadoCaptura.vistaPrevia ||
         vm.estado == EstadoCaptura.procesando;
@@ -130,6 +131,20 @@ class _CapturaSelfieState extends State<_CapturaSelfie>
       return const IndicadorCarga();
     }
     final tamano = controlador.value.previewSize;
+    return LayoutBuilder(
+      builder: (context, restricciones) {
+        // El óvalo y la detección usan la misma área que la vista previa.
+        vm.actualizarArea(restricciones.biggest);
+        return _capasCamara(vm, controlador, tamano);
+      },
+    );
+  }
+
+  Widget _capasCamara(
+    CapturaSelfieViewModel vm,
+    CameraController controlador,
+    Size? tamano,
+  ) {
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -145,7 +160,7 @@ class _CapturaSelfieState extends State<_CapturaSelfie>
             ),
           ),
         ),
-        const SafeArea(child: GuiaCapturaSelfie()),
+        GuiaCapturaSelfie(encuadre: vm.encuadre),
         if (vm.error != null)
           Positioned(
             left: 24,
@@ -165,6 +180,7 @@ class _CapturaSelfieState extends State<_CapturaSelfie>
             child: Center(
               child: _BotonDisparador(
                 ocupado: vm.estado == EstadoCaptura.capturando,
+                habilitado: vm.puedeCapturar,
                 onPressed: vm.capturar,
               ),
             ),
@@ -213,29 +229,41 @@ class _CapturaSelfieState extends State<_CapturaSelfie>
 
 class _BotonDisparador extends StatelessWidget {
   final bool ocupado;
+
+  /// `false` mientras el rostro no está centrado en el óvalo.
+  final bool habilitado;
   final VoidCallback onPressed;
 
-  const _BotonDisparador({required this.ocupado, required this.onPressed});
+  const _BotonDisparador({
+    required this.ocupado,
+    required this.habilitado,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final activo = habilitado && !ocupado;
     return Semantics(
       button: true,
+      enabled: activo,
       label: AppStrings.capturaTitulo,
       child: GestureDetector(
-        onTap: ocupado ? null : onPressed,
+        onTap: activo ? onPressed : null,
         child: Container(
           width: 76,
           height: 76,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 4),
+            border: Border.all(
+              color: activo ? Colors.white : Colors.white38,
+              width: 4,
+            ),
           ),
           padding: const EdgeInsets.all(5),
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: ocupado ? Colors.white54 : Colors.white,
+              color: activo ? Colors.white : Colors.white38,
             ),
           ),
         ),
