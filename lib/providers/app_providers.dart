@@ -61,28 +61,18 @@ class AppProviders extends StatelessWidget {
       create: (_) => PerfilColorimetriaRepository(),
     ),
     Provider<SubidorFotoPerfil>(
-      create: (_) {
-        // PUNTO DE CAMBIO (Jaider): cuando exista StorageService, devolver
-        // un adaptador que implemente SubidorFotoPerfil con él y poner
-        // AppConstants.usarMockStorage en false.
-        assert(
-          AppConstants.usarMockStorage,
-          'Conecta StorageService aquí antes de apagar usarMockStorage.',
-        );
-        return SubidorFotoPerfilMock();
-      },
+      // Foto de perfil en Storage (perfiles/{uid}/foto.jpg). Con el mock no
+      // se sube nada y la foto queda "pendiente".
+      create: (_) => AppConstants.usarMockStorage
+          ? SubidorFotoPerfilMock()
+          : SubidorFotoPerfilStorage(StorageService()),
     ),
     Provider<EliminadorCuenta>(
-      create: (c) {
-        // PUNTO DE CAMBIO (Ana/Jaider): cuando la función eliminarCuenta
-        // esté desplegada, devolver un adaptador que la llame con el
-        // servicio de Cloud Functions y poner usarMockEliminarCuenta en false.
-        assert(
-          AppConstants.usarMockEliminarCuenta,
-          'Conecta la función eliminarCuenta aquí antes de apagar el mock.',
-        );
-        return EliminadorCuentaMock(c.read<AuthRepository>());
-      },
+      // Cloud Function eliminarCuenta (Ana): borra Firestore, Storage y la
+      // cuenta de Auth. El mock solo borra la cuenta de Auth.
+      create: (c) => AppConstants.usarMockEliminarCuenta
+          ? EliminadorCuentaMock(c.read<AuthRepository>())
+          : EliminadorCuentaFunciones(FuncionesIaService()),
     ),
   ];
 

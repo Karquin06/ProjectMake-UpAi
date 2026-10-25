@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Reglas de Firebase Storage — proyecto macke-up-ai.
+// Se publican con: firebase deploy --only storage
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function logueada() { return request.auth != null; }
+    function esDuena(uid) { return logueada() && request.auth.uid == uid; }
+    function esAdmin() { return logueada() && request.auth.token.get('admin', false) == true; }
+    function imagenValida() {
+      return request.resource.size < 5 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*');
+    }
+
+    // Foto de perfil (Karlos / Jaider): la dueña la sube; cualquier usuaria
+    // con sesión puede verla. eliminarCuenta borra la carpeta con Admin SDK.
+    match /perfiles/{uid}/{archivo} {
+      allow read: if logueada();
+      allow create, update: if esDuena(uid) && imagenValida();
+      allow delete: if esDuena(uid);
+    }
+
+    // Fotos del catálogo (Ana): solo la cuenta admin las sube o borra.
+    match /catalogo/{carpeta}/{id}/{archivo} {
+      allow read: if logueada();
+      allow create, update: if esAdmin()
+                            && carpeta in ['prendas', 'productos']
+                            && imagenValida();
+      allow delete: if esAdmin();
+    }
+
+    // Temporales para análisis con Cloud Functions (selfies y prendas).
+    // Las funciones los leen y borran con Admin SDK; limpiarImagenesTemporales
+    // borra los que tengan más de una hora.
+    match /temporales/{tipo}/{uid}/{archivo} {
+      allow create: if esDuena(uid)
+                    && tipo in ['selfies', 'prendas']
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType == 'image/jpeg';
+      allow delete: if esDuena(uid);
+      allow read: if false;
+    }
+  }
+}

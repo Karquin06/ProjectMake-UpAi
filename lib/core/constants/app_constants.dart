@@ -18,14 +18,15 @@ class AppConstants {
   /// reales (`recomendacion_provider`, catálogo de Firestore).
   static const bool usarMockRecomendaciones = false;
 
-  /// `true` mientras la Cloud Function `eliminarCuenta` no esté
-  /// desplegada (Ana). Se simula la eliminación en el cliente.
-  static const bool usarMockEliminarCuenta = true;
+  /// `false`: la cuenta se elimina con la Cloud Function `eliminarCuenta`
+  /// (Ana), que borra Firestore, Storage y Auth. En `true` solo se borra la
+  /// cuenta de Auth desde el cliente (útil sin funciones desplegadas).
+  static const bool usarMockEliminarCuenta = false;
 
-  /// `true` mientras no exista `StorageService` (Jaider). La foto de
-  /// perfil no se sube: se guarda solo el nombre y se avisa a la usuaria.
-  /// Para apagarla, conecta el adaptador en `app_providers.dart`.
-  static const bool usarMockStorage = true;
+  /// `false`: la foto de perfil se sube a Firebase Storage
+  /// (`perfiles/{uid}/foto.jpg`). En `true` no se sube nada: se guarda solo
+  /// el nombre y se avisa a la usuaria (útil sin Storage activo).
+  static const bool usarMockStorage = false;
 
   /// Acceso al Armario en Home. Activo: el Armario es de Mauricio y abre su
   /// pantalla (en construcción hasta que conecte `armario_view`).
