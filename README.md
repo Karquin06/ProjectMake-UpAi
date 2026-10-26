@@ -17,14 +17,15 @@ Proyecto de la materia Programación Móvil, Universidad Popular del Cesar.
 3. [Cómo funciona la colorimetría](#cómo-funciona-la-colorimetría)
 4. [Tecnologías](#tecnologías)
 5. [Arquitectura](#arquitectura)
-6. [Estructura del proyecto](#estructura-del-proyecto)
-7. [Backend en Firebase](#backend-en-firebase)
-8. [Privacidad y seguridad](#privacidad-y-seguridad)
-9. [Puesta en marcha](#puesta-en-marcha)
-10. [Pruebas](#pruebas)
-11. [Generar el APK](#generar-el-apk)
-12. [Estado del proyecto](#estado-del-proyecto)
-13. [Autores](#autores)
+6. [Diagramas](#diagramas)
+7. [Estructura del proyecto](#estructura-del-proyecto)
+8. [Backend en Firebase](#backend-en-firebase)
+9. [Privacidad y seguridad](#privacidad-y-seguridad)
+10. [Puesta en marcha](#puesta-en-marcha)
+11. [Pruebas](#pruebas)
+12. [Generar el APK](#generar-el-apk)
+13. [Estado del proyecto](#estado-del-proyecto)
+14. [Autores](#autores)
 
 ---
 
@@ -102,7 +103,7 @@ View  →  ViewModel  →  Provider  →  Repository / Service  →  Firebase
 - **Errores en español.** `FirebaseErrorMapper` traduce los errores de Auth, Firestore, Storage, Functions y Google a mensajes comprensibles; la interfaz nunca muestra códigos técnicos.
 - **Textos y estilos centralizados.** Todos los textos están en `core/constants/app_strings.dart`, las rutas de imágenes en `app_assets.dart`, y colores, degradados y tipografías salen del tema (`core/theme`).
 - **Estados de pantalla.** Cada pantalla cubre carga, vacío y error con reintento mediante widgets compartidos (`IndicadorCarga`, `EstadoVacio`, `MensajeError`).
-- **Datos de ejemplo controlados por banderas.** `core/constants/app_constants.dart` permite usar datos simulados mientras una función real no esté disponible (por ejemplo `usarMockColorimetria`).
+- **Datos de ejemplo solo en pruebas.** Los servicios simulados (por ejemplo `ColorimetriaMockService`) viven en `test/`; la app siempre usa los datos reales.
 
 ### Arranque y sesión
 
@@ -113,6 +114,300 @@ Splash ─┬─ sin sesión ── onboarding (solo la primera vez) ── Logi
 ```
 
 El splash muestra el logo animado y decide el destino con `SplashViewModel`. Si Firebase no responde en 8 segundos, o falla la lectura de la sesión, lleva a login con un aviso claro en lugar de quedarse esperando.
+
+## Diagramas
+
+Los diagramas están en Mermaid: GitHub los dibuja directamente.
+
+### Arquitectura general
+
+Las flechas hacia Firebase salen siempre de repositorios o servicios, nunca de la interfaz. Lo que necesita secretos o confianza (IA, borrar cuentas, notificaciones) corre en Cloud Functions.
+
+```mermaid
+flowchart LR
+    U(["Usuaria"]) --> UI
+
+    subgraph APP["App Flutter (Android / Web)"]
+        UI["Views + ViewModels"] --> PR["Providers"]
+        PR --> RE["Repositorios"]
+        PR --> SE["Servicios"]
+        SE --> ML["ML Kit<br/>(en el teléfono)"]
+        RE --> SS["Almacenamiento seguro"]
+    end
+
+    subgraph FB["Firebase · macke-up-ai"]
+        AU["Authentication"]
+        FS[("Cloud Firestore")]
+        ST["Cloud Storage"]
+        CF["Cloud Functions<br/>(us-central1)"]
+        FCM["Cloud Messaging"]
+        SM["Secret Manager"]
+        SCH["Cloud Scheduler"]
+    end
+
+    RE --> AU
+    RE --> FS
+    SE --> ST
+    SE -- "httpsCallable + token" --> CF
+    SE --> FCM
+    CF --> FS
+    CF --> ST
+    CF --> AU
+    CF --> FCM
+    CF --> SM
+    CF --> GE["Gemini 2.5 Flash"]
+    SCH -- "cada 60 min" --> CF
+    FCM -. "push" .-> UI
+```
+
+### Capas
+
+```mermaid
+flowchart TB
+    V["View<br/>solo dibuja y escucha"] --> VM["ViewModel<br/>estado de una pantalla"]
+    VM --> P["Provider<br/>estado compartido"]
+    P --> R["Repository<br/>una colección cada uno"]
+    P --> S["Service<br/>cámara, Storage, funciones"]
+    R --> M["Model<br/>fromMap / toMap"]
+    S --> M
+    R --> F[("Firebase")]
+    S --> F
+```
+
+### Conexión con Firebase y sesión
+
+`Firebase.initializeApp` usa `firebase_options.dart`. Al iniciar sesión, Firebase Auth entrega un token con el uid que viaja en cada petición; las reglas (`request.auth.uid`) y las funciones (`exigirSesion`) lo verifican.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuaria
+    participant V as LoginView
+    participant VM as AuthViewModel
+    participant AR as AuthRepository
+    participant FA as Firebase Auth
+    participant UR as UsuariaRepository
+    participant FS as Firestore
+    participant SP as SesionProvider
+
+    U->>V: correo y contraseña / Google
+    V->>VM: iniciarSesion()
+    VM->>AR: signInWithEmailAndPassword()
+    AR->>FA: credenciales
+    FA-->>AR: usuario + token (uid)
+    FA-->>SP: authStateChanges()
+    UR->>FS: snapshots() de usuarias/uid
+    FS-->>SP: documento y rol
+    SP-->>V: uidActiva -> GuardiaRuta abre Home
+    Note over SP: Cada provider recibe el uid,<br/>carga sus datos y se limpia al cerrar sesión
+```
+
+```mermaid
+stateDiagram-v2
+    [*] --> Desconocido
+    Desconocido --> SinSesion: sin usuario
+    Desconocido --> VerificacionPendiente: correo sin verificar
+    Desconocido --> Autenticada: usuario verificado
+    SinSesion --> VerificacionPendiente: registro con correo
+    SinSesion --> Autenticada: login / Google
+    VerificacionPendiente --> Autenticada: verificó el correo
+    Autenticada --> SinSesion: cerrar sesión / eliminar cuenta
+```
+
+### Análisis de colorimetría
+
+La selfie se analiza en el teléfono y nunca sale del dispositivo; solo el resultado se guarda.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuaria
+    participant CV as ColorimetriaView
+    participant CP as ColorimetriaProvider
+    participant CA as CapturaSelfie
+    participant LS as ColorimetriaLocalService
+    participant ML as ML Kit
+    participant R as PerfilColorimetriaRepository
+    participant FS as Firestore
+
+    U->>CV: Iniciar análisis
+    CV->>CP: aceptarConsentimiento()
+    CP->>R: guardarConsentimiento(uid, versión)
+    CV->>CA: abrir cámara frontal
+    loop cada cuadro
+        CA->>ML: ¿rostro centrado en el óvalo?
+    end
+    U->>CA: toma la foto (JPEG máx. 1080 px)
+    CA->>LS: analizarSelfie(selfie)
+    LS->>ML: mejillas, frente y ojos
+    LS->>LS: isolate: esclera, CIELAB, reglas
+    LS-->>CP: PerfilColorimetria
+    CP->>R: guardarPerfil()
+    R->>FS: perfiles_colorimetria/uid
+    CP-->>CV: notifyListeners()
+    Note over CP: Se actualizan solos la paleta, Home,<br/>recomendaciones, simulador AR y asistente
+```
+
+```mermaid
+flowchart TD
+    A["Selfie + zonas de ML Kit"] --> B{"¿Brillo suficiente<br/>y rostro?"}
+    B -- no --> X["Error claro: foto oscura<br/>o rostro no detectado"]
+    B -- sí --> C["Balance de blancos<br/>con la esclera"]
+    C --> D["Piel de mejillas y frente en CIELAB<br/>mediana sin brillos ni sombras"]
+    D --> E["Tono h* · ITA · Croma C* · Contraste ΔL*"]
+    E --> F{"Subtono"}
+    F -- "h* menor que 52°" --> G["Frío: Invierno o Verano"]
+    F -- "h* mayor que 58°" --> H["Cálido: Primavera u Otoño"]
+    F -- "entre 52° y 58°" --> I["Neutro: deciden contraste,<br/>claridad y 55°"]
+    G --> J["Estación + segunda opción + confianza"]
+    H --> J
+    I --> J
+```
+
+### Recomendaciones
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuaria
+    participant RP as RecomendacionProvider
+    participant FIS as FuncionesIaService
+    participant CF as generarRecomendaciones
+    participant FS as Firestore
+    participant CR as CatalogoRepository
+
+    U->>RP: tipo (maquillaje / outfit) y ocasión
+    RP->>FIS: generarRecomendaciones()
+    FIS->>CF: httpsCallable con token
+    CF->>FS: perfil, catálogo activo y calificaciones
+    CF->>CF: puntaje por estación, subtono, ocasión
+    CF-->>RP: ids ordenados con motivo
+    RP->>CR: une los ids con el catálogo
+    RP-->>U: tarjetas con compatibilidad
+    U->>RP: califica de 1 a 5
+    RP->>FS: usuarias/uid/recomendaciones
+    Note over RP: Si la función no está desplegada,<br/>el mismo cálculo corre en el teléfono
+```
+
+### Asistente de IA
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant AP as AsistenteProvider
+    participant CF as chatAsistente
+    participant FS as Firestore
+    participant SM as Secret Manager
+    participant G as Gemini
+
+    AP->>CF: mensaje, últimos 10, estación y subtono
+    CF->>FS: limitesChat/uid (máx. 8 por minuto)
+    CF->>FS: catálogo compatible con su estación
+    CF->>SM: GEMINI_API_KEY
+    CF->>G: generateContent
+    G-->>CF: respuesta
+    CF-->>AP: respuesta
+    AP->>FS: usuarias/uid/conversaciones
+```
+
+### Eliminar cuenta
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Usuaria
+    participant UP as UsuariaProvider
+    participant CF as eliminarCuenta
+    participant FS as Firestore
+    participant ST as Storage
+    participant FA as Firebase Auth
+
+    U->>UP: confirma y se reautentica
+    UP->>CF: httpsCallable
+    CF->>CF: ¿login de menos de 5 minutos?
+    CF->>FS: borra usuarias/uid con subcolecciones,<br/>perfil y límite del chat
+    CF->>ST: borra perfiles/uid y temporales
+    CF->>FA: deleteUser(uid)
+    CF-->>UP: eliminada
+```
+
+### Publicación de las Cloud Functions
+
+Se publican con `firebase deploy --only functions --project macke-up-ai` (plan Blaze). La clave de Gemini se guarda una sola vez con `firebase functions:secrets:set GEMINI_API_KEY`; lo que no es secreto va en `functions/.env`.
+
+```mermaid
+flowchart LR
+    DEV["PC de desarrollo<br/>functions/src/*.ts"] -- "firebase deploy" --> B["npm run build<br/>(tsc → lib/)"]
+    B --> D["Descubre las 8 funciones<br/>de index.ts"]
+    D --> CB["Cloud Build<br/>una imagen por función"]
+    CB --> AR["Artifact Registry<br/>(limpieza: 1 día)"]
+    AR --> CR["Cloud Run<br/>us-central1 · Node 22"]
+    SM["Secret Manager<br/>GEMINI_API_KEY"] -.-> CR
+    ENV["functions/.env<br/>GEMINI_MODELO"] -.-> CR
+    SCH["Cloud Scheduler<br/>cada 60 min"] --> CR
+    APP["App Flutter"] -- "httpsCallable + token" --> CR
+```
+
+Si el CLI tarda en cargar las funciones ("Timeout after 10000"), se le da más tiempo con `FUNCTIONS_DISCOVERY_TIMEOUT=30` antes del comando. Para comprobar lo publicado: `firebase functions:list --project macke-up-ai`.
+
+### Modelo de datos (Firestore)
+
+```mermaid
+erDiagram
+    USUARIAS ||--o{ RECOMENDACIONES : "subcolección"
+    USUARIAS ||--o{ CONVERSACIONES : "subcolección"
+    USUARIAS ||--o| PERFILES_COLORIMETRIA : "mismo uid"
+    USUARIAS ||--o| LIMITES_CHAT : "mismo uid"
+    PERFILES_COLORIMETRIA }o--|| PALETAS : "estación"
+    RECOMENDACIONES }o--o| PRODUCTOS_MAQUILLAJE : "productoId"
+    RECOMENDACIONES }o--o| PRENDAS_ROPA : "prendaId"
+
+    USUARIAS {
+        string nombre
+        string email
+        string rol
+        string fotoPerfilUrl
+        string tokenNotificaciones
+    }
+    PERFILES_COLORIMETRIA {
+        string estacion
+        string estacionAlternativa
+        string subtono
+        string contraste
+        string intensidad
+        number confianza
+    }
+    RECOMENDACIONES {
+        string tipo
+        string ocasion
+        int puntaje
+        string motivo
+        int calificacion
+    }
+    CONVERSACIONES {
+        array mensajes
+        timestamp fechaCreacion
+    }
+    PRODUCTOS_MAQUILLAJE {
+        string categoria
+        string colorHex
+        array estacionesCompatibles
+        bool activo
+    }
+    PRENDAS_ROPA {
+        string tipoPrenda
+        string colorHex
+        array ocasiones
+        bool activo
+    }
+    PALETAS {
+        array coloresRecomendados
+        array coloresEvitar
+    }
+    LIMITES_CHAT {
+        number mensajes
+    }
+```
 
 ## Estructura del proyecto
 
@@ -167,7 +462,6 @@ Proyecto de Firebase: `macke-up-ai`.
 | `perfiles_colorimetria` | Resultado del análisis de cada usuaria |
 | `paletas` | Paleta de colores por estación |
 | `prendasRopa` y `productosMaquillaje` | Catálogo de prendas y productos |
-| `sesiones` y `credenciales` | Preferencias de sesión del dispositivo |
 
 **Storage:**
 
@@ -209,14 +503,13 @@ flutter run
 
 - **Windows:** activa el *Modo de desarrollador* (`start ms-settings:developers`); los plugins de Flutter lo necesitan para compilar.
 - **Firebase:** la configuración de cliente está en `lib/firebase_options.dart` y `android/app/google-services.json`. En la consola de Firebase deben estar habilitados Authentication (correo/contraseña y Google), Firestore y Storage.
-- **Inicio de sesión con Google en Android:** requiere registrar la huella SHA-1 de la app en Firebase y que el `serverClientId` de `AuthRepository` corresponda al cliente web del proyecto.
+- **Inicio de sesión con Google en Android:** la app firma en modo debug con `android/app/debug.keystore`, compartido por el equipo, cuya huella SHA ya está registrada en Firebase. Si alguien tenía instalada una versión firmada con otra clave, debe desinstalarla una vez.
 - **Cloud Functions:** desde `functions/`, `npm install`, `npm test` y `npm run deploy` (requiere plan Blaze y `firebase login`).
 
 ### Banderas de desarrollo (`app_constants.dart`)
 
 | Bandera | Efecto |
 |---|---|
-| `usarMockColorimetria` | Home y Perfil usan un perfil de colorimetría de ejemplo |
 | `usarMockEliminarCuenta` | Simula la eliminación completa de la cuenta en el cliente |
 | `usarMockStorage` | La foto de perfil no se sube a Storage |
 | `armarioHabilitado` | Muestra el acceso al Armario en Home |
@@ -257,8 +550,6 @@ El archivo recomendado queda en `build/app/outputs/flutter-apk/app-arm64-v8a-rel
 
 **Limitaciones conocidas:**
 
-- El inicio de sesión con Google en Android requiere completar la configuración descrita en [Puesta en marcha](#puesta-en-marcha).
-- La eliminación completa de la cuenta se simula en el cliente (`usarMockEliminarCuenta`) hasta que la función `eliminarCuenta` esté desplegada y la bandera se apague.
 - Las reglas de seguridad de Firestore y Storage deben revisarse y publicarse en el proyecto `macke-up-ai`.
 - La configuración de Firebase para iOS no está completa.
 
