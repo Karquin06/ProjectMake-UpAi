@@ -25,6 +25,18 @@ android {
         versionName = flutter.versionName
     }
 
+    // Certificado de depuración compartido por el equipo: así todos firman con
+    // la misma huella SHA registrada en Firebase (inicio de sesión con Google).
+    // No es secreto; las claves de publicación van aparte (key.properties).
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
