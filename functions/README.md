@@ -57,7 +57,7 @@ firebase deploy --only functions:analizarSelfie,functions:generarPaleta --projec
 | Qué | Dónde | Cómo |
 |---|---|---|
 | `GEMINI_API_KEY` (secreto de `chatAsistente`) | Secret Manager | `firebase functions:secrets:set GEMINI_API_KEY --project macke-up-ai` y volver a desplegar `chatAsistente`. **Nunca** en el código ni en un chat |
-| `GEMINI_MODELO` (no secreto) | `functions/.env` | Valor actual: `gemini-2.5-flash` |
+| `GEMINI_MODELO` (no secreto) | `functions/.env` | Valor actual: `gemini-3.8-flash` (el 2.5 ya no está disponible para proyectos nuevos) |
 
 ### Scripts con Admin SDK
 
