@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/context_extensions.dart';
 import '../../core/routes/app_routes.dart';
@@ -39,17 +38,10 @@ class HomeView extends StatelessWidget {
       HomeViewModel
     >(
       create: (c) => HomeViewModel(
-        // Perfil y paleta reales (Jaider) cuando se apaga el mock.
-        cargarPerfil: AppConstants.usarMockColorimetria
-            ? null
-            : (_) => cargarPerfilHome(c),
-        cargarPaleta: AppConstants.usarMockColorimetria
-            ? null
-            : (_) => cargarPaletaHome(c),
-        // Recomendaciones reales (Ana) cuando se apaga el mock.
-        cargarRecomendaciones: AppConstants.usarMockRecomendaciones
-            ? null
-            : (_) => cargarDestacadasHome(c),
+        // Perfil y paleta (Jaider) y recomendaciones (Ana).
+        cargarPerfil: (_) => cargarPerfilHome(c),
+        cargarPaleta: (_) => cargarPaletaHome(c),
+        cargarRecomendaciones: (_) => cargarDestacadasHome(c),
       ),
       update: (_, sesion, colorimetria, vm) => vm!
         ..actualizarSesion(sesion)

@@ -42,6 +42,9 @@ class PerfilColorimetria {
 
   final String uid;
   final EstacionColor estacionColor;
+
+  /// Segunda estación más probable; `null` en análisis anteriores.
+  final EstacionColor? estacionAlternativa;
   final Subtono subtono;
   final Contraste contraste;
   final Intensidad intensidad;
@@ -54,6 +57,7 @@ class PerfilColorimetria {
   const PerfilColorimetria({
     required this.uid,
     required this.estacionColor,
+    this.estacionAlternativa,
     required this.subtono,
     required this.contraste,
     required this.intensidad,
@@ -72,6 +76,8 @@ class PerfilColorimetria {
       estacionColor:
           enumFromName(EstacionColor.values, m['estacion'] as String?) ??
               EstacionColor.invierno,
+      estacionAlternativa: enumFromName(
+          EstacionColor.values, m['estacionAlternativa'] as String?),
       subtono: enumFromName(Subtono.values, m['subtono'] as String?) ??
           Subtono.neutro,
       contraste: enumFromName(Contraste.values, m['contraste'] as String?) ??
@@ -95,6 +101,7 @@ class PerfilColorimetria {
   Map<String, dynamic> toMap() => {
         'uid': uid,
         'estacion': estacionColor.name,
+        'estacionAlternativa': estacionAlternativa?.name,
         'subtono': subtono.name,
         'contraste': contraste.name,
         'intensidad': intensidad.name,
@@ -111,6 +118,7 @@ class PerfilColorimetria {
   PerfilColorimetria copyWith({
     String? uid,
     EstacionColor? estacionColor,
+    EstacionColor? estacionAlternativa,
     Subtono? subtono,
     Contraste? contraste,
     Intensidad? intensidad,
@@ -121,6 +129,7 @@ class PerfilColorimetria {
       PerfilColorimetria(
         uid: uid ?? this.uid,
         estacionColor: estacionColor ?? this.estacionColor,
+        estacionAlternativa: estacionAlternativa ?? this.estacionAlternativa,
         subtono: subtono ?? this.subtono,
         contraste: contraste ?? this.contraste,
         intensidad: intensidad ?? this.intensidad,

@@ -7,7 +7,7 @@ import 'package:mackeupai/core/errors/app_exception.dart';
 import 'package:mackeupai/data/repositories/paleta_repository.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/services/cloud_functions_service.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/data/services/colorimetria_remota_service.dart';
 import 'package:mackeupai/data/services/storage_service.dart';
 import 'package:mackeupai/models/models.dart';

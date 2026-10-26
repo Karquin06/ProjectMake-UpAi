@@ -5,8 +5,8 @@ import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/color_utils.dart';
 import '../../../core/widgets/paleta_chips.dart';
-import '../../../models/paleta.dart';
-import '../../../models/perfil_colorimetria.dart';
+import '../../../models/paleta_model.dart';
+import '../../../models/perfil_colorimetria_model.dart';
 
 /// Tarjeta que resume la colorimetría de la usuaria: su estación, subtono
 /// y paleta, o una invitación a hacer el análisis si aún no lo tiene.
