@@ -1,3 +1,5 @@
+import '../../models/elemento_armario.dart';
+import '../armario/widgets/boton_armario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_strings.dart';
@@ -89,11 +91,19 @@ class DetalleProductoView extends StatelessWidget {
             ),
         ];
       },
-      accion: (context, item) => BotonPrimario(
-        texto: AppStrings.probarEnAr,
-        icono: Icons.camera_alt_outlined,
-        onPressed: () =>
-            context.irA(AppRoutes.simuladorAr, argumentos: item.id),
+      accion: (context, item) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (item.producto!.categoria == 'labial')
+            BotonPrimario(
+              texto: AppStrings.probarEnAr,
+              icono: Icons.camera_alt_outlined,
+              onPressed: () =>
+                  context.irA(AppRoutes.simuladorAr, argumentos: item.id),
+            ),
+          const SizedBox(height: 8),
+          BotonArmario(elemento: ElementoArmario.producto(item.producto!)),
+        ],
       ),
     );
   }

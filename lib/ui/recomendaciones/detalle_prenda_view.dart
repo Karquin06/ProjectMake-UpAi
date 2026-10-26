@@ -1,3 +1,5 @@
+import '../../models/elemento_armario.dart';
+import '../armario/widgets/boton_armario.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/extensions/enum_labels.dart';
@@ -53,7 +55,10 @@ class DetallePrendaView extends StatelessWidget {
               texto: p.ocasiones.map(EtiquetasTexto.ocasion).join(', '),
             ),
           if (p.talla.trim().isNotEmpty)
-            DatoDetalle.texto(etiqueta: AppStrings.detalleTalla, texto: p.talla),
+            DatoDetalle.texto(
+              etiqueta: AppStrings.detalleTalla,
+              texto: p.talla,
+            ),
           if (p.material.trim().isNotEmpty)
             DatoDetalle.texto(
               etiqueta: AppStrings.detalleMaterial,
@@ -61,6 +66,8 @@ class DetallePrendaView extends StatelessWidget {
             ),
         ];
       },
+      accion: (context, item) =>
+          BotonArmario(elemento: ElementoArmario.prenda(item.prenda!)),
     );
   }
 }
