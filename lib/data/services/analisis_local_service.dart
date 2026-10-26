@@ -59,9 +59,17 @@ class ColorimetriaLocalService implements ColorimetriaService {
           ),
       };
     }
+    if (kDebugMode) {
+      debugPrint(
+        'colorimetria: ${resultado.estacion.name} '
+        '(2ª ${resultado.estacionAlternativa.name}, ${resultado.confianza}) '
+        '${resultado.medidas.map((k, v) => MapEntry(k, v.toStringAsFixed(1)))}',
+      );
+    }
     return PerfilColorimetria(
       uid: uid,
       estacionColor: resultado.estacion,
+      estacionAlternativa: resultado.estacionAlternativa,
       subtono: resultado.subtono,
       contraste: resultado.contraste,
       intensidad: resultado.intensidad,
@@ -86,6 +94,7 @@ class ColorimetriaLocalService implements ColorimetriaService {
     final detector = FaceDetector(
       options: FaceDetectorOptions(
         enableLandmarks: true,
+        enableContours: true,
         performanceMode: FaceDetectorMode.accurate,
         minFaceSize: 0.25,
       ),
@@ -107,7 +116,8 @@ class ColorimetriaLocalService implements ColorimetriaService {
   }
 
   /// Mejillas (landmarks de ML Kit o, si faltan, posiciones típicas dentro
-  /// de la caja del rostro) y óvalo del rostro.
+  /// de la caja del rostro), frente, ojos (contornos, para el balance con
+  /// la esclera) y óvalo del rostro.
   @visibleForTesting
   static ZonasRostro zonasDe(Face rostro) {
     final caja = rostro.boundingBox;
@@ -119,11 +129,28 @@ class ColorimetriaLocalService implements ColorimetriaService {
       return Elipse(x, y, radio, radio);
     }
 
+    // Elipse dentro del contorno del ojo (un poco menor, sin párpados).
+    Elipse? ojo(FaceContourType tipo) {
+      final puntos = rostro.contours[tipo]?.points ?? const [];
+      if (puntos.length < 4) return null;
+      final xs = puntos.map((p) => p.x.toDouble());
+      final ys = puntos.map((p) => p.y.toDouble());
+      final x0 = xs.reduce(math.min), x1 = xs.reduce(math.max);
+      final y0 = ys.reduce(math.min), y1 = ys.reduce(math.max);
+      return Elipse((x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) * 0.45, (y1 - y0) * 0.4);
+    }
+
     return ZonasRostro(
       rostro: Elipse(caja.center.dx, caja.center.dy, caja.width / 2, caja.height / 2),
       piel: [
         mejilla(FaceLandmarkType.leftCheek, 0.3, 0.6),
         mejilla(FaceLandmarkType.rightCheek, 0.7, 0.6),
+        Elipse(caja.center.dx, caja.top + caja.height * 0.18, caja.width * 0.16,
+            caja.height * 0.07),
+      ],
+      ojos: [
+        for (final tipo in [FaceContourType.leftEye, FaceContourType.rightEye])
+          ?ojo(tipo),
       ],
     );
   }
@@ -154,6 +181,7 @@ ResultadoColor _analizar(_Parametros p) {
       : ZonasRostro(
           rostro: escalar(p.zonas!.rostro),
           piel: p.zonas!.piel.map(escalar).toList(),
+          ojos: p.zonas!.ojos.map(escalar).toList(),
         );
   final rgb = ImagenRgb(
     reducida.getBytes(order: img.ChannelOrder.rgb),

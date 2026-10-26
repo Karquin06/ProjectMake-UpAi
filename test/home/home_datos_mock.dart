@@ -1,15 +1,11 @@
-import '../../data/services/colorimetria_mock_service.dart';
-import '../../models/enums.dart';
-import '../../models/paleta_model.dart';
-import '../../models/perfil_colorimetria_model.dart';
-import 'home_view_model.dart';
+import '../helpers/colorimetria_mock_service.dart';
+import 'package:mackeupai/models/enums.dart';
+import 'package:mackeupai/models/paleta_model.dart';
+import 'package:mackeupai/models/perfil_colorimetria_model.dart';
+import 'package:mackeupai/ui/home/home_view_model.dart';
 
-/// Datos de EJEMPLO para Home mientras no existan los providers reales.
-/// Se usan solo si las banderas de `AppConstants` lo indican:
-/// - `usarMockColorimetria` → [perfil] y [paleta] (Jaider).
-/// - `usarMockRecomendaciones` → [recomendaciones] (Ana).
-///
-/// Cuando las banderas queden en `false` este archivo se puede borrar.
+/// Datos de ejemplo para las pruebas de Home: perfil, paleta y
+/// recomendaciones destacadas.
 class HomeDatosMock {
   HomeDatosMock._();
 

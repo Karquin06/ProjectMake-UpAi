@@ -434,6 +434,7 @@ class AppStrings {
   static const String etiquetaContraste = 'Contraste';
   static const String etiquetaIntensidad = 'Intensidad';
   static const String etiquetaConfianza = 'Confianza';
+  static const String etiquetaSegundaEstacion = 'Segunda opción';
   static String analizadoEl(String fecha) => 'Analizado el $fecha';
 
   // Captura de selfie

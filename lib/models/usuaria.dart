@@ -27,14 +27,8 @@ class Consentimiento {
 class Usuaria {
   static const collection = 'usuarias';
 
-  // Subcolecciones privadas de cada usuaria
-  static const subPerfilColorimetria = 'perfilColorimetria';
-  static const subPaletas = 'paletas';
-  static const subRecomendaciones = 'recomendaciones';
+  // Subcolección del armario (Fase 4): ver [ArmarioItem].
   static const subArmario = 'armario';
-  static const subConversaciones = 'conversaciones';
-  static const subPrendasAnalizadas = 'prendasAnalizadas';
-  static const subSuscripciones = 'suscripciones';
 
   // Valores posibles de `rol`. El rol NO se modifica desde la app
   // (lo protegen las reglas de Firestore); un admin se asigna desde consola.

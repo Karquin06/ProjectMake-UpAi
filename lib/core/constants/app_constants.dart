@@ -10,14 +10,6 @@ class AppConstants {
   // Banderas de módulos
   // ---------------------------------------------------------------------
 
-  /// `true` muestra en Home un perfil "Invierno frío" de ejemplo. Jaider ya
-  /// conectó el real (`ColorimetriaProvider`, análisis de la selfie).
-  static const bool usarMockColorimetria = false;
-
-  /// `true` muestra en Home recomendaciones de ejemplo. Ana ya conectó las
-  /// reales (`recomendacion_provider`, catálogo de Firestore).
-  static const bool usarMockRecomendaciones = false;
-
   /// `false`: la cuenta se elimina con la Cloud Function `eliminarCuenta`
   /// (Ana), que borra Firestore, Storage y Auth. En `true` solo se borra la
   /// cuenta de Auth desde el cliente (útil sin funciones desplegadas).

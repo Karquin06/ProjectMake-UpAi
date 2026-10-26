@@ -2,8 +2,6 @@
 export 'enums.dart';
 export 'model_utils.dart';
 export 'usuaria.dart';
-export 'credencial.dart';
-export 'sesion.dart';
 export 'perfil_colorimetria_model.dart';
 export 'paleta_model.dart';
 export 'producto_maquillaje.dart';
@@ -11,4 +9,3 @@ export 'prenda_ropa.dart';
 export 'recomendacion.dart';
 export 'armario_item.dart';
 export 'conversacion.dart';
-export 'prenda_analizada.dart';
