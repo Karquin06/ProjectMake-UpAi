@@ -14,13 +14,16 @@ import 'package:mackeupai/core/extensions/enum_labels.dart';
 import 'package:mackeupai/core/routes/app_router.dart';
 import 'package:mackeupai/core/theme/app_theme.dart';
 import 'package:mackeupai/data/repositories/auth_repository.dart';
+import 'package:mackeupai/data/repositories/conversacion_repository.dart';
 import 'package:mackeupai/data/repositories/credencial_repository.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/repositories/sesion_repository.dart';
 import 'package:mackeupai/data/repositories/usuaria_repository.dart';
+import 'package:mackeupai/data/services/funciones_ia_service.dart';
 import 'package:mackeupai/data/services/notificaciones_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/notificaciones_provider.dart';
+import 'package:mackeupai/providers/asistente_provider.dart';
 import 'package:mackeupai/providers/auth_provider.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';
 import 'package:mackeupai/providers/paleta_provider.dart';
@@ -287,6 +290,14 @@ Future<void> _montarHome(
         ChangeNotifierProxyProvider<ColorimetriaProvider, PaletaProvider>(
           create: (_) => PaletaProvider(_PaletaInmediata()),
           update: (_, c, p) => p!..sincronizarEstacion(c.perfil?.estacionColor),
+        ),
+        // Pestaña Asistente (Ana) con Firestore falso.
+        ChangeNotifierProxyProvider<SesionProvider, AsistenteProvider>(
+          create: (_) => AsistenteProvider(
+            funciones: FuncionesIaService(),
+            conversaciones: ConversacionRepository(db: FakeFirebaseFirestore()),
+          ),
+          update: (_, s, a) => a!..sincronizarUsuaria(s.uidActiva),
         ),
       ],
       child: MaterialApp(

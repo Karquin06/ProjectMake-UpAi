@@ -152,6 +152,14 @@ describe("chatAsistente", () => {
       "Usa vino.",
     );
     assert.equal(textoDeRespuesta({}), null);
+    // Margen para que el "pensamiento" no se coma la respuesta.
+    assert.ok(cuerpo.generationConfig.maxOutputTokens >= 2048);
+    assert.equal(
+      textoDeRespuesta({
+        candidates: [{ content: { parts: [{ text: "pensando...", thought: true }, { text: "Hola" }] } }],
+      }),
+      "Hola",
+    );
   });
 });
 
