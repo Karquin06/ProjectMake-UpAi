@@ -18,9 +18,17 @@ class _PermisosFalsos extends PermisosService {
   int pedidos = 0;
   _PermisosFalsos(this.respuesta);
 
+  int consultas = 0;
+
   @override
   Future<EstadoPermiso> pedirCamara() async {
     pedidos++;
+    return respuesta;
+  }
+
+  @override
+  Future<EstadoPermiso> estadoCamara() async {
+    consultas++;
     return respuesta;
   }
 }
@@ -118,9 +126,21 @@ void main() {
       await vm.iniciar();
       expect(vm.estado, EstadoCaptura.permisoDenegadoPermanente);
 
+      // Sigue bloqueado: al volver solo se CONSULTA (no se pide otra vez,
+      // eso creaba un bucle que hacía parpadear la pantalla) y nada cambia.
+      final cambios = <EstadoCaptura>[];
+      vm.addListener(() => cambios.add(vm.estado));
+      await vm.alCambiarCicloDeVida(AppLifecycleState.resumed);
+      await vm.alCambiarCicloDeVida(AppLifecycleState.resumed);
+      expect(permisos.pedidos, 1);
+      expect(permisos.consultas, 2);
+      expect(cambios, isEmpty);
+      expect(vm.estado, EstadoCaptura.permisoDenegadoPermanente);
+
+      // Lo activó en ajustes: al volver se abre la cámara sin pedirlo.
       permisos.respuesta = EstadoPermiso.concedido;
       await vm.alCambiarCicloDeVida(AppLifecycleState.resumed);
-      expect(permisos.pedidos, 2);
+      expect(permisos.pedidos, 1);
       // Sin cámaras disponibles termina en error claro.
       expect(vm.estado, EstadoCaptura.error);
       expect(vm.error, AppStrings.errorCamaraNoDisponible);

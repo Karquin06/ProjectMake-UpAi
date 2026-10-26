@@ -239,9 +239,12 @@ class CapturaSelfieViewModel extends ChangeNotifier {
       await _abrirCamara();
     } else if (estado == AppLifecycleState.resumed &&
         _estado == EstadoCaptura.permisoDenegadoPermanente) {
-      // Pudo haberlo activado en ajustes. Con el permiso bloqueado no se
-      // muestra diálogo, así que no hay bucle.
-      await iniciar();
+      // Pudo haberlo activado en ajustes. Solo se CONSULTA el permiso: pedirlo
+      // abre un instante la pantalla de permisos del sistema, la app vuelve
+      // a "resumed" y se crea un bucle que hace parpadear esta pantalla.
+      final permiso = await _permisos.estadoCamara();
+      if (_desechado) return;
+      if (permiso == EstadoPermiso.concedido) await _abrirCamara();
     }
   }
 
