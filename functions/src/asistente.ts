@@ -23,7 +23,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { REGION, errorNegocio, exigirSesion } from "./comun";
 
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
-const GEMINI_MODELO = defineString("GEMINI_MODELO", { default: "gemini-2.5-flash" });
+const GEMINI_MODELO = defineString("GEMINI_MODELO", { default: "gemini-3.8-flash" });
 
 export const LARGO_MAXIMO = 500;
 export const HISTORIAL_MAXIMO = 10;
@@ -128,6 +128,7 @@ export function construirInstrucciones(contexto: Contexto, catalogo: ItemCatalog
   return [
     "Eres la asesora de imagen de MAKE UP AI, una app de colorimetría personal.",
     "Responde SIEMPRE en español, con tono cercano y profesional, en máximo 120 palabras.",
+    "Escribe en texto plano, sin Markdown (nada de asteriscos ni almohadillas); para listas usa guiones.",
     perfil,
     "Basa tus consejos de colores en su estación y subtono.",
     "Cuando recomiendes productos o prendas concretos, usa SOLO los del catálogo de abajo y " +
@@ -154,17 +155,26 @@ export function cuerpoGemini(instrucciones: string, peticion: PeticionChat) {
       })),
       { role: "user", parts: [{ text: peticion.mensaje }] },
     ],
-    generationConfig: { temperature: 0.7, maxOutputTokens: 600 },
+    generationConfig: {
+      temperature: 0.7,
+      // Los modelos Flash "piensan" antes de responder y esos tokens se
+      // descuentan de este límite: se deja margen para que siempre quede
+      // espacio para la respuesta (las instrucciones la limitan a 120
+      // palabras).
+      maxOutputTokens: 2048,
+    },
   };
 }
 
 /** Saca el texto de la respuesta de Gemini; `null` si no trae texto. */
 export function textoDeRespuesta(respuesta: unknown): string | null {
   const r = respuesta as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[];
   };
   const partes = r?.candidates?.[0]?.content?.parts ?? [];
   const texto = partes
+    // Las partes de "pensamiento" del modelo no son la respuesta.
+    .filter((p) => p.thought !== true)
     .map((p) => p.text ?? "")
     .join("")
     .trim();
@@ -266,8 +276,18 @@ export const chatAsistente = onCall(
       throw errorNegocio("ia-no-disponible", "failed-precondition");
     }
 
-    const texto = textoDeRespuesta(await respuesta.json());
-    if (!texto) throw errorNegocio("ia-no-disponible", "failed-precondition");
+    const cuerpo = await respuesta.json();
+    const texto = textoDeRespuesta(cuerpo);
+    if (!texto) {
+      logger.error("chatAsistente: la IA respondió sin texto", {
+        uid,
+        finishReason: (cuerpo as { candidates?: { finishReason?: string }[] })
+          ?.candidates?.[0]?.finishReason,
+        bloqueo: (cuerpo as { promptFeedback?: { blockReason?: string } })
+          ?.promptFeedback?.blockReason,
+      });
+      throw errorNegocio("ia-no-disponible", "failed-precondition");
+    }
     logger.info("chatAsistente", { uid, largo: texto.length });
     return { respuesta: texto };
   },

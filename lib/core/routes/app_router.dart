@@ -9,6 +9,7 @@ import '../../ui/simulador_ar/simulador_ar_view.dart';
 import '../../ui/admin/catalogo_admin_view.dart';
 import '../../ui/admin/formulario_prenda_view.dart';
 import '../../ui/admin/formulario_producto_view.dart';
+import '../../ui/asistente/asistente_view.dart';
 import '../../ui/auth/aviso_privacidad_view.dart';
 import '../../ui/auth/login_view.dart';
 import '../../ui/auth/recuperar_contrasena_view.dart';
@@ -97,10 +98,8 @@ class AppRouter {
     AppRoutes.detalleProducto: _Destino.autenticada(
       () => const DetalleProductoView(),
     ),
-    // CONECTAR (Ana): import '../../ui/asistente/asistente_view.dart'; → const AsistenteView()
-    AppRoutes.asistente: _Destino.autenticada(
-      () => _enConstruccion('asistente_view', 'Ana'),
-    ),
+    // También es la pestaña "Asistente" de la barra inferior.
+    AppRoutes.asistente: _Destino.autenticada(() => const AsistenteView()),
     AppRoutes.catalogoAdmin: _Destino.admin(() => const CatalogoAdminView()),
     AppRoutes.formularioPrenda: _Destino.admin(
       () => const FormularioPrendaView(),
