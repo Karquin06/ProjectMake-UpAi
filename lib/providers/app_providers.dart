@@ -1,3 +1,6 @@
+import '../data/repositories/capturas_ar_repository.dart';
+import '../data/repositories/armario_repository.dart';
+import 'armario_provider.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -196,7 +199,12 @@ class AppProviders extends StatelessWidget {
 
   /// AR y armario — dueño: Mauricio Parra.
   static List<SingleChildWidget> get _realidadAumentada => [
-    // Ej.: ChangeNotifierProvider(create: (c) => ArmarioProvider(...)),
+    Provider<CapturasArRepository>(create: (_) => CapturasArRepository()),
+    Provider<ArmarioRepository>(create: (_) => ArmarioRepository()),
+    ChangeNotifierProxyProvider<SesionProvider, ArmarioProvider>(
+      create: (c) => ArmarioProvider(c.read<ArmarioRepository>()),
+      update: (_, sesion, armario) => armario!..sincronizarUsuaria(sesion.uidActiva),
+    ),
   ];
 
   @override

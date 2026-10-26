@@ -3,10 +3,9 @@ import '../../core/constants/app_constants.dart';
 import '../../core/errors/firebase_error_mapper.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/enums.dart';
-import '../../models/paleta.dart';
-import '../../models/perfil_colorimetria.dart';
+import '../../models/paleta_model.dart';
+import '../../models/perfil_colorimetria_model.dart';
 import '../../providers/sesion_provider.dart';
-import 'home_datos_mock.dart';
 
 /// Recomendación lista para mostrarse en la tarjeta del carrusel de Home.
 class RecomendacionDestacada {
@@ -49,23 +48,22 @@ typedef CargarRecomendaciones =
 /// paleta) y recomendaciones destacadas.
 ///
 /// `HomeView` inyecta el perfil y la paleta reales (`colorimetria_home.dart`)
-/// y las recomendaciones reales (`destacadas_home.dart`). Las banderas de
-/// [AppConstants] permiten volver a los datos de ejemplo.
+/// y las recomendaciones reales (`destacadas_home.dart`).
 class HomeViewModel extends ChangeNotifier {
   final CargarPerfil _cargarPerfil;
   final CargarPaleta _cargarPaleta;
   final CargarRecomendaciones _cargarRecomendaciones;
 
-  /// Los parámetros permiten inyectar fuentes en pruebas; en la app se usan
-  /// las fuentes por defecto (mock o real según las banderas).
+  /// Las pruebas inyectan sus propias fuentes; si falta una, esa sección
+  /// de Home queda vacía.
   HomeViewModel({
     CargarPerfil? cargarPerfil,
     CargarPaleta? cargarPaleta,
     CargarRecomendaciones? cargarRecomendaciones,
-  }) : _cargarPerfil = cargarPerfil ?? _perfilPorDefecto,
-       _cargarPaleta = cargarPaleta ?? _paletaPorDefecto,
+  }) : _cargarPerfil = cargarPerfil ?? ((_) async => null),
+       _cargarPaleta = cargarPaleta ?? ((_) async => const []),
        _cargarRecomendaciones =
-           cargarRecomendaciones ?? _recomendacionesPorDefecto;
+           cargarRecomendaciones ?? ((_) async => const []);
 
   String? _uid;
   bool _desechado = false;
@@ -166,39 +164,5 @@ class HomeViewModel extends ChangeNotifier {
       _recargaPendiente = false;
       await cargar();
     }
-  }
-
-  // -----------------------------------------------------------------------
-  // Fuentes por defecto
-  // -----------------------------------------------------------------------
-
-  static const _esperaMock = Duration(milliseconds: 400);
-
-  static Future<PerfilColorimetria?> _perfilPorDefecto(String uid) async {
-    if (AppConstants.usarMockColorimetria) {
-      await Future<void>.delayed(_esperaMock);
-      return HomeDatosMock.perfil(uid);
-    }
-    // El perfil real lo inyecta HomeView (cargarPerfilHome).
-    return null;
-  }
-
-  static Future<List<ColorPaleta>> _paletaPorDefecto(String uid) async {
-    if (AppConstants.usarMockColorimetria) return HomeDatosMock.paleta;
-    // La paleta real la inyecta HomeView (cargarPaletaHome).
-    return const [];
-  }
-
-  static Future<List<RecomendacionDestacada>> _recomendacionesPorDefecto(
-    String uid,
-  ) async {
-    if (AppConstants.usarMockRecomendaciones) {
-      await Future<void>.delayed(_esperaMock);
-      return HomeDatosMock.recomendaciones;
-    }
-    // PUNTO DE CAMBIO (Ana): convertir las recomendaciones reales a
-    // RecomendacionDestacada (título y subtítulo del producto/prenda), p. ej.
-    //   return recomendacionProvider.destacadas.map((r) => RecomendacionDestacada(...)).toList();
-    return const [];
   }
 }

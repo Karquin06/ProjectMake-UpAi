@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/core/extensions/enum_labels.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/models/models.dart';
 
 void main() {
@@ -16,6 +16,13 @@ void main() {
       expect(copia.contraste, Contraste.alto);
       expect(copia.intensidad, Intensidad.brillante);
       expect(copia.confianza, original.confianza);
+      expect(
+        PerfilColorimetria.fromMap(
+          original.copyWith(estacionAlternativa: EstacionColor.verano).toMap(),
+          uid: 'uid-1',
+        ).estacionAlternativa,
+        EstacionColor.verano,
+      );
       expect(copia.consentimiento!.version,
           ConsentimientoBiometrico.versionVigente);
       expect(copia.consentimiento!.esVigente, isTrue);
@@ -35,6 +42,7 @@ void main() {
       expect(perfil.confianza, 1.0);
       expect(perfil.fechaAnalisis, DateTime(2026, 10, 4));
       expect(perfil.consentimiento, isNull);
+      expect(perfil.estacionAlternativa, isNull); // análisis anteriores
     });
 
     test('copyWith cambia solo lo indicado', () {

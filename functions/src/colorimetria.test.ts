@@ -40,6 +40,7 @@ describe("analizarPixeles", () => {
     assert.equal(r.contraste, "alto");
     assert.equal(r.estacion, "invierno");
     assert.ok(r.confianza >= 0.35 && r.confianza <= 0.95);
+    assert.notEqual(r.estacionAlternativa, r.estacion);
   });
 
   it("piel dorada clara con cabello castaño claro → primavera cálida", () => {

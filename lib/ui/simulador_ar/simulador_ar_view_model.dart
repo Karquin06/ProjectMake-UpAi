@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import '../../core/constants/app_strings.dart';
 import '../../data/services/permisos_service.dart';
+import '../../data/services/deteccion_facial_ar_service.dart';
+import '../../models/deteccion_facial_ar.dart';
 
 enum EstadoSimuladorAr {
   cargando,
@@ -20,12 +24,73 @@ class SimuladorArViewModel extends ChangeNotifier {
     this._permisos, {
     Future<List<CameraDescription>> Function()? listarCamaras,
     CameraController Function(CameraDescription)? crearControlador,
+    DetectorLabiosAr? detector,
+    this.soloVistaPrevia = kIsWeb,
   }) : _listarCamaras = listarCamaras ?? availableCameras,
-       _crearControlador = crearControlador ?? _crearCamara;
+       _crearControlador = crearControlador ?? _crearCamara,
+       _detector = detector ?? DeteccionFacialArService();
 
+  /// Web permite ver la webcam; ML Kit procesa imágenes solo en Android.
+  final bool soloVistaPrevia;
   final PermisosService _permisos;
   final Future<List<CameraDescription>> Function() _listarCamaras;
   final CameraController Function(CameraDescription) _crearControlador;
+  final DetectorLabiosAr _detector;
+  final _fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
+  ValueListenable<DeteccionFacialAr?> get fotogramas => _fotogramas;
+  Future<void>? _procesamiento;
+  CameraImage? _ultimoPendiente;
+  final _relojRendimiento = Stopwatch();
+  final _ventanaRendimiento = Stopwatch();
+  bool _caliente = false;
+  int _recibidos = 0;
+  int _completados = 0;
+  int _tiempoTotalUs = 0;
+  int _maximoUs = 0;
+
+  void _medirLlegada() {
+    if (kReleaseMode) return;
+    if (!_caliente) {
+      if (_relojRendimiento.elapsedMilliseconds < 5000) return;
+      _caliente = true;
+      _ventanaRendimiento
+        ..reset()
+        ..start();
+    }
+    _recibidos++;
+    final segundos = _ventanaRendimiento.elapsedMicroseconds / 1000000;
+    if (segundos < 3) return;
+    final modo = kDebugMode
+        ? 'debug'
+        : kProfileMode
+        ? 'profile'
+        : 'release';
+    final media = _completados == 0 ? 0 : _tiempoTotalUs / _completados / 1000;
+    final fpsStream = (_recibidos / segundos).toStringAsFixed(1);
+    final fpsDeteccion = (_completados / segundos).toStringAsFixed(1);
+    final ms = media.toStringAsFixed(1);
+    final maxMs = (_maximoUs / 1000).toStringAsFixed(1);
+    debugPrint(
+      'AR rendimiento modo=$modo stream_fps=$fpsStream '
+      'deteccion_fps=$fpsDeteccion media_ms=$ms max_ms=$maxMs',
+    );
+    _recibidos = 0;
+    _completados = 0;
+    _tiempoTotalUs = 0;
+    _maximoUs = 0;
+    _ventanaRendimiento.reset();
+  }
+
+  int _generacion = 0;
+  bool _streamActivo = false;
+  bool _deteccionFallida = false;
+  bool _esperandoPrimerFotograma = true;
+  DeviceOrientation? _ultimaOrientacion;
+
+  DeteccionFacialAr? get deteccion => _fotogramas.value;
+  bool get deteccionFallida => _deteccionFallida;
+  bool get esperandoPrimerFotograma => _esperandoPrimerFotograma;
+
   Future<void> _cola = Future<void>.value();
   CameraController? _controlador;
   EstadoSimuladorAr _estado = EstadoSimuladorAr.cargando;
@@ -42,6 +107,10 @@ class SimuladorArViewModel extends ChangeNotifier {
         descripcion,
         ResolutionPreset.medium,
         enableAudio: false,
+        imageFormatGroup: kIsWeb
+            ? ImageFormatGroup.unknown
+            : ImageFormatGroup.yuv420,
+        fps: kIsWeb ? null : 30,
       );
 
   void _cambiar(EstadoSimuladorAr estado, [String? error]) {
@@ -83,11 +152,14 @@ class SimuladorArViewModel extends ChangeNotifier {
       final frontales = camaras.where(
         (c) => c.lensDirection == CameraLensDirection.front,
       );
-      if (frontales.isEmpty) {
+      if (camaras.isEmpty || (!soloVistaPrevia && frontales.isEmpty)) {
         _cambiar(EstadoSimuladorAr.sinCamara);
         return;
       }
-      final camara = _crearControlador(frontales.first);
+      final descripcion = frontales.isNotEmpty
+          ? frontales.first
+          : camaras.first;
+      final camara = _crearControlador(descripcion);
       _controlador = camara;
       await camara.initialize();
       if (_cerrado || !_activa) {
@@ -95,8 +167,33 @@ class SimuladorArViewModel extends ChangeNotifier {
         _cambiar(EstadoSimuladorAr.pausada);
         return;
       }
+      _ultimaOrientacion = camara.value.deviceOrientation;
+      camara.addListener(_alCambiarCamara);
+      _esperandoPrimerFotograma = true;
+      _deteccionFallida = false;
+      _caliente = false;
+      _recibidos = 0;
+      _completados = 0;
+      _tiempoTotalUs = 0;
+      _maximoUs = 0;
+      _relojRendimiento
+        ..reset()
+        ..start();
+      if (!soloVistaPrevia) {
+        await camara.startImageStream(
+          (imagen) => procesarFotograma(imagen, camara),
+        );
+        _streamActivo = true;
+      } else {
+        _esperandoPrimerFotograma = false;
+      }
+      if (_cerrado || !_activa) {
+        await _liberar();
+        return;
+      }
       _cambiar(EstadoSimuladorAr.lista);
     } catch (e) {
+      debugPrint('AR apertura de cámara: $e');
       await _liberar();
       if (e is CameraException &&
           (e.code == 'CameraAccessDenied' ||
@@ -113,14 +210,126 @@ class SimuladorArViewModel extends ChangeNotifier {
     }
   }
 
+  void _alCambiarCamara() {
+    final orientacion = _controlador?.value.deviceOrientation;
+    if (orientacion == _ultimaOrientacion) return;
+    _ultimaOrientacion = orientacion;
+    _ultimoPendiente = null;
+    _fotogramas.value = null;
+    _esperandoPrimerFotograma = true;
+    if (!_cerrado) notifyListeners();
+  }
+
+  /// Conserva como máximo el último fotograma pendiente, reemplazando el anterior.
+  void procesarFotograma(CameraImage imagen, CameraController camara) {
+    if (soloVistaPrevia || _cerrado || !_activa || _controlador != camara) {
+      return;
+    }
+    _medirLlegada();
+    if (_procesamiento != null) {
+      _ultimoPendiente = imagen;
+      return;
+    }
+    _procesarSeleccionado(imagen, camara);
+  }
+
+  void _procesarSeleccionado(CameraImage imagen, CameraController camara) {
+    final generacion = _generacion;
+    _procesamiento = _detectar(imagen, camara, generacion).whenComplete(() {
+      _procesamiento = null;
+      final pendiente = _ultimoPendiente;
+      _ultimoPendiente = null;
+      if (pendiente != null && !_cerrado && _activa && _controlador == camara) {
+        _procesarSeleccionado(pendiente, camara);
+      }
+    });
+  }
+
+  Future<void> _detectar(
+    CameraImage imagen,
+    CameraController camara,
+    int generacion,
+  ) async {
+    final orientacion = camara.value.deviceOrientation;
+    final cronometro = Stopwatch()..start();
+    try {
+      final resultado = await _detector.detectar(
+        imagen,
+        camara.description,
+        orientacion,
+      );
+      if (_caliente && !kReleaseMode) {
+        final us = cronometro.elapsedMicroseconds;
+        _completados++;
+        _tiempoTotalUs += us;
+        if (us > _maximoUs) _maximoUs = us;
+      }
+      if (_cerrado ||
+          !_activa ||
+          generacion != _generacion ||
+          _controlador != camara ||
+          orientacion != camara.value.deviceOrientation) {
+        return;
+      }
+      if (_esperandoPrimerFotograma ||
+          (_fotogramas.value?.labiosDetectados != true &&
+              resultado.labiosDetectados)) {
+        debugPrint(
+          'AR detector operativo: rostro=${resultado.rostroDetectado}, labios=${resultado.labiosDetectados}',
+        );
+      }
+      final cambioEstado =
+          _deteccionFallida ||
+          _esperandoPrimerFotograma ||
+          _fotogramas.value?.rostroDetectado != resultado.rostroDetectado ||
+          _fotogramas.value?.labiosDetectados != resultado.labiosDetectados;
+      _fotogramas.value = resultado;
+      _deteccionFallida = false;
+      _esperandoPrimerFotograma = false;
+      if (cambioEstado) notifyListeners();
+    } catch (error, stack) {
+      if (_cerrado || !_activa || generacion != _generacion) return;
+      final avisar = !_deteccionFallida;
+      if (avisar) {
+        debugPrint('AR detección: $error');
+        debugPrintStack(stackTrace: stack);
+      }
+      _fotogramas.value = null;
+      _deteccionFallida = true;
+      _esperandoPrimerFotograma = false;
+      if (avisar) notifyListeners();
+    }
+  }
+
   Future<void> _liberar() async {
     final camara = _controlador;
     _controlador = null;
+    _ultimoPendiente = null;
+    _generacion++;
+    _fotogramas.value = null;
     if (camara == null) return;
+    camara.removeListener(_alCambiarCamara);
     try {
-      await camara.dispose();
-    } catch (_) {
-      _cambiar(EstadoSimuladorAr.error, AppStrings.arErrorCerrarCamara);
+      if (_streamActivo) {
+        _streamActivo = false;
+        try {
+          await camara.stopImageStream();
+        } catch (_) {
+          /* Se libera igualmente. */
+        }
+      }
+      await _procesamiento;
+      try {
+        await _detector.cerrar();
+      } catch (_) {
+        _cambiar(EstadoSimuladorAr.error, AppStrings.arErrorDeteccion);
+      }
+    } finally {
+      try {
+        await camara.dispose();
+      } catch (_) {
+        _cambiar(EstadoSimuladorAr.error, AppStrings.arErrorCerrarCamara);
+      }
     }
   }
 
@@ -158,7 +367,7 @@ class SimuladorArViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    unawaited(cerrar());
+    unawaited(cerrar().whenComplete(_fotogramas.dispose));
     super.dispose();
   }
 }

@@ -7,7 +7,7 @@ import 'package:mackeupai/data/datos/catalogo_ejemplo.dart';
 import 'package:mackeupai/data/repositories/catalogo_repository.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/repositories/recomendacion_repository.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/data/services/funciones_ia_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';

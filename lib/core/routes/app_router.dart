@@ -1,5 +1,5 @@
+import '../../ui/armario/armario_view.dart';
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
 import '../constants/app_strings.dart';
 import 'app_routes.dart';
 import 'guardia_ruta.dart';
@@ -80,15 +80,7 @@ class AppRouter {
     // Simulador AR y armario — Mauricio
     // -------------------------------------------------------------------
     AppRoutes.simuladorAr: _Destino.autenticada(() => const SimuladorArView()),
-    // CONECTAR (Mauricio): import '../../ui/armario/armario_view.dart'; → const ArmarioView()
-    // Asignado a Mauricio. Si AppConstants.armarioHabilitado fuera false se mostraría "Próximamente".
-    AppRoutes.armario: _Destino.autenticada(
-      () => _enConstruccion(
-        'armario_view',
-        'Mauricio',
-        deshabilitada: !AppConstants.armarioHabilitado,
-      ),
-    ),
+    AppRoutes.armario: _Destino.autenticada(() => const ArmarioView()),
 
     // -------------------------------------------------------------------
     // Recomendaciones, asistente y catálogo — Ana

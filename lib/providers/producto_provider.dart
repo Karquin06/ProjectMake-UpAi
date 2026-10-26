@@ -46,7 +46,9 @@ class ProductoProvider extends ChangeNotifier with LimpiezaPorSesion {
 
   /// Compatibles de una categoría (`labial`, `rubor`, `sombra`, `base`).
   List<ProductoMaquillaje> compatiblesPorCategoria(String categoria) =>
-      compatibles.where((p) => p.categoria == categoria).toList(growable: false);
+      compatibles
+          .where((p) => p.categoria == categoria)
+          .toList(growable: false);
 
   ProductoMaquillaje? buscar(String id) {
     for (final p in _productos) {
@@ -70,7 +72,9 @@ class ProductoProvider extends ChangeNotifier with LimpiezaPorSesion {
     _error = null;
     notificarSiActivo();
     try {
-      _productos = await _catalogo.productosActivos();
+      _productos = await _catalogo.productosActivos().timeout(
+        const Duration(seconds: 15),
+      );
       _cargado = true;
     } catch (e) {
       _error = FirebaseErrorMapper.mensaje(e);

@@ -1,3 +1,7 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mackeupai/data/repositories/armario_repository.dart';
+import 'package:mackeupai/data/repositories/catalogo_repository.dart';
+import 'package:mackeupai/providers/armario_provider.dart';
 import 'dart:async';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User;
@@ -21,10 +25,10 @@ import 'package:mackeupai/providers/auth_provider.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';
 import 'package:mackeupai/providers/paleta_provider.dart';
 import 'package:mackeupai/data/datos/paletas_por_estacion.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/providers/sesion_provider.dart';
 import 'package:mackeupai/providers/usuaria_provider.dart';
-import 'package:mackeupai/ui/home/home_datos_mock.dart';
+import 'home_datos_mock.dart';
 import 'package:mackeupai/ui/home/home_view_model.dart';
 import 'package:mackeupai/ui/home/main_navigation_view.dart';
 import 'package:provider/provider.dart';
@@ -154,11 +158,11 @@ void main() {
     // Las recomendaciones de Home ya son reales (Ana): aquí no hay catálogo.
     expect(find.text('Labial rojo frambuesa'), findsNothing);
 
-    // Armario (Mauricio) abre su pantalla, aún en construcción.
+    // Armario abre su pantalla funcional y muestra el estado vacío.
     await tester.tap(find.text(AppStrings.accesoArmario));
     await tester.pumpAndSettle();
-    expect(find.textContaining('armario_view'), findsOneWidget);
-    Navigator.of(tester.element(find.textContaining('armario_view'))).pop();
+    expect(find.text(AppStrings.armarioVacio), findsOneWidget);
+    Navigator.of(tester.element(find.text(AppStrings.armarioVacio))).pop();
     await tester.pumpAndSettle();
 
     // "Mi paleta" abre la paleta de Jaider (sin análisis en el Firestore
@@ -240,10 +244,18 @@ Future<void> _montarHome(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
+  FlutterSecureStorage.setMockInitialValues({});
   final repo = _AuthRepoFalso();
   await tester.pumpWidget(
     MultiProvider(
       providers: [
+        Provider<CatalogoRepository>(
+          create: (_) => CatalogoRepository(db: FakeFirebaseFirestore()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              ArmarioProvider(ArmarioRepository())..sincronizarUsuaria('u1'),
+        ),
         ChangeNotifierProvider(create: (_) => AuthProvider(repo)),
         ChangeNotifierProvider(
           create: (_) => UsuariaProvider(

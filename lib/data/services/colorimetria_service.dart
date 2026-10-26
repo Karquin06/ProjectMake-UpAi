@@ -4,15 +4,11 @@ import '../../models/paleta_model.dart';
 import '../../models/perfil_colorimetria_model.dart';
 import 'analisis_local_service.dart';
 import 'cloud_functions_service.dart';
-import 'colorimetria_mock_service.dart';
 import 'colorimetria_remota_service.dart';
 import 'storage_service.dart';
 
 /// De dónde sale el análisis de colorimetría.
 enum FuenteColorimetria {
-  /// Perfil fijo "Invierno frío" (solo pruebas).
-  mock,
-
   /// En el teléfono: ML Kit detecta el rostro y se analiza el color. No
   /// necesita plan Blaze y la selfie nunca sale del dispositivo.
   local,
@@ -44,7 +40,6 @@ abstract class ColorimetriaService {
     required CloudFunctionsService funciones,
   }) =>
       switch (fuente) {
-        FuenteColorimetria.mock => ColorimetriaMockService(),
         FuenteColorimetria.local => ColorimetriaLocalService(),
         FuenteColorimetria.funciones =>
           ColorimetriaRemotaService(storage: storage, funciones: funciones),

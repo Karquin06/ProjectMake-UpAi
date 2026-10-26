@@ -434,6 +434,7 @@ class AppStrings {
   static const String etiquetaContraste = 'Contraste';
   static const String etiquetaIntensidad = 'Intensidad';
   static const String etiquetaConfianza = 'Confianza';
+  static const String etiquetaSegundaEstacion = 'Segunda opción';
   static String analizadoEl(String fecha) => 'Analizado el $fecha';
 
   // Captura de selfie
@@ -549,6 +550,16 @@ class AppStrings {
   static const String rutaNoEncontrada = 'Ruta no encontrada';
   static const String funcionDeshabilitada =
       'Esta función estará disponible próximamente.';
+  static const String arBuscandoRostro = 'Buscando tu rostro…';
+  static const String arSinRostro =
+      'No vemos tu rostro. Mira de frente y busca buena iluminación.';
+  static const String arSinLabios =
+      'Acerca el rostro y deja los labios visibles.';
+  static const String arLabiosDetectados =
+      'Labios detectados. Mueve suavemente el rostro para comprobar el contorno.';
+  static const String arErrorDeteccion =
+      'No pudimos detectar los labios. Sal del simulador y vuelve a entrar.';
+
   // Simulador AR — Mauricio
   static const String arTitulo = 'Simulador de maquillaje';
   static const String arCamaraPausada = 'Cámara en pausa';
@@ -637,7 +648,8 @@ class AppStrings {
       'Si lo apagas, solo se verá en el catálogo de administración.';
   static const String hintNombrePrenda = 'Ej.: Blusa de lino';
   static const String hintNombreProducto = 'Ej.: Labial mate Rubí';
-  static const String hintDescripcion = 'Detalles, tela, textura, cómo usarlo...';
+  static const String hintDescripcion =
+      'Detalles, tela, textura, cómo usarlo...';
   static const String hintColor = '#C2185B';
   static const String hintEnlace = 'https://...';
   static const String coloresRapidos = 'Colores rápidos';
@@ -649,10 +661,14 @@ class AppStrings {
   static const String guardar = 'Guardar';
   static const String guardando = 'Guardando...';
   static const String itemGuardado = 'Guardado en el catálogo';
-  static const String itemNoEncontrado = 'Este ítem ya no existe en el catálogo.';
-  static const String validacionColor = 'Escribe un color HEX válido, p. ej. #C2185B';
-  static const String validacionPrecio = 'Escribe un precio válido (solo números)';
-  static const String validacionEnlace = 'El enlace debe empezar por http:// o https://';
+  static const String itemNoEncontrado =
+      'Este ítem ya no existe en el catálogo.';
+  static const String validacionColor =
+      'Escribe un color HEX válido, p. ej. #C2185B';
+  static const String validacionPrecio =
+      'Escribe un precio válido (solo números)';
+  static const String validacionEnlace =
+      'El enlace debe empezar por http:// o https://';
   static const String validacionCategoria = 'Elige una opción';
   static const String validacionEstaciones = 'Elige al menos una estación';
   static const String validacionSubtonos = 'Elige al menos un subtono';
@@ -681,7 +697,8 @@ class AppStrings {
   static const String compatibilidadAlta = 'Ideal para ti';
   static const String compatibilidadMedia = 'Te puede quedar bien';
   static const String compatibilidadBaja = 'Úsalo con moderación';
-  static const String recomendacionesVaciasTitulo = 'Aún no hay recomendaciones';
+  static const String recomendacionesVaciasTitulo =
+      'Aún no hay recomendaciones';
   static const String recomendacionesVaciasMensaje =
       'Todavía no hay productos en el catálogo para mostrarte.';
   static const String recomendacionesSinPerfilMensaje =
@@ -697,7 +714,8 @@ class AppStrings {
   static const String califica = 'Califica esta recomendación';
   static const String calificaAyuda =
       'Tu opinión mejora el orden de tus próximas recomendaciones.';
-  static const String calificacionGuardada = '¡Gracias! Guardamos tu calificación';
+  static const String calificacionGuardada =
+      '¡Gracias! Guardamos tu calificación';
   static const String probarEnAr = 'Probar en AR';
   static const String detalleColor = 'Color';
   static const String detalleEstaciones = 'Estaciones';
@@ -721,7 +739,8 @@ class AppStrings {
   // Asistente de IA — Ana
   static const String asistenteTitulo = 'Asistente';
   static const String nuevaConversacion = 'Nueva conversación';
-  static const String asistenteBienvenidaTitulo = '¡Hola! Soy tu asesora de imagen';
+  static const String asistenteBienvenidaTitulo =
+      '¡Hola! Soy tu asesora de imagen';
   static const String asistenteBienvenidaMensaje =
       'Pregúntame qué colores, prendas o maquillaje te favorecen según tu '
       'colorimetría.';
@@ -736,7 +755,8 @@ class AppStrings {
       'No tengo una respuesta para eso. ¿Puedes preguntarlo de otra forma?';
   static const String asistenteNoDisponible =
       'El asistente aún no está disponible. Intenta más tarde.';
-  static const String sugerenciaEntrevista = '¿Qué me pongo para una entrevista?';
+  static const String sugerenciaEntrevista =
+      '¿Qué me pongo para una entrevista?';
   static const String sugerenciaLabial = 'Labial para mi subtono';
   static const String sugerenciaFiesta = 'Look para una fiesta';
   static const String sugerenciaEvitar = '¿Qué colores debo evitar?';
@@ -751,4 +771,62 @@ class AppStrings {
       'El mensaje es muy largo (máximo 500 caracteres).';
   static const String errorReautenticacionRequerida =
       'Por seguridad, vuelve a confirmar tu identidad para eliminar la cuenta.';
+
+  // Armario y prueba de maquillaje — Mauricio.
+  static const armarioTitulo = 'Mi Armario';
+  static const armarioGuardados = 'Guardados';
+  static const armarioCatalogo = 'Explorar catálogo';
+  static const armarioLocal =
+      'Guardado en este dispositivo, separado por cuenta.';
+  static const armarioVacio = 'Tu Armario está listo para empezar';
+  static const armarioVacioMensaje =
+      'Explora el catálogo y guarda tus prendas y productos favoritos.';
+  static const armarioSinCatalogo = 'No hay artículos para este filtro';
+  static const armarioCompatibles = 'Solo mi estación';
+  static const armarioSinPerfil =
+      'Haz tu análisis de colorimetría para filtrar por tu estación.';
+  static const armarioAgregar = 'Guardar en Armario';
+  static const armarioQuitar = 'Quitar del Armario';
+  static const armarioGuardado = 'Artículo guardado en tu Armario.';
+  static const armarioQuitado = 'Artículo quitado del Armario.';
+  static const armarioErrorLectura =
+      'No pudimos abrir tu Armario. Reintenta antes de guardar artículos.';
+  static const armarioErrorGuardado =
+      'No pudimos guardar el cambio. Tu Armario anterior se conserva.';
+  static const armarioErrorCatalogo =
+      'No pudimos cargar el catálogo. Revisa tu conexión y reintenta.';
+  static const arProductos = 'Labiales para tu estación';
+  static const arTodosProductos = 'Explora labiales del catálogo';
+  static const arSinProductos =
+      'No hay labiales compatibles con un tono disponible.';
+  static const arErrorProductos = 'No pudimos cargar los labiales.';
+  static const arIntensidad = 'Intensidad';
+  static const arOriginal = 'Ver original';
+  static const arMaquillaje = 'Ver maquillaje';
+  static const arContornos = 'Mostrar guía de labios';
+  static const arAproximacion =
+      'Vista aproximada: el resultado real depende de la luz, la piel y el producto.';
+  static const arProductoNoAdmitido =
+      'Este producto no está disponible para la prueba de labial de tu estación. Elige uno de la lista.';
+  static const arMaquillajeListo =
+      'Labial aplicado. Puedes cambiar el tono o comparar con el original.';
+
+  static const arCapturar = 'Capturar resultado';
+  static const arCapturaGuardada =
+      'Captura guardada. Puedes verla en Resultados, dentro de tu Armario.';
+  static const arErrorCaptura =
+      'No pudimos guardar la captura. Inténtalo de nuevo.';
+  static const arErrorCapturas = 'No pudimos abrir tus capturas.';
+  static const arResultados = 'Mis pruebas de maquillaje';
+  static const arSinCapturas = 'Aún no tienes capturas';
+  static const arCapturaPrivada =
+      'Las capturas se guardan en este dispositivo y no se suben a internet.';
+  static const arEliminarCaptura = 'Eliminar captura';
+  static const arMostrandoOriginal = 'Vista original, sin maquillaje virtual.';
+
+  static const arVistaPreviaWeb =
+      'Vista previa de la webcam. La detección de labios y el maquillaje están disponibles en Android.';
+  static const arSinWebcam = 'No encontramos una webcam disponible en este PC.';
+  static const arPermisoWebcam =
+      'Permite el acceso a la cámara en el aviso de Chrome. Si lo bloqueaste, cámbialo en los permisos de este sitio.';
 }

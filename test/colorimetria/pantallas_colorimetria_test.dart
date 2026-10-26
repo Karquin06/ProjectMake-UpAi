@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/data/services/permisos_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/colorimetria_provider.dart';

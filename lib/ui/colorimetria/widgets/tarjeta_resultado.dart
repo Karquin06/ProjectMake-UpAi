@@ -8,7 +8,9 @@ import '../../../core/widgets/etiqueta_estacion.dart';
 import '../../../core/widgets/tarjeta_base.dart';
 import '../../../models/perfil_colorimetria_model.dart';
 
-/// Resumen del perfil: estación, subtono, contraste, intensidad y confianza.
+/// Resumen del perfil: estación, subtono, contraste, intensidad, confianza
+/// y la segunda estación más probable (las personas cerca de un límite
+/// pueden verse bien con ambas).
 class TarjetaResultado extends StatelessWidget {
   final PerfilColorimetria perfil;
 
@@ -54,6 +56,9 @@ class TarjetaResultado extends StatelessWidget {
             AppStrings.etiquetaConfianza,
             '${(perfil.confianza * 100).round()} %',
           ),
+          if (perfil.estacionAlternativa case final otra?
+              when otra != estacion)
+            _Dato(AppStrings.etiquetaSegundaEstacion, otra.etiqueta),
           const SizedBox(height: 8),
           Text(
             AppStrings.analizadoEl(perfil.fechaAnalisis.fechaLegible),
