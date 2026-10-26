@@ -22,6 +22,9 @@ import '../../ui/colorimetria/resultado_view.dart';
 import '../../ui/home/main_navigation_view.dart';
 import '../../ui/perfil/editar_perfil_view.dart';
 import '../../ui/perfil/perfil_view.dart';
+import '../../ui/recomendaciones/detalle_prenda_view.dart';
+import '../../ui/recomendaciones/detalle_producto_view.dart';
+import '../../ui/recomendaciones/recomendaciones_view.dart';
 
 /// Tabla de rutas de la app: qué vista abre cada ruta y quién puede verla.
 ///
@@ -90,17 +93,17 @@ class AppRouter {
     // -------------------------------------------------------------------
     // Recomendaciones, asistente y catálogo — Ana
     // -------------------------------------------------------------------
-    // CONECTAR (Ana): import '../../ui/recomendaciones/recomendaciones_view.dart'; → const RecomendacionesView()
+    // Argumento opcional: TipoRecomendacion con el que abre.
     AppRoutes.recomendaciones: _Destino.autenticada(
-      () => _enConstruccion('recomendaciones_view', 'Ana'),
+      () => const RecomendacionesView(),
     ),
-    // CONECTAR (Ana): import '../../ui/recomendaciones/detalle_prenda_view.dart'; → const DetallePrendaView()
+    // Argumento: id (String) de la prenda.
     AppRoutes.detallePrenda: _Destino.autenticada(
-      () => _enConstruccion('detalle_prenda_view', 'Ana'),
+      () => const DetallePrendaView(),
     ),
-    // CONECTAR (Ana): import '../../ui/recomendaciones/detalle_producto_view.dart'; → const DetalleProductoView()
+    // Argumento: id (String) del producto.
     AppRoutes.detalleProducto: _Destino.autenticada(
-      () => _enConstruccion('detalle_producto_view', 'Ana'),
+      () => const DetalleProductoView(),
     ),
     // CONECTAR (Ana): import '../../ui/asistente/asistente_view.dart'; → const AsistenteView()
     AppRoutes.asistente: _Destino.autenticada(

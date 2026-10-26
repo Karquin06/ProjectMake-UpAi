@@ -12,7 +12,20 @@
           "package_name": "com.example.mackeupai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "423754930566-5c9btimcoo6ghib7odhe75asa9odk2s6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mackeupai",
+            "certificate_hash": "fa12a06a3ee4d2d48f2dd686c16678e8160bdae5"
+          }
+        },
+        {
+          "client_id": "423754930566-71i5fpq092nmunpbmuksic77ukgrl6il.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAlwVgsHRA4VrYe5VAbnJNfZ5ckN4APjK0"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "423754930566-71i5fpq092nmunpbmuksic77ukgrl6il.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

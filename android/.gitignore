@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+# Certificado de depuración compartido (no es secreto): su huella SHA está
+# registrada en Firebase para el inicio de sesión con Google.
+!app/debug.keystore

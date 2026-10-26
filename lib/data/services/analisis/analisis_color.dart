@@ -81,7 +81,8 @@ class Umbrales {
   static const cromaMedia = 18.0;
 }
 
-/// Óvalo guía (igual que `GuiaCapturaSelfie`), para cuando no hay detección.
+/// Zona del rostro en la foto cuando no hay detección (web y escritorio).
+/// Misma que `OVALO` en `functions/src/analisis_color.ts`.
 Elipse ovaloGuia(int ancho, int alto) =>
     Elipse(ancho * 0.5, alto * 0.45, ancho * 0.32, alto * 0.38);
 

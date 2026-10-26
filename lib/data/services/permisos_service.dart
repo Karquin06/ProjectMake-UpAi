@@ -23,6 +23,14 @@ enum EstadoPermiso {
 class PermisosService {
   Future<EstadoPermiso> pedirCamara() => _pedir([Permission.camera]);
 
+  /// Estado actual del permiso de cámara SIN pedirlo (no muestra nada al
+  /// usuario). Sirve al volver de los ajustes: pedirlo de nuevo abre por un
+  /// instante la pantalla de permisos del sistema y crea un bucle.
+  Future<EstadoPermiso> estadoCamara() async {
+    if (kIsWeb) return EstadoPermiso.concedido;
+    return combinar([await Permission.camera.status]);
+  }
+
   /// Android 13+ usa `photos` (READ_MEDIA_IMAGES); versiones anteriores,
   /// `storage`. Se piden ambos y basta con que uno quede concedido.
   Future<EstadoPermiso> pedirGaleria() => _pedir(

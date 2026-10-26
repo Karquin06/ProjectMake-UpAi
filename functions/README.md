@@ -1,12 +1,83 @@
 # Cloud Functions
 
-Región `us-central1`, Node 22, funciones *callable* (v2).
+Proyecto `macke-up-ai` (plan Blaze), región `us-central1`, Node 22, funciones
+*callable* (v2).
+
+## Estado del despliegue (25/10/2026)
+
+Las 8 funciones están desplegadas y activas:
+
+| Función | Tipo | Dueño | Archivo |
+|---|---|---|---|
+| `analizarSelfie` | callable | Jaider | `src/colorimetria.ts` |
+| `generarPaleta` | callable | Jaider | `src/colorimetria.ts` |
+| `limpiarImagenesTemporales` | programada (cada hora) | Jaider | `src/colorimetria.ts` |
+| `analizarPrenda` | callable | Jaider | `src/escaner.ts` |
+| `generarRecomendaciones` | callable | Ana | `src/recomendaciones.ts` |
+| `chatAsistente` | callable | Ana | `src/asistente.ts` |
+| `eliminarCuenta` | callable | Ana | `src/cuenta.ts` |
+| `enviarNotificacion` | callable | Ana | `src/notificaciones.ts` |
+
+La app **analiza la selfie en el teléfono** por defecto (ML Kit + análisis de
+color, sin subir la foto). `analizarSelfie` queda como alternativa: se activa
+cambiando `ColorimetriaService.fuente` a `FuenteColorimetria.funciones` en
+`lib/data/services/colorimetria_service.dart`.
+
+Para ver lo desplegado y sus registros:
+
+```bash
+firebase functions:list --project macke-up-ai
+firebase functions:log --only chatAsistente --project macke-up-ai
+```
+
+## Desarrollo y despliegue
 
 ```bash
 npm install
-npm test          # compila y corre las pruebas
-npm run deploy    # requiere plan Blaze y `firebase login`
+npm test          # compila y corre las pruebas (35)
 ```
+
+Desplegar una o varias funciones (desde la raíz del proyecto):
+
+```bash
+firebase deploy --only functions:analizarSelfie,functions:generarPaleta --project macke-up-ai
+```
+
+- **Error "User code failed to load ... Timeout after 10000"**: en Windows la
+  carga del código puede pasar de 10 s. Dar más margen:
+  - Git Bash: `FUNCTIONS_DISCOVERY_TIMEOUT=30 firebase deploy --only functions:<nombre> --project macke-up-ai`
+  - PowerShell: `$env:FUNCTIONS_DISCOVERY_TIMEOUT="30"; firebase deploy --only functions:<nombre> --project macke-up-ai`
+- **Firebase revisa todo el código** antes de desplegar cualquier función: si
+  falta el secreto de `chatAsistente` no deja desplegar ninguna.
+- La primera vez agregar `--force` para que configure la limpieza automática
+  de imágenes viejas en Artifact Registry (se borran después de 1 día).
+
+### Configuración
+
+| Qué | Dónde | Cómo |
+|---|---|---|
+| `GEMINI_API_KEY` (secreto de `chatAsistente`) | Secret Manager | `firebase functions:secrets:set GEMINI_API_KEY --project macke-up-ai` y volver a desplegar `chatAsistente`. **Nunca** en el código ni en un chat |
+| `GEMINI_MODELO` (no secreto) | `functions/.env` | Valor actual: `gemini-2.5-flash` |
+
+### Scripts con Admin SDK
+
+Necesitan una clave de cuenta de servicio (Consola → Configuración del
+proyecto → Cuentas de servicio → Generar nueva clave privada) guardada
+**fuera del repositorio**. El `.gitignore` ignora `*firebase-adminsdk*.json`.
+
+```bash
+# PowerShell, desde functions/
+$env:GOOGLE_APPLICATION_CREDENTIALS="C:\ruta\fuera\del\repo\clave.json"
+npm run hacer:admin -- mackeupai@gmail.com   # única cuenta admin del proyecto
+npm run sembrar:catalogo                     # catálogo de prueba (ver abajo)
+npm run sembrar:paletas                      # opcional: la app ya trae las paletas
+```
+
+`hacer:admin` pone el custom claim `admin: true` (lo exigen las reglas del
+catálogo) y `rol: "admin"` en `usuarias/{uid}` (lo usa la app para mostrar el
+catálogo en Perfil). Solo acepta `mackeupai@gmail.com`; `--quitar` lo revoca.
+
+## Errores
 
 Errores de negocio: `HttpsError(<tipo>, <codigo>, { codigo })`. En Flutter,
 `CloudFunctionsBase` los convierte en `AppException` con `codigo` y mensaje en
@@ -48,45 +119,27 @@ Errores:
 | `failed-precondition` | `rostro-no-detectado` | Poca piel dentro del óvalo guía               |
 | `internal`            | —                     | Error inesperado                              |
 
-v1 usa una heurística de color (sin servicios externos), descrita en
-`src/analisis_color.ts`. Los umbrales se calibran en la Etapa 6.
+Usa una heurística de color (sin servicios externos), descrita en
+`src/analisis_color.ts`; la app tiene la misma lógica en Dart
+(`lib/data/services/analisis/analisis_color.dart`). Los umbrales siguen con la
+primera calibración: falta ajustarlos con selfies reales.
 
 ### Datos: `paletas/{estacion}`
 
-Fuente: `src/datos/paletas.ts`. Para cargarlas en Firestore:
+Fuente: `src/datos/paletas.ts`. La app trae las mismas paletas en
+`lib/data/datos/paletas_por_estacion.dart`, así que cargarlas en Firestore
+(`npm run sembrar:paletas`) es opcional.
 
-```bash
-gcloud auth application-default login   # una vez
-npm run sembrar:paletas
-```
+### Reglas
 
-### Reglas (para combinar con las del resto del equipo)
-
-Firestore:
-
-```
-match /perfiles_colorimetria/{uid} {
-  allow read, write: if request.auth != null && request.auth.uid == uid;
-}
-match /paletas/{estacion} {
-  allow read: if request.auth != null;
-  allow write: if false; // solo con el script (Admin SDK)
-}
-```
-
-Storage:
-
-```
-match /temporales/{tipo}/{uid}/{archivo} {
-  // tipo: selfies | prendas. Las funciones leen con Admin SDK.
-  allow create: if request.auth != null && request.auth.uid == uid
-    && tipo in ['selfies', 'prendas']
-    && request.resource.size < 5 * 1024 * 1024
-    && request.resource.contentType == 'image/jpeg';
-  allow delete: if request.auth != null && request.auth.uid == uid;
-  allow read: if false;
-}
-```
+- **Storage**: `storage.rules` en la raíz del repositorio, registradas en
+  `firebase.json` y publicadas con `firebase deploy --only storage --project macke-up-ai`.
+  Cubren `perfiles/{uid}/` (foto de perfil), `catalogo/{prendas|productos}/{id}/`
+  (solo admin sube) y `temporales/{selfies|prendas}/{uid}/` (la dueña sube JPEG,
+  solo las funciones leen).
+- **Firestore**: publicadas desde la consola (Firestore → Reglas). Incluyen
+  `perfiles_colorimetria/{uid}` (solo la dueña) y `paletas/{estacion}`
+  (lectura con sesión, escritura solo con Admin SDK).
 
 ### `generarPaleta`
 
@@ -113,7 +166,11 @@ Programada cada hora (zona `America/Bogota`). Borra de Storage todo lo que
 esté en `temporales/` con más de una hora. Es el respaldo del consentimiento
 biométrico.
 
-## Escáner — Jaider, la consume Mauricio (`src/escaner.ts`)
+## Análisis de prendas — Jaider (`src/escaner.ts`)
+
+El Escáner se quitó de la app por decisión del equipo; la función queda
+disponible para el Armario de Mauricio. En la app también existe la versión
+local, sin subir la foto: `AnalisisPrendaService` (`lib/data/services/analisis_prenda_service.dart`).
 
 ### `analizarPrenda`
 
@@ -155,7 +212,7 @@ En Flutter: `CloudFunctionsService().analizarPrenda(ruta)` →
 
 ## Catálogo de prueba — Ana (`src/datos/catalogo.ts`)
 
-16 prendas (Zara, Mango, Studio F, Koaj, H&M, ELA) y 24 productos de
+30 prendas (Zara, Mango, Studio F, Koaj, H&M, ELA) y 38 productos de
 maquillaje (L'Oréal Paris, MAC, Maybelline, Bloomshell, NYX, Revlon, Vogue,
 Samy, Esika) para que el equipo pueda probar el catálogo, las
 recomendaciones y el simulador. Nombres descriptivos y precios (COP)
@@ -165,14 +222,14 @@ regla primavera/otoño → cálido, verano/invierno → frío. Los campos son lo
 mismos que escriben `PrendaRopa.toMap` y `ProductoMaquillaje.toMap`.
 
 ```bash
-gcloud auth application-default login   # una vez (o GOOGLE_APPLICATION_CREDENTIALS)
-npm run sembrar:catalogo
+npm run sembrar:catalogo   # con GOOGLE_APPLICATION_CREDENTIALS (ver "Scripts con Admin SDK")
 ```
 
 - Ids fijos (`prenda-…`, `producto-…`): si se corre otra vez, actualiza los
   mismos documentos, no duplica.
-- Quedan sin imagen; se les agrega desde la app con la cuenta admin
-  (Perfil → Administración → Catálogo → Editar).
+- Cada ítem tiene una foto real de Pexels (licencia libre). El script la
+  descarga y la **guarda en Storage** (`catalogo/{prendas|productos}/{id}/ejemplo.jpg`),
+  así la app no depende de Pexels. Respeta las fotos subidas con "Editar".
 - `npm test` valida los datos (colores de la paleta, subtonos, campos).
 - La app tiene una copia generada en `lib/data/datos/catalogo_ejemplo.dart`
   y el catálogo admin la carga con el botón "Cargar catálogo de ejemplo"

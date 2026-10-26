@@ -6,6 +6,7 @@
 // editar perfil → cerrar sesión → login → eliminar cuenta.
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' show User, UserCredential;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +14,7 @@ import 'package:mackeupai/app.dart';
 import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/data/repositories/auth_repository.dart';
 import 'package:mackeupai/data/repositories/credencial_repository.dart';
+import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
 import 'package:mackeupai/data/repositories/sesion_repository.dart';
 import 'package:mackeupai/data/repositories/usuaria_repository.dart';
 import 'package:mackeupai/data/services/eliminador_cuenta.dart';
@@ -235,6 +237,9 @@ void main() {
           Provider<SesionRepository>.value(value: _PreferenciasEnMemoria()),
           Provider<CredencialRepository>.value(value: credenciales),
           Provider<NotificacionesService>.value(value: _SinNotificaciones()),
+          Provider<PerfilColorimetriaRepository>.value(
+            value: PerfilColorimetriaRepository(db: FakeFirebaseFirestore()),
+          ),
           Provider<SubidorFotoPerfil>.value(value: _SubidorNulo()),
           Provider<EliminadorCuenta>.value(value: EliminadorCuentaMock(auth)),
         ],
@@ -254,8 +259,8 @@ void main() {
       await esperar();
     }
 
-    // 1. Splash (1,8 s) → onboarding → login.
-    await tester.pump(const Duration(seconds: 2));
+    // 1. Splash (2,8 s) → onboarding → login.
+    await tester.pump(const Duration(seconds: 3));
     await esperar();
     expect(find.text(AppStrings.botonComenzar), findsOneWidget);
     await tocar(find.text(AppStrings.botonComenzar));
@@ -287,14 +292,15 @@ void main() {
     expect(find.text(AppStrings.verificarCorreoTitulo), findsOneWidget);
     expect(find.text(AppStrings.correoAunNoVerificado), findsOneWidget);
 
-    //    Verifica el correo → Home con nombre, estación y recomendaciones.
+    //    Verifica el correo → Home con nombre; sin análisis todavía.
     auth.verificarCorreo('sofia@ejemplo.com');
     await tocar(find.text(AppStrings.yaVerifique));
     await tester.pump(const Duration(seconds: 1));
     await esperar();
     expect(find.text(AppStrings.saludo('Sofía')), findsOneWidget);
-    expect(find.text(AppStrings.tuEstacionDeColor), findsOneWidget);
-    expect(find.text('Labial rojo frambuesa'), findsOneWidget);
+    expect(find.text(AppStrings.sinAnalisisTitulo), findsOneWidget);
+    // Las recomendaciones de Home ya son reales (Ana): aquí no hay catálogo.
+    expect(find.text('Labial rojo frambuesa'), findsNothing);
 
     // 4. Perfil → editar nombre.
     await tocar(find.text(AppStrings.perfilTab));

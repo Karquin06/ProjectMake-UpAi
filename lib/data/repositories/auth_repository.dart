@@ -64,9 +64,11 @@ class AuthRepository {
 
   Future<void> _asegurarGoogleSignInInicializado() async {
     if (_googleSignInInicializado) return;
+    // Cliente web OAuth del proyecto macke-up-ai (Firebase → Authentication
+    // → Google → Configuración del SDK web). Si cambia el proyecto, cambia.
     await _googleSignIn.initialize(
       serverClientId:
-          '616207966076-jb7va406i478uo3mvaqjotp7m3bsch1k.apps.googleusercontent.com',
+          '423754930566-71i5fpq092nmunpbmuksic77ukgrl6il.apps.googleusercontent.com',
     );
     _googleSignInInicializado = true;
   }

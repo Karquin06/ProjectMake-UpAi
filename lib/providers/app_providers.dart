@@ -4,6 +4,8 @@ import 'package:provider/single_child_widget.dart';
 import '../core/constants/app_constants.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/catalogo_repository.dart';
+import '../data/repositories/conversacion_repository.dart';
+import '../data/repositories/recomendacion_repository.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/paleta_repository.dart';
@@ -15,11 +17,15 @@ import '../data/services/colorimetria_service.dart';
 import '../data/services/permisos_service.dart';
 import '../data/services/storage_service.dart';
 import '../data/services/eliminador_cuenta.dart';
+import '../data/services/funciones_ia_service.dart';
 import '../data/services/notificaciones_service.dart';
 import '../data/services/subidor_foto_perfil.dart';
+import 'asistente_provider.dart';
 import 'auth_provider.dart';
 import 'colorimetria_provider.dart';
 import 'paleta_provider.dart';
+import 'producto_provider.dart';
+import 'recomendacion_provider.dart';
 import 'notificaciones_provider.dart';
 import 'sesion_provider.dart';
 import 'usuaria_provider.dart';
@@ -50,29 +56,23 @@ class AppProviders extends StatelessWidget {
     Provider<SesionRepository>(create: (_) => SesionRepository()),
     Provider<CredencialRepository>(create: (_) => CredencialRepository()),
     Provider<NotificacionesService>(create: (_) => NotificacionesService()),
+    // Perfil de colorimetría (Jaider): aquí para poder reemplazarlo en pruebas.
+    Provider<PerfilColorimetriaRepository>(
+      create: (_) => PerfilColorimetriaRepository(),
+    ),
     Provider<SubidorFotoPerfil>(
-      create: (_) {
-        // PUNTO DE CAMBIO (Jaider): cuando exista StorageService, devolver
-        // un adaptador que implemente SubidorFotoPerfil con él y poner
-        // AppConstants.usarMockStorage en false.
-        assert(
-          AppConstants.usarMockStorage,
-          'Conecta StorageService aquí antes de apagar usarMockStorage.',
-        );
-        return SubidorFotoPerfilMock();
-      },
+      // Foto de perfil en Storage (perfiles/{uid}/foto.jpg). Con el mock no
+      // se sube nada y la foto queda "pendiente".
+      create: (_) => AppConstants.usarMockStorage
+          ? SubidorFotoPerfilMock()
+          : SubidorFotoPerfilStorage(StorageService()),
     ),
     Provider<EliminadorCuenta>(
-      create: (c) {
-        // PUNTO DE CAMBIO (Ana/Jaider): cuando la función eliminarCuenta
-        // esté desplegada, devolver un adaptador que la llame con el
-        // servicio de Cloud Functions y poner usarMockEliminarCuenta en false.
-        assert(
-          AppConstants.usarMockEliminarCuenta,
-          'Conecta la función eliminarCuenta aquí antes de apagar el mock.',
-        );
-        return EliminadorCuentaMock(c.read<AuthRepository>());
-      },
+      // Cloud Function eliminarCuenta (Ana): borra Firestore, Storage y la
+      // cuenta de Auth. El mock solo borra la cuenta de Auth.
+      create: (c) => AppConstants.usarMockEliminarCuenta
+          ? EliminadorCuentaMock(c.read<AuthRepository>())
+          : EliminadorCuentaFunciones(FuncionesIaService()),
     ),
   ];
 
@@ -130,9 +130,6 @@ class AppProviders extends StatelessWidget {
     ),
     // Armario (Mauricio): color de la prenda vs. paleta, en el teléfono.
     Provider<AnalisisPrendaService>(create: (_) => AnalisisPrendaService()),
-    Provider<PerfilColorimetriaRepository>(
-      create: (_) => PerfilColorimetriaRepository(),
-    ),
     // Estado compartido: perfil de la usuaria en sesión y su paleta.
     ChangeNotifierProxyProvider<SesionProvider, ColorimetriaProvider>(
       create: (c) => ColorimetriaProvider(c.read<PerfilColorimetriaRepository>()),
@@ -159,6 +156,42 @@ class AppProviders extends StatelessWidget {
     // Catálogo global de prendas y productos (lo usan el catálogo admin,
     // las recomendaciones y el simulador AR).
     Provider<CatalogoRepository>(create: (_) => CatalogoRepository()),
+    // Cloud Functions de Ana: generarRecomendaciones, chatAsistente,
+    // eliminarCuenta y enviarNotificacion.
+    Provider<FuncionesIaService>(create: (_) => FuncionesIaService()),
+    Provider<RecomendacionRepository>(create: (_) => RecomendacionRepository()),
+    Provider<ConversacionRepository>(create: (_) => ConversacionRepository()),
+    // Recomendaciones de la usuaria (se limpian al cerrar sesión).
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        RecomendacionProvider>(
+      create: (c) => RecomendacionProvider(
+        funciones: c.read<FuncionesIaService>(),
+        catalogo: c.read<CatalogoRepository>(),
+        recomendaciones: c.read<RecomendacionRepository>(),
+      ),
+      update: (_, sesion, colorimetria, recomendaciones) => recomendaciones!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..actualizarPerfil(colorimetria.perfil),
+    ),
+    // Productos compatibles con su estación (los usa Mauricio en AR).
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        ProductoProvider>(
+      create: (c) => ProductoProvider(c.read<CatalogoRepository>()),
+      update: (_, sesion, colorimetria, productos) => productos!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..sincronizarEstacion(colorimetria.perfil?.estacionColor),
+    ),
+    // Chat con el asistente de IA.
+    ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,
+        AsistenteProvider>(
+      create: (c) => AsistenteProvider(
+        funciones: c.read<FuncionesIaService>(),
+        conversaciones: c.read<ConversacionRepository>(),
+      ),
+      update: (_, sesion, colorimetria, asistente) => asistente!
+        ..sincronizarUsuaria(sesion.uidActiva)
+        ..actualizarPerfil(colorimetria.perfil),
+    ),
   ];
 
   /// AR y armario — dueño: Mauricio Parra.

@@ -10,22 +10,23 @@ class AppConstants {
   // Banderas de módulos
   // ---------------------------------------------------------------------
 
-  /// `true` mientras no exista el `colorimetria_provider` real (Jaider).
-  /// Home y Perfil muestran un perfil de colorimetría de ejemplo.
-  static const bool usarMockColorimetria = true;
+  /// `true` muestra en Home un perfil "Invierno frío" de ejemplo. Jaider ya
+  /// conectó el real (`ColorimetriaProvider`, análisis de la selfie).
+  static const bool usarMockColorimetria = false;
 
-  /// `true` mientras no exista el `recomendacion_provider` real (Ana).
-  /// Home muestra recomendaciones de ejemplo.
-  static const bool usarMockRecomendaciones = true;
+  /// `true` muestra en Home recomendaciones de ejemplo. Ana ya conectó las
+  /// reales (`recomendacion_provider`, catálogo de Firestore).
+  static const bool usarMockRecomendaciones = false;
 
-  /// `true` mientras la Cloud Function `eliminarCuenta` no esté
-  /// desplegada (Ana). Se simula la eliminación en el cliente.
-  static const bool usarMockEliminarCuenta = true;
+  /// `false`: la cuenta se elimina con la Cloud Function `eliminarCuenta`
+  /// (Ana), que borra Firestore, Storage y Auth. En `true` solo se borra la
+  /// cuenta de Auth desde el cliente (útil sin funciones desplegadas).
+  static const bool usarMockEliminarCuenta = false;
 
-  /// `true` mientras no exista `StorageService` (Jaider). La foto de
-  /// perfil no se sube: se guarda solo el nombre y se avisa a la usuaria.
-  /// Para apagarla, conecta el adaptador en `app_providers.dart`.
-  static const bool usarMockStorage = true;
+  /// `false`: la foto de perfil se sube a Firebase Storage
+  /// (`perfiles/{uid}/foto.jpg`). En `true` no se sube nada: se guarda solo
+  /// el nombre y se avisa a la usuaria (útil sin Storage activo).
+  static const bool usarMockStorage = false;
 
   /// Acceso al Armario en Home. Activo: el Armario es de Mauricio y abre su
   /// pantalla (en construcción hasta que conecte `armario_view`).
@@ -49,6 +50,18 @@ class AppConstants {
 
   /// Longitud mínima de contraseña (igual a la exigida por Firebase Auth).
   static const int longitudMinimaContrasena = 6;
+
+  // ---------------------------------------------------------------------
+  // Splash
+  // ---------------------------------------------------------------------
+
+  /// Tiempo máximo que el splash espera a que Firebase confirme la sesión.
+  /// Pasado este tiempo se va a login con un aviso, sin quedarse trabado.
+  static const Duration esperaMaximaSesion = Duration(seconds: 8);
+
+  /// Tiempo máximo para comprobar en el servidor que existe el documento de
+  /// la usuaria. Si se agota se trata como falta de conexión (se deja entrar).
+  static const Duration esperaComprobarUsuaria = Duration(seconds: 5);
 
   // ---------------------------------------------------------------------
   // Imágenes

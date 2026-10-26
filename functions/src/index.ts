@@ -11,3 +11,7 @@ export { analizarSelfie, generarPaleta, limpiarImagenesTemporales } from "./colo
 export { analizarPrenda } from "./escaner";
 
 // IA, recomendaciones y cuenta — Ana
+export { generarRecomendaciones } from "./recomendaciones";
+export { chatAsistente } from "./asistente";
+export { eliminarCuenta } from "./cuenta";
+export { enviarNotificacion } from "./notificaciones";

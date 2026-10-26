@@ -1,19 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_gradients.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
 import '../../providers/sesion_provider.dart';
 import 'splash_view_model.dart';
+import 'widgets/logo_animado.dart';
 
-/// Muestra el logo al menos 1,8 s y luego redirige según la sesión
-/// (ver [SplashViewModel.decidir]): onboarding, login, verificar_correo
-/// o home.
+/// Anima el logo (fade y escala) y, cuando la animación termina, redirige
+/// según la sesión (ver [SplashViewModel.decidir]): onboarding, login,
+/// verificar_correo o home.
 class SplashView extends StatefulWidget {
   const SplashView({super.key});
 
@@ -21,23 +24,34 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView> {
+class _SplashViewState extends State<SplashView>
+    with SingleTickerProviderStateMixin {
+  /// Tiempo mínimo que se ve el splash: lo que dura la animación.
+  static const Duration _duracion = Duration(milliseconds: 2800);
+
   final SplashViewModel _vm = SplashViewModel();
-  Timer? _temporizador;
+  late final AnimationController _controlador;
+  Timer? _limiteSesion;
   bool _tiempoCumplido = false;
 
   @override
   void initState() {
     super.initState();
-    _temporizador = Timer(const Duration(milliseconds: 1800), () {
-      _tiempoCumplido = true;
-      _intentarNavegar();
+    _controlador = AnimationController(vsync: this, duration: _duracion);
+    _controlador.addStatusListener((estado) {
+      if (estado == AnimationStatus.completed) {
+        _tiempoCumplido = true;
+        _intentarNavegar();
+      }
     });
+    _controlador.forward();
+    _limiteSesion = Timer(AppConstants.esperaMaximaSesion, _alAgotarseElTiempo);
   }
 
   @override
   void dispose() {
-    _temporizador?.cancel();
+    _limiteSesion?.cancel();
+    _controlador.dispose();
     _vm.dispose();
     super.dispose();
   }
@@ -46,7 +60,20 @@ class _SplashViewState extends State<SplashView> {
     if (!mounted || !_tiempoCumplido || _vm.decidido) return;
     final destino = await _vm.decidir(context.read<SesionProvider>());
     if (!mounted) return;
+    _navegar(destino);
+  }
+
+  /// Firebase no respondió a tiempo: se sale a login con un aviso.
+  void _alAgotarseElTiempo() {
+    if (!mounted) return;
+    _navegar(_vm.tiempoAgotado());
+  }
+
+  void _navegar(String? destino) {
     if (destino != null) {
+      _limiteSesion?.cancel();
+      final error = _vm.mensajeError;
+      if (error != null) SnackbarHelper.error(context, error);
       Navigator.of(context).pushReplacementNamed(destino);
     } else {
       setState(() {});
@@ -62,7 +89,7 @@ class _SplashViewState extends State<SplashView> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _intentarNavegar());
     }
     if (!_vm.mostrarOnboarding) {
-      return const _SplashLogo();
+      return _SplashLogo(animacion: _controlador);
     }
     return ChangeNotifierProvider.value(
       value: _vm,
@@ -71,54 +98,19 @@ class _SplashViewState extends State<SplashView> {
   }
 }
 
-/// Splash puro: logo, nombre de marca y eslogan.
+/// Splash puro: el logo animado (ver [LogoAnimado]) centrado sobre el
+/// degradado de marca.
 class _SplashLogo extends StatelessWidget {
-  const _SplashLogo();
+  final Animation<double> animacion;
+
+  const _SplashLogo({required this.animacion});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: GradienteFondo(
         gradient: AppGradients.splash,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Marcador del isotipo del logo. Reemplazar por
-              // Image.asset(AppAssets.logo) cuando el asset esté disponible.
-              Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white24, width: 1.4),
-                ),
-                child: const Icon(
-                  Icons.face_retouching_natural,
-                  color: Colors.white,
-                  size: 46,
-                ),
-              ),
-              const SizedBox(height: 22),
-              Text(AppStrings.nombreApp, style: AppTextStyles.logo),
-              const SizedBox(height: 6),
-              Text(
-                AppStrings.eslogan,
-                style: AppTextStyles.subtitulo.copyWith(color: Colors.white70),
-              ),
-              const SizedBox(height: 36),
-              const SizedBox(
-                width: 26,
-                height: 26,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: Center(child: LogoAnimado(animacion: animacion)),
       ),
     );
   }

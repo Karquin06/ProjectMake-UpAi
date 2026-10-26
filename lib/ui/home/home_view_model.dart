@@ -48,9 +48,9 @@ typedef CargarRecomendaciones =
 /// Junta en Home: nombre de la usuaria, perfil de colorimetría (con su
 /// paleta) y recomendaciones destacadas.
 ///
-/// Mientras no existan `ColorimetriaProvider` (Jaider) y
-/// `RecomendacionProvider` (Ana) se usan datos de ejemplo según las
-/// banderas de [AppConstants]. Busca "PUNTO DE CAMBIO" para conectarlos.
+/// `HomeView` inyecta el perfil y la paleta reales (`colorimetria_home.dart`)
+/// y las recomendaciones reales (`destacadas_home.dart`). Las banderas de
+/// [AppConstants] permiten volver a los datos de ejemplo.
 class HomeViewModel extends ChangeNotifier {
   final CargarPerfil _cargarPerfil;
   final CargarPaleta _cargarPaleta;
@@ -69,6 +69,11 @@ class HomeViewModel extends ChangeNotifier {
 
   String? _uid;
   bool _desechado = false;
+  bool _recargaPendiente = false;
+
+  /// Estación y fecha del último perfil de colorimetría visto; `null` hasta
+  /// la primera sincronización.
+  (EstacionColor?, DateTime?)? _huellaPerfil;
   String _nombre = '';
   bool _cargando = false;
   String? _error;
@@ -110,6 +115,16 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  /// Se llama cada vez que cambia `ColorimetriaProvider`. Si la usuaria hizo
+  /// un análisis nuevo, recarga Home para mostrar su estación y su paleta.
+  void actualizarColorimetria(PerfilColorimetria? perfil) {
+    final huella = (perfil?.estacionColor, perfil?.fechaAnalisis);
+    final anterior = _huellaPerfil;
+    _huellaPerfil = huella;
+    if (anterior == null || anterior == huella || _uid == null) return;
+    Future.microtask(cargar);
+  }
+
   void _notificar() {
     if (!_desechado) notifyListeners();
   }
@@ -124,7 +139,12 @@ class HomeViewModel extends ChangeNotifier {
   /// el perfil, la paleta y las recomendaciones.
   Future<void> cargar() async {
     final uid = _uid;
-    if (uid == null || _cargando || _desechado) return;
+    if (uid == null || _desechado) return;
+    if (_cargando) {
+      // Cambió el perfil mientras cargaba: se repite al terminar.
+      _recargaPendiente = true;
+      return;
+    }
     _cargando = true;
     _error = null;
     notifyListeners();
@@ -142,6 +162,10 @@ class HomeViewModel extends ChangeNotifier {
     }
     _cargando = false;
     _notificar();
+    if (_recargaPendiente && !_desechado) {
+      _recargaPendiente = false;
+      await cargar();
+    }
   }
 
   // -----------------------------------------------------------------------
@@ -155,16 +179,13 @@ class HomeViewModel extends ChangeNotifier {
       await Future<void>.delayed(_esperaMock);
       return HomeDatosMock.perfil(uid);
     }
-    // PUNTO DE CAMBIO (Jaider): devolver el perfil real, p. ej.
-    //   return colorimetriaProvider.perfil;
-    // (inyectando ColorimetriaProvider en el constructor desde HomeView).
+    // El perfil real lo inyecta HomeView (cargarPerfilHome).
     return null;
   }
 
   static Future<List<ColorPaleta>> _paletaPorDefecto(String uid) async {
     if (AppConstants.usarMockColorimetria) return HomeDatosMock.paleta;
-    // PUNTO DE CAMBIO (Jaider): devolver los colores de la paleta real, p. ej.
-    //   return colorimetriaProvider.paleta?.colores ?? const [];
+    // La paleta real la inyecta HomeView (cargarPaletaHome).
     return const [];
   }
 
