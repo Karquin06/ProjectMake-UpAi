@@ -829,4 +829,65 @@ class AppStrings {
   static const arSinWebcam = 'No encontramos una webcam disponible en este PC.';
   static const arPermisoWebcam =
       'Permite el acceso a la cámara en el aviso de Chrome. Si lo bloqueaste, cámbialo en los permisos de este sitio.';
+
+  // Motor AR por capas.
+  static const arBase = 'Base';
+  static const arCorrector = 'Corrector';
+  static const arContorno = 'Contorno';
+  static const arRubor = 'Rubor';
+  static const arIluminador = 'Iluminador';
+  static const arSombra = 'Sombra';
+  static const arDelineador = 'Delineador';
+  static const arPestanina = 'Pestañina';
+  static const arCejas = 'Cejas';
+  static const arLabial = 'Labial';
+  static const arBrillo = 'Brillo';
+  static const arModoRecomendado = 'Looks para mí';
+  static const arModoLibre = 'Prueba libre';
+  static const arLook = 'Combinación';
+  static const arLookParcial =
+      'Look parcial: faltan categorías compatibles en las recomendaciones.';
+  static const arSinLooks =
+      'No hay combinaciones recomendadas disponibles. Puedes explorar el modo libre.';
+  static const arErrorLooks =
+      'No pudimos cargar las recomendaciones. Reintenta o usa la prueba libre.';
+  static const arSinPerfilLooks =
+      'Haz tu análisis de colorimetría para obtener looks personales.';
+  static const arCapas = 'Maquillaje aplicado';
+  static const arLimpiar = 'Quitar todo';
+  static const arQuitarCapa = 'Quitar este producto';
+  static const arSinCapas = 'Elige un look o un producto para comenzar.';
+  static const arAproximado = 'Representación aproximada';
+  static const arNoImplementado = 'Este efecto aún no está implementado.';
+  static const arSinProductosCategoria =
+      'No hay productos disponibles para esta categoría.';
+  static const arCambiarAcabado = 'Acabado visual aproximado';
+  static const arMate = 'Mate';
+  static const arSatinado = 'Satinado';
+  static const arBrillante = 'Brillante';
+  static const arAplicacionLista =
+      'Los efectos siguen las regiones detectadas. Evita movimientos bruscos.';
+  static const arCompartir = 'Compartir resultado';
+  static const arErrorCompartir = 'No pudimos abrir el diálogo para compartir.';
+  static const arCapturaLista = 'Resultado guardado en este dispositivo.';
+  static const arRendimiento = 'Rendimiento';
+  static const arMotor = 'Seguimiento facial';
+  static const arSeguimientoLento =
+      'El seguimiento está tardando. Mantén el rostro centrado y busca buena luz.';
+
+  static String arMedidas({
+    required String motor,
+    required double entrada,
+    required double procesado,
+    required double validos,
+    required double p50,
+    required double p95,
+    required double pintura,
+  }) =>
+      '''$motor
+Entrada: ${entrada.toStringAsFixed(1)} fps
+Procesado: ${procesado.toStringAsFixed(1)} fps
+Válidos: ${validos.toStringAsFixed(1)} fps
+p50: ${p50.toStringAsFixed(1)} ms · p95: ${p95.toStringAsFixed(1)} ms
+Pintura CPU: ${pintura.toStringAsFixed(2)} ms''';
 }

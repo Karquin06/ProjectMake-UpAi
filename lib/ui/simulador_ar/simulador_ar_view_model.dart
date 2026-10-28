@@ -1,3 +1,5 @@
+import '../../models/rendimiento_ar.dart';
+import '../../data/services/malla_facial_ar_service.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'package:camera/camera.dart';
@@ -26,9 +28,10 @@ class SimuladorArViewModel extends ChangeNotifier {
     CameraController Function(CameraDescription)? crearControlador,
     DetectorLabiosAr? detector,
     this.soloVistaPrevia = kIsWeb,
+    this.relojMicrosegundos,
   }) : _listarCamaras = listarCamaras ?? availableCameras,
        _crearControlador = crearControlador ?? _crearCamara,
-       _detector = detector ?? DeteccionFacialArService();
+       _detector = detector ?? DetectorFacialAdaptativoAr();
 
   /// Web permite ver la webcam; ML Kit procesa imágenes solo en Android.
   final bool soloVistaPrevia;
@@ -36,6 +39,25 @@ class SimuladorArViewModel extends ChangeNotifier {
   final Future<List<CameraDescription>> Function() _listarCamaras;
   final CameraController Function(CameraDescription) _crearControlador;
   final DetectorLabiosAr _detector;
+  final _rendimiento = ValueNotifier<RendimientoAr>(const RendimientoAr());
+  ValueListenable<RendimientoAr> get rendimiento => _rendimiento;
+  final int Function()? relojMicrosegundos;
+  final _tiempoFotogramas = Stopwatch()..start();
+  int get _ahoraUs =>
+      relojMicrosegundos?.call() ?? _tiempoFotogramas.elapsedMicroseconds;
+  Timer? _caducidad;
+  int _ultimoPendienteUs = 0, _utilizados = 0, _pintadas = 0, _pintadoUs = 0;
+  final _latencias = <int>[];
+  String _motor = '—';
+  bool _seguimientoLento = false;
+  bool get seguimientoLento => _seguimientoLento;
+  void registrarPintado(int us) {
+    if (!_cerrado) {
+      _pintadas++;
+      _pintadoUs += us;
+    }
+  }
+
   final _fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
   ValueListenable<DeteccionFacialAr?> get fotogramas => _fotogramas;
   Future<void>? _procesamiento;
@@ -60,6 +82,28 @@ class SimuladorArViewModel extends ChangeNotifier {
     _recibidos++;
     final segundos = _ventanaRendimiento.elapsedMicroseconds / 1000000;
     if (segundos < 3) return;
+    final ordenadas = [..._latencias]..sort();
+    double percentil(double p) => ordenadas.isEmpty
+        ? 0
+        : ordenadas[((ordenadas.length - 1) * p).round()] / 1000;
+    final resumen = RendimientoAr(
+      entradaFps: _recibidos / segundos,
+      procesadoFps: _completados / segundos,
+      utilFps: _utilizados / segundos,
+      p50Ms: percentil(.5),
+      p95Ms: percentil(.95),
+      pintadoMs: _pintadas == 0 ? 0 : _pintadoUs / _pintadas / 1000,
+      motor: _motor,
+    );
+    _rendimiento.value = resumen;
+    debugPrint(
+      'AR medidas validas_fps=${resumen.utilFps.toStringAsFixed(1)} p50_ms=${resumen.p50Ms.toStringAsFixed(1)} '
+      'p95_ms=${resumen.p95Ms.toStringAsFixed(1)} pintura_cpu_ms=${resumen.pintadoMs.toStringAsFixed(2)} motor=$_motor',
+    );
+    _utilizados = 0;
+    _pintadas = 0;
+    _pintadoUs = 0;
+    _latencias.clear();
     final modo = kDebugMode
         ? 'debug'
         : kProfileMode
@@ -174,6 +218,10 @@ class SimuladorArViewModel extends ChangeNotifier {
       _caliente = false;
       _recibidos = 0;
       _completados = 0;
+      _utilizados = 0;
+      _pintadas = 0;
+      _pintadoUs = 0;
+      _latencias.clear();
       _tiempoTotalUs = 0;
       _maximoUs = 0;
       _relojRendimiento
@@ -215,6 +263,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     if (orientacion == _ultimaOrientacion) return;
     _ultimaOrientacion = orientacion;
     _ultimoPendiente = null;
+    _caducidad?.cancel();
     _fotogramas.value = null;
     _esperandoPrimerFotograma = true;
     if (!_cerrado) notifyListeners();
@@ -225,30 +274,41 @@ class SimuladorArViewModel extends ChangeNotifier {
     if (soloVistaPrevia || _cerrado || !_activa || _controlador != camara) {
       return;
     }
+    final recibidoUs = _ahoraUs;
     _medirLlegada();
     if (_procesamiento != null) {
       _ultimoPendiente = imagen;
+      _ultimoPendienteUs = recibidoUs;
       return;
     }
-    _procesarSeleccionado(imagen, camara);
+    _procesarSeleccionado(imagen, camara, recibidoUs);
   }
 
-  void _procesarSeleccionado(CameraImage imagen, CameraController camara) {
+  void _procesarSeleccionado(
+    CameraImage imagen,
+    CameraController camara,
+    int recibidoUs,
+  ) {
     final generacion = _generacion;
-    _procesamiento = _detectar(imagen, camara, generacion).whenComplete(() {
-      _procesamiento = null;
-      final pendiente = _ultimoPendiente;
-      _ultimoPendiente = null;
-      if (pendiente != null && !_cerrado && _activa && _controlador == camara) {
-        _procesarSeleccionado(pendiente, camara);
-      }
-    });
+    _procesamiento = _detectar(imagen, camara, generacion, recibidoUs)
+        .whenComplete(() {
+          _procesamiento = null;
+          final pendiente = _ultimoPendiente;
+          _ultimoPendiente = null;
+          if (pendiente != null &&
+              !_cerrado &&
+              _activa &&
+              _controlador == camara) {
+            _procesarSeleccionado(pendiente, camara, _ultimoPendienteUs);
+          }
+        });
   }
 
   Future<void> _detectar(
     CameraImage imagen,
     CameraController camara,
     int generacion,
+    int recibidoUs,
   ) async {
     final orientacion = camara.value.deviceOrientation;
     final cronometro = Stopwatch()..start();
@@ -260,6 +320,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       );
       if (_caliente && !kReleaseMode) {
         final us = cronometro.elapsedMicroseconds;
+        _latencias.add(us);
         _completados++;
         _tiempoTotalUs += us;
         if (us > _maximoUs) _maximoUs = us;
@@ -271,6 +332,30 @@ class SimuladorArViewModel extends ChangeNotifier {
           orientacion != camara.value.deviceOrientation) {
         return;
       }
+      _motor = resultado.motor;
+      _caducidad?.cancel();
+      if (_ahoraUs - recibidoUs > 200000) {
+        _fotogramas.value = null;
+        _esperandoPrimerFotograma = false;
+        final avisar = !_seguimientoLento;
+        _seguimientoLento = true;
+        if (avisar) notifyListeners();
+        return;
+      }
+      final estabaLento = _seguimientoLento;
+      _seguimientoLento = false;
+      if (_caliente && resultado.rostroDetectado) _utilizados++;
+      if (resultado.rostroDetectado) {
+        _caducidad = Timer(const Duration(milliseconds: 250), () {
+          if (!_cerrado &&
+              generacion == _generacion &&
+              identical(_fotogramas.value, resultado)) {
+            _fotogramas.value = null;
+            _seguimientoLento = true;
+            notifyListeners();
+          }
+        });
+      }
       if (_esperandoPrimerFotograma ||
           (_fotogramas.value?.labiosDetectados != true &&
               resultado.labiosDetectados)) {
@@ -280,6 +365,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       }
       final cambioEstado =
           _deteccionFallida ||
+          estabaLento ||
           _esperandoPrimerFotograma ||
           _fotogramas.value?.rostroDetectado != resultado.rostroDetectado ||
           _fotogramas.value?.labiosDetectados != resultado.labiosDetectados;
@@ -292,7 +378,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       final avisar = !_deteccionFallida;
       if (avisar) {
         debugPrint('AR detección: $error');
-        debugPrintStack(stackTrace: stack);
+        debugPrint(stack.toString());
       }
       _fotogramas.value = null;
       _deteccionFallida = true;
@@ -302,6 +388,9 @@ class SimuladorArViewModel extends ChangeNotifier {
   }
 
   Future<void> _liberar() async {
+    _caducidad?.cancel();
+    _caducidad = null;
+    _seguimientoLento = false;
     final camara = _controlador;
     _controlador = null;
     _ultimoPendiente = null;
@@ -367,7 +456,12 @@ class SimuladorArViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    unawaited(cerrar().whenComplete(_fotogramas.dispose));
+    unawaited(
+      cerrar().whenComplete(() {
+        _fotogramas.dispose();
+        _rendimiento.dispose();
+      }),
+    );
     super.dispose();
   }
 }

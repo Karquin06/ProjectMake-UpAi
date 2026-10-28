@@ -86,6 +86,11 @@ class ResultadosArView extends StatelessWidget {
                               ),
                             ),
                             IconButton(
+                              tooltip: AppStrings.arCompartir,
+                              onPressed: () => vm.compartir(captura),
+                              icon: const Icon(Icons.share_outlined),
+                            ),
+                            IconButton(
                               tooltip: AppStrings.arEliminarCaptura,
                               onPressed: () => vm.eliminar(captura),
                               icon: const Icon(Icons.delete_outline),
