@@ -68,6 +68,24 @@ class CamaraFalsa extends CameraController {
 }
 
 class ImagenFalsa implements CameraImage {
+  // ignore: deprecated_member_use
+  final CameraImage datos = CameraImage.fromPlatformData({
+    'format': 17,
+    'width': 4,
+    'height': 4,
+    'planes': [
+      {'bytes': Uint8List(24), 'bytesPerRow': 4, 'bytesPerPixel': 1},
+    ],
+  });
+  @override
+  ImageFormat get format => datos.format;
+
+  @override
+  int get width => 4;
+  @override
+  int get height => 4;
+  @override
+  List<Plane> get planes => datos.planes;
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -106,7 +124,7 @@ class DetectorFalso implements DetectorLabiosAr {
 
 void main() {
   test(
-    'procesa solo el pendiente más reciente sin acumular imágenes',
+    'descarta imágenes ocupadas y analiza solo una entrada nueva al quedar libre',
     () async {
       final detector = DetectorFalso()
         ..pendiente = Completer<DeteccionFacialAr>();
@@ -134,7 +152,11 @@ void main() {
         ),
       );
       await Future<void>.delayed(Duration.zero);
-      expect(detector.imagenes, [primera, ultima]);
+      expect(detector.imagenes, [primera]);
+      final nueva = ImagenFalsa();
+      camara.recibir!(nueva);
+      await Future<void>.delayed(Duration.zero);
+      expect(detector.imagenes, [primera, nueva]);
       await vm.cerrar();
       vm.dispose();
     },
@@ -482,35 +504,38 @@ void main() {
       vm.dispose();
     },
   );
-  test('un resultado tardío no se aplica sobre la cámara actual', () async {
-    var ahora = 0;
-    final detector = DetectorFalso()
-      ..pendiente = Completer<DeteccionFacialAr>();
-    final camara = CamaraFalsa(frontal);
-    final vm = SimuladorArViewModel(
-      PermisosFalsos(),
-      listarCamaras: () async => [frontal],
-      crearControlador: (_) => camara,
-      detector: detector,
-      relojMicrosegundos: () => ahora,
-    );
-    await vm.iniciar();
-    camara.recibir!(ImagenFalsa());
-    ahora = 300001;
-    detector.pendiente!.complete(
-      DeteccionFacialAr(
-        tamanoImagen: const Size(640, 480),
-        rotacion: 90,
-        esFrontal: true,
-        rostroDetectado: true,
-      ),
-    );
-    await Future<void>.delayed(Duration.zero);
-    expect(vm.deteccion, isNull);
-    expect(vm.seguimientoLento, isTrue);
-    await vm.cerrar();
-    vm.dispose();
-  });
+  test(
+    'una detección válida de 300 ms se muestra en vez de desaparecer',
+    () async {
+      var ahora = 0;
+      final detector = DetectorFalso()
+        ..pendiente = Completer<DeteccionFacialAr>();
+      final camara = CamaraFalsa(frontal);
+      final vm = SimuladorArViewModel(
+        PermisosFalsos(),
+        listarCamaras: () async => [frontal],
+        crearControlador: (_) => camara,
+        detector: detector,
+        relojMicrosegundos: () => ahora,
+      );
+      await vm.iniciar();
+      camara.recibir!(ImagenFalsa());
+      ahora = 300001;
+      detector.pendiente!.complete(
+        DeteccionFacialAr(
+          tamanoImagen: const Size(640, 480),
+          rotacion: 90,
+          esFrontal: true,
+          rostroDetectado: true,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(vm.deteccion?.rostroDetectado, isTrue);
+      expect(vm.seguimientoLento, isTrue);
+      await vm.cerrar();
+      vm.dispose();
+    },
+  );
   testWidgets('si el flujo se detiene el maquillaje caduca y no queda fijo', (
     tester,
   ) async {

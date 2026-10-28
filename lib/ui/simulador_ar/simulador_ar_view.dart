@@ -17,6 +17,7 @@ import '../../providers/producto_provider.dart';
 import 'maquillaje_ar_view_model.dart';
 import 'simulador_ar_view_model.dart';
 import 'widgets/pintor_maquillaje_ar.dart';
+import 'widgets/panel_diagnostico_ar.dart';
 import '../../providers/recomendacion_provider.dart';
 import '../../providers/colorimetria_provider.dart';
 import 'widgets/selector_producto_ar.dart';
@@ -122,6 +123,13 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addTimingsCallback(_alRasterizar);
+  }
+
+  void _alRasterizar(List<ui.FrameTiming> tiempos) {
+    if (mounted) {
+      context.read<SimuladorArViewModel>().registrarRasterizado(tiempos);
+    }
   }
 
   @override
@@ -132,6 +140,7 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeTimingsCallback(_alRasterizar);
     super.dispose();
   }
 
@@ -145,29 +154,13 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
         actions: [
           if (!kReleaseMode && !vm.soloVistaPrevia)
             IconButton(
-              tooltip: AppStrings.arRendimiento,
+              tooltip: AppStrings.arDiagnostico,
               icon: const Icon(Icons.speed),
               onPressed: () => showModalBottomSheet<void>(
                 context: context,
-                builder: (_) => SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: ValueListenableBuilder(
-                      valueListenable: vm.rendimiento,
-                      builder: (_, r, _) => Text(
-                        AppStrings.arMedidas(
-                          motor: r.motor,
-                          entrada: r.entradaFps,
-                          procesado: r.procesadoFps,
-                          validos: r.utilFps,
-                          p50: r.p50Ms,
-                          p95: r.p95Ms,
-                          pintura: r.pintadoMs,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                isScrollControlled: true,
+                builder: (_) =>
+                    PanelDiagnosticoAr(camara: vm, maquillaje: maquillaje),
               ),
             ),
 
@@ -259,6 +252,7 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                               vm.fotogramas,
                               capas: maquillaje.capas,
                               alPintar: vm.registrarPintado,
+                              alAplicar: vm.registrarCapasDibujadas,
                               original: maquillaje.original,
                               mostrarGuia: maquillaje.guia,
                             ),
@@ -277,10 +271,10 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                 child: Text(
                   vm.soloVistaPrevia
                       ? AppStrings.arVistaPreviaWeb
-                      : vm.seguimientoLento
-                      ? AppStrings.arSeguimientoLento
                       : vm.deteccionFallida
                       ? AppStrings.arErrorDeteccion
+                      : vm.seguimientoLento
+                      ? AppStrings.arSeguimientoLento
                       : vm.esperandoPrimerFotograma
                       ? AppStrings.arBuscandoRostro
                       : vm.deteccion?.rostroDetectado != true

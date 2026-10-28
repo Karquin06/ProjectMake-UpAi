@@ -138,4 +138,27 @@ void main() {
       );
     },
   );
+  test(
+    'BoxFit.cover recorta al centro sin deformar al cambiar aspecto del preview',
+    () {
+      final d = DeteccionFacialAr(
+        tamanoImagen: const Size(640, 480),
+        rotacion: 0,
+        esFrontal: false,
+        rostroDetectado: true,
+      );
+      expect(
+        d.proyectar(const Offset(80, 0), const Size(320, 320)).dx,
+        closeTo(0, .001),
+      );
+      expect(
+        d.proyectar(const Offset(560, 480), const Size(320, 320)).dx,
+        closeTo(320, .001),
+      );
+      expect(
+        d.proyectar(const Offset(320, 240), const Size(320, 320)),
+        const Offset(160, 160),
+      );
+    },
+  );
 }

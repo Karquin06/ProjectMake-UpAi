@@ -870,6 +870,18 @@ class AppStrings {
   static const arCompartir = 'Compartir resultado';
   static const arErrorCompartir = 'No pudimos abrir el diálogo para compartir.';
   static const arCapturaLista = 'Resultado guardado en este dispositivo.';
+  static const arDiagnostico = 'Diagnóstico AR';
+  static const arCopiarDiagnostico = 'Copiar informe';
+  static const arDiagnosticoCopiado = 'Informe copiado';
+  static const arDiagnosticoGuia = 'Mostrar puntos y contornos (temporal)';
+  static const arDetectorAutomatico = 'Automático: malla con alternativa';
+  static const arDetectorContornos = 'Solo contornos (Face Detection)';
+  static const arDetectorMalla = 'Solo malla (Face Mesh)';
+  static const arCambiandoDetector = 'Cambiando detector…';
+  static const arDiagnosticoNota =
+      'Los FPS de cámara son llegadas del stream. '
+      'Los FPS Flutter son fotogramas rasterizados; no equivalen a imágenes nuevas de la cámara ni a detecciones nuevas.';
+  static const arSinError = 'Ninguno registrado';
   static const arRendimiento = 'Rendimiento';
   static const arMotor = 'Seguimiento facial';
   static const arSeguimientoLento =
@@ -883,11 +895,48 @@ class AppStrings {
     required double p50,
     required double p95,
     required double pintura,
+    double segundos = 0,
+    double promedio = 0,
+    double minimo = 0,
+    double render = 0,
+    double repintados = 0,
+    double raster = 0,
+    double ultima = 0,
+    double conversion = 0,
+    double detector = 0,
+    int recibidos = 0,
+    int procesados = 0,
+    int descartados = 0,
+    int capas = 0,
+    int mascaras = 0,
+    int errores = 0,
+    int rostros = 0,
+    int puntos = 0,
+    int muestras = 0,
+    bool stream = false,
+    bool calentando = true,
+    String metadatos = '—',
+    String preview = '—',
+    String? error,
+    String? alternativa,
   }) =>
-      '''$motor
-Entrada: ${entrada.toStringAsFixed(1)} fps
-Procesado: ${procesado.toStringAsFixed(1)} fps
-Válidos: ${validos.toStringAsFixed(1)} fps
-p50: ${p50.toStringAsFixed(1)} ms · p95: ${p95.toStringAsFixed(1)} ms
-Pintura CPU: ${pintura.toStringAsFixed(2)} ms''';
+      '''Detector: $motor
+Stream iniciado: $stream · Calentamiento: $calentando
+Recibidos: $recibidos · Procesados: $procesados · Descartados ocupados: $descartados
+Rostros (última respuesta): $rostros · Puntos disponibles: $puntos
+Capas enviadas al lienzo: $capas · Máscaras: $mascaras
+Cámara estimada: ${entrada.toStringAsFixed(1)} fps
+Detección: ${procesado.toStringAsFixed(1)} fps · Con rostro: ${validos.toStringAsFixed(1)} fps
+Flutter rasterizados: ${render.toStringAsFixed(1)} fps
+Medición tras calentamiento: ${segundos.toStringAsFixed(1)} s
+Raster sostenido: media ${promedio.toStringAsFixed(1)} fps · mínimo por ventana ${minimo.toStringAsFixed(1)} fps
+Repintados de capa: ${repintados.toStringAsFixed(1)} /s
+Último análisis total: ${ultima.toStringAsFixed(1)} ms
+Conversión: ${conversion.toStringAsFixed(2)} ms · Detector + canal: ${detector.toStringAsFixed(1)} ms
+p50: ${p50.toStringAsFixed(1)} ms · p95: ${p95.toStringAsFixed(1)} ms ($muestras muestras)
+Pintura CPU: ${pintura.toStringAsFixed(2)} ms · Raster medio: ${raster.toStringAsFixed(2)} ms
+Entrada: $metadatos
+Preview: $preview
+Cambio automático: ${alternativa ?? 'Ninguno'}
+Errores: $errores · Último error: ${error ?? arSinError}''';
 }

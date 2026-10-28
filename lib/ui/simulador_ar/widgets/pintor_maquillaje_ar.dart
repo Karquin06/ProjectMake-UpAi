@@ -14,6 +14,7 @@ class PintorMaquillajeAr extends CustomPainter {
     this.original = false,
     this.mostrarGuia = false,
     this.alPintar,
+    this.alAplicar,
   }) : capas = List.unmodifiable(
          [...capas]..sort((a, b) => a.efecto.orden.compareTo(b.efecto.orden)),
        ),
@@ -22,15 +23,17 @@ class PintorMaquillajeAr extends CustomPainter {
   final List<CapaMaquillajeAr> capas;
   final bool original, mostrarGuia;
   final void Function(int microsegundos)? alPintar;
+  final void Function(int capas, int mascaras)? alAplicar;
   @override
   void paint(Canvas canvas, Size size) {
     final reloj = Stopwatch()..start();
+    var capasDibujadas = 0, mascarasDibujadas = 0;
     try {
       final d = fotogramas.value;
-      if (d == null || !d.rostroDetectado || original) return;
+      if (d == null || !d.rostroDetectado) return;
       final geometria = GeometriaMaquillajeAr(d, size),
           cache = <FamiliaEfectoAr, List<MascaraMaquillajeAr>>{};
-      for (final capa in capas) {
+      for (final capa in original ? <CapaMaquillajeAr>[] : capas) {
         if (capa.intensidad <= 0) continue;
         final mascaras = cache.putIfAbsent(
           capa.efecto.familia,
@@ -43,9 +46,10 @@ class PintorMaquillajeAr extends CustomPainter {
           _ => .85,
         };
         final alpha = (capa.intensidad * limite).clamp(0.0, 1.0);
+        var capaDibujada = false;
         for (final mascara in mascaras) {
           final rect = mascara.camino.getBounds();
-          if (rect.isEmpty) continue;
+          if (rect.isEmpty || !rect.overlaps(Offset.zero & size)) continue;
           final pintura = Paint()
             ..isAntiAlias = true
             ..color = color.withValues(alpha: alpha)
@@ -107,10 +111,39 @@ class PintorMaquillajeAr extends CustomPainter {
           canvas.save();
           canvas.clipPath(mascara.camino, doAntiAlias: true);
           canvas.drawPath(mascara.camino, pintura);
+          mascarasDibujadas++;
+          capaDibujada = true;
           canvas.restore();
         }
+        if (capaDibujada) capasDibujadas++;
       }
       if (mostrarGuia) {
+        final caja = d.cajaRostro;
+        if (caja != null) {
+          canvas.drawRect(
+            Rect.fromPoints(
+              d.proyectar(caja.topLeft, size),
+              d.proyectar(caja.bottomRight, size),
+            ),
+            Paint()
+              ..color = Colors.greenAccent
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1,
+          );
+        }
+        final vertices = d.malla.isNotEmpty
+            ? d.malla.values.map((v) => Offset(v.x, v.y))
+            : {
+                ...d.contornosLabios.expand((p) => p),
+                ...d.regiones.values.expand((p) => p),
+              };
+        canvas.drawPoints(
+          ui.PointMode.points,
+          vertices.map((p) => d.proyectar(p, size)).toList(),
+          Paint()
+            ..color = Colors.greenAccent
+            ..strokeWidth = 2,
+        );
         final p = Paint()
           ..color = Colors.greenAccent
           ..style = PaintingStyle.stroke
@@ -128,6 +161,7 @@ class PintorMaquillajeAr extends CustomPainter {
       }
     } finally {
       alPintar?.call(reloj.elapsedMicroseconds);
+      alAplicar?.call(capasDibujadas, mascarasDibujadas);
     }
   }
 
