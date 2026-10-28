@@ -2,6 +2,8 @@ import '../../models/rendimiento_ar.dart';
 import '../../data/services/malla_facial_ar_service.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' show FrameTiming;
 import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
@@ -45,84 +47,161 @@ class SimuladorArViewModel extends ChangeNotifier {
   final _tiempoFotogramas = Stopwatch()..start();
   int get _ahoraUs =>
       relojMicrosegundos?.call() ?? _tiempoFotogramas.elapsedMicroseconds;
-  Timer? _caducidad;
-  int _ultimoPendienteUs = 0, _utilizados = 0, _pintadas = 0, _pintadoUs = 0;
-  final _latencias = <int>[];
-  String _motor = '—';
-  bool _seguimientoLento = false;
+  Timer? _caducidad, _mediciones;
+  bool _seguimientoLento = false, _cambiandoDetector = false;
   bool get seguimientoLento => _seguimientoLento;
+  bool get cambiandoDetector => _cambiandoDetector;
+  DetectorFacialAdaptativoAr? get _adaptativo =>
+      _detector is DetectorFacialAdaptativoAr ? _detector : null;
+  ModoDetectorAr get modoDetector =>
+      _adaptativo?.modo ?? ModoDetectorAr.automatico;
+  final _fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
+  ValueListenable<DeteccionFacialAr?> get fotogramas => _fotogramas;
+  Future<void>? _procesamiento;
+  int _inicioSesionUs = 0, _inicioVentanaUs = 0;
+  int _recibidos = 0, _completados = 0, _utilizados = 0;
+  int _totalRecibidos = 0, _totalProcesados = 0, _descartados = 0, _errores = 0;
+  int _pintadas = 0, _pintadoUs = 0, _rasterizados = 0, _rasterUs = 0;
+  int _publicaciones = 0, _framesMedidos = 0;
+  double _segundosMedidos = 0, _minimoRenderFps = double.infinity;
+  final _latencias = <int>[];
+  double _ultimaDeteccionMs = 0, _conversionMs = 0, _detectorMs = 0;
+  String _motor = '—', _entrada = '—';
+  String? _ultimoError;
+  int _rostros = 0, _puntos = 0, _capasDibujadas = 0, _mascarasDibujadas = 0;
+
+  void registrarCapasDibujadas(int capas, int mascaras) {
+    _capasDibujadas = capas;
+    _mascarasDibujadas = mascaras;
+  }
+
   void registrarPintado(int us) {
-    if (!_cerrado) {
+    if (!_cerrado && _activa && _streamActivo) {
       _pintadas++;
       _pintadoUs += us;
     }
   }
 
-  final _fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
-  ValueListenable<DeteccionFacialAr?> get fotogramas => _fotogramas;
-  Future<void>? _procesamiento;
-  CameraImage? _ultimoPendiente;
-  final _relojRendimiento = Stopwatch();
-  final _ventanaRendimiento = Stopwatch();
-  bool _caliente = false;
-  int _recibidos = 0;
-  int _completados = 0;
-  int _tiempoTotalUs = 0;
-  int _maximoUs = 0;
-
-  void _medirLlegada() {
-    if (kReleaseMode) return;
-    if (!_caliente) {
-      if (_relojRendimiento.elapsedMilliseconds < 5000) return;
-      _caliente = true;
-      _ventanaRendimiento
-        ..reset()
-        ..start();
+  /// FrameTiming informa fotogramas Flutter rasterizados; no cuenta imágenes
+  /// nuevas de la textura de cámara ni sustituye FPS de detección.
+  void registrarRasterizado(List<FrameTiming> tiempos) {
+    if (_cerrado || !_activa || !_streamActivo) return;
+    _rasterizados += tiempos.length;
+    for (final t in tiempos) {
+      _rasterUs += t.rasterDuration.inMicroseconds;
     }
-    _recibidos++;
-    final segundos = _ventanaRendimiento.elapsedMicroseconds / 1000000;
-    if (segundos < 3) return;
+  }
+
+  void _reiniciarMedidas() {
+    _totalRecibidos = 0;
+    _totalProcesados = 0;
+    _descartados = 0;
+    _errores = 0;
+    _recibidos = 0;
+    _completados = 0;
+    _utilizados = 0;
+    _pintadas = 0;
+    _pintadoUs = 0;
+    _rasterizados = 0;
+    _rasterUs = 0;
+    _framesMedidos = 0;
+    _segundosMedidos = 0;
+    _minimoRenderFps = double.infinity;
+    _publicaciones = 0;
+    _latencias.clear();
+    _rostros = 0;
+    _puntos = 0;
+    _capasDibujadas = 0;
+    _mascarasDibujadas = 0;
+    _ultimoError = null;
+    _entrada = '—';
+    _motor = '—';
+    _ultimaDeteccionMs = 0;
+    _conversionMs = 0;
+    _detectorMs = 0;
+    _inicioSesionUs = _ahoraUs;
+    _inicioVentanaUs = _ahoraUs;
+  }
+
+  void _publicarMedidas() {
+    if (_cerrado) return;
+    final segundos = (_ahoraUs - _inicioVentanaUs) / 1000000;
     final ordenadas = [..._latencias]..sort();
     double percentil(double p) => ordenadas.isEmpty
         ? 0
         : ordenadas[((ordenadas.length - 1) * p).round()] / 1000;
+    double tasa(int cantidad) => segundos <= 0 ? 0 : cantidad / segundos;
+    if (_inicioVentanaUs - _inicioSesionUs >= 5000000 && segundos > 0) {
+      _segundosMedidos += segundos;
+      _framesMedidos += _rasterizados;
+      _minimoRenderFps = math.min(_minimoRenderFps, tasa(_rasterizados));
+    }
     final resumen = RendimientoAr(
-      entradaFps: _recibidos / segundos,
-      procesadoFps: _completados / segundos,
-      utilFps: _utilizados / segundos,
+      segundosMedidos: _segundosMedidos,
+      promedioRenderFps: _segundosMedidos == 0
+          ? 0
+          : _framesMedidos / _segundosMedidos,
+      minimoRenderFps: _minimoRenderFps.isFinite ? _minimoRenderFps : 0,
+      entradaFps: tasa(_recibidos),
+      procesadoFps: tasa(_completados),
+      utilFps: tasa(_utilizados),
+      renderFps: tasa(_rasterizados),
+      repintadoFps: tasa(_pintadas),
       p50Ms: percentil(.5),
       p95Ms: percentil(.95),
+      muestras: ordenadas.length,
       pintadoMs: _pintadas == 0 ? 0 : _pintadoUs / _pintadas / 1000,
-      motor: _motor,
+      rasterMs: _rasterizados == 0 ? 0 : _rasterUs / _rasterizados / 1000,
+      ultimaDeteccionMs: _ultimaDeteccionMs,
+      conversionMs: _conversionMs,
+      detectorMs: _detectorMs,
+      recibidos: _totalRecibidos,
+      procesados: _totalProcesados,
+      descartados: _descartados,
+      errores: _errores + (_adaptativo?.errores ?? 0),
+      rostros: _rostros,
+      puntos: _puntos,
+      capasDibujadas: _capasDibujadas,
+      mascarasDibujadas: _mascarasDibujadas,
+      streamActivo: _streamActivo,
+      calentando: _ahoraUs - _inicioSesionUs < 5000000,
+      motor: _adaptativo?.detectorActivo ?? _motor,
+      entrada: _entrada,
+      preview: _controlador?.value.previewSize.toString() ?? '—',
+      ultimoError: _ultimoError ?? _adaptativo?.ultimoError,
+      alternativa: _adaptativo?.motivoAlternativa,
     );
     _rendimiento.value = resumen;
-    debugPrint(
-      'AR medidas validas_fps=${resumen.utilFps.toStringAsFixed(1)} p50_ms=${resumen.p50Ms.toStringAsFixed(1)} '
-      'p95_ms=${resumen.p95Ms.toStringAsFixed(1)} pintura_cpu_ms=${resumen.pintadoMs.toStringAsFixed(2)} motor=$_motor',
-    );
+    if (!kReleaseMode && ++_publicaciones % 3 == 0) {
+      debugPrint(
+        'AR diagnostico stream=$_streamActivo recibidos=$_totalRecibidos '
+        'procesados=$_totalProcesados descartados=$_descartados '
+        'rostros=$_rostros puntos=$_puntos motor=${resumen.motor} '
+        'camara_fps=${resumen.entradaFps.toStringAsFixed(1)} '
+        'deteccion_fps=${resumen.procesadoFps.toStringAsFixed(1)} '
+        'raster_fps=${resumen.renderFps.toStringAsFixed(1)} '
+        'p95_ms=${resumen.p95Ms.toStringAsFixed(1)} error=${resumen.ultimoError}',
+      );
+    }
+    _recibidos = 0;
+    _completados = 0;
     _utilizados = 0;
     _pintadas = 0;
     _pintadoUs = 0;
+    _rasterizados = 0;
+    _rasterUs = 0;
     _latencias.clear();
-    final modo = kDebugMode
-        ? 'debug'
-        : kProfileMode
-        ? 'profile'
-        : 'release';
-    final media = _completados == 0 ? 0 : _tiempoTotalUs / _completados / 1000;
-    final fpsStream = (_recibidos / segundos).toStringAsFixed(1);
-    final fpsDeteccion = (_completados / segundos).toStringAsFixed(1);
-    final ms = media.toStringAsFixed(1);
-    final maxMs = (_maximoUs / 1000).toStringAsFixed(1);
-    debugPrint(
-      'AR rendimiento modo=$modo stream_fps=$fpsStream '
-      'deteccion_fps=$fpsDeteccion media_ms=$ms max_ms=$maxMs',
-    );
-    _recibidos = 0;
-    _completados = 0;
-    _tiempoTotalUs = 0;
-    _maximoUs = 0;
-    _ventanaRendimiento.reset();
+    _inicioVentanaUs = _ahoraUs;
+  }
+
+  void _registrarError(Object error, [StackTrace? stack]) {
+    _errores++;
+    final mensaje = error.toString();
+    if (_ultimoError != mensaje) {
+      debugPrint('AR error real: $mensaje');
+      if (stack != null) debugPrint(stack.toString());
+    }
+    _ultimoError = mensaje;
   }
 
   int _generacion = 0;
@@ -215,23 +294,20 @@ class SimuladorArViewModel extends ChangeNotifier {
       camara.addListener(_alCambiarCamara);
       _esperandoPrimerFotograma = true;
       _deteccionFallida = false;
-      _caliente = false;
-      _recibidos = 0;
-      _completados = 0;
-      _utilizados = 0;
-      _pintadas = 0;
-      _pintadoUs = 0;
-      _latencias.clear();
-      _tiempoTotalUs = 0;
-      _maximoUs = 0;
-      _relojRendimiento
-        ..reset()
-        ..start();
+      _reiniciarMedidas();
+      _mediciones?.cancel();
+      _mediciones = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => _publicarMedidas(),
+      );
       if (!soloVistaPrevia) {
         await camara.startImageStream(
           (imagen) => procesarFotograma(imagen, camara),
         );
         _streamActivo = true;
+        debugPrint(
+          'AR startImageStream confirmado; camara=${descripcion.name} sensor=${descripcion.sensorOrientation} preview=${camara.value.previewSize}',
+        );
       } else {
         _esperandoPrimerFotograma = false;
       }
@@ -240,8 +316,8 @@ class SimuladorArViewModel extends ChangeNotifier {
         return;
       }
       _cambiar(EstadoSimuladorAr.lista);
-    } catch (e) {
-      debugPrint('AR apertura de cámara: $e');
+    } catch (e, stack) {
+      _registrarError(e, stack);
       await _liberar();
       if (e is CameraException &&
           (e.code == 'CameraAccessDenied' ||
@@ -262,46 +338,32 @@ class SimuladorArViewModel extends ChangeNotifier {
     final orientacion = _controlador?.value.deviceOrientation;
     if (orientacion == _ultimaOrientacion) return;
     _ultimaOrientacion = orientacion;
-    _ultimoPendiente = null;
+    _generacion++;
     _caducidad?.cancel();
     _fotogramas.value = null;
     _esperandoPrimerFotograma = true;
     if (!_cerrado) notifyListeners();
   }
 
-  /// Conserva como máximo el último fotograma pendiente, reemplazando el anterior.
+  /// Descarta entradas mientras el detector está ocupado. No hay cola ni una
+  /// imagen pendiente retenida: el siguiente análisis recibe un fotograma nuevo.
   void procesarFotograma(CameraImage imagen, CameraController camara) {
     if (soloVistaPrevia || _cerrado || !_activa || _controlador != camara) {
       return;
     }
-    final recibidoUs = _ahoraUs;
-    _medirLlegada();
-    if (_procesamiento != null) {
-      _ultimoPendiente = imagen;
-      _ultimoPendienteUs = recibidoUs;
+    _recibidos++;
+    _totalRecibidos++;
+    if (_procesamiento != null || _cambiandoDetector) {
+      _descartados++;
       return;
     }
-    _procesarSeleccionado(imagen, camara, recibidoUs);
-  }
-
-  void _procesarSeleccionado(
-    CameraImage imagen,
-    CameraController camara,
-    int recibidoUs,
-  ) {
-    final generacion = _generacion;
-    _procesamiento = _detectar(imagen, camara, generacion, recibidoUs)
-        .whenComplete(() {
-          _procesamiento = null;
-          final pendiente = _ultimoPendiente;
-          _ultimoPendiente = null;
-          if (pendiente != null &&
-              !_cerrado &&
-              _activa &&
-              _controlador == camara) {
-            _procesarSeleccionado(pendiente, camara, _ultimoPendienteUs);
-          }
-        });
+    final recibidoUs = _ahoraUs;
+    _procesamiento = _detectar(
+      imagen,
+      camara,
+      _generacion,
+      recibidoUs,
+    ).whenComplete(() => _procesamiento = null);
   }
 
   Future<void> _detectar(
@@ -311,20 +373,28 @@ class SimuladorArViewModel extends ChangeNotifier {
     int recibidoUs,
   ) async {
     final orientacion = camara.value.deviceOrientation;
-    final cronometro = Stopwatch()..start();
     try {
+      final metadatos =
+          '${imagen.width}x${imagen.height} raw=${imagen.format.raw} '
+          'planos=${imagen.planes.length} strides=${imagen.planes.map((p) => p.bytesPerRow).join(",")} '
+          'bytes=${imagen.planes.map((p) => p.bytes.length).join(",")} '
+          'rotacion=${rotacionImagenAr(camara.description, orientacion)} frontal=${camara.description.lensDirection == CameraLensDirection.front}';
+      if (_entrada != metadatos) {
+        _entrada = metadatos;
+        debugPrint('AR entrada: $metadatos');
+      }
       final resultado = await _detector.detectar(
         imagen,
         camara.description,
         orientacion,
       );
-      if (_caliente && !kReleaseMode) {
-        final us = cronometro.elapsedMicroseconds;
-        _latencias.add(us);
-        _completados++;
-        _tiempoTotalUs += us;
-        if (us > _maximoUs) _maximoUs = us;
-      }
+      _totalProcesados++;
+      _completados++;
+      final duracionUs = math.max(0, _ahoraUs - recibidoUs);
+      _latencias.add(duracionUs);
+      _ultimaDeteccionMs = duracionUs / 1000;
+      _conversionMs = resultado.conversionMs;
+      _detectorMs = resultado.detectorMs;
       if (_cerrado ||
           !_activa ||
           generacion != _generacion ||
@@ -333,20 +403,20 @@ class SimuladorArViewModel extends ChangeNotifier {
         return;
       }
       _motor = resultado.motor;
+      _rostros = resultado.cantidadRostros;
+      _puntos = resultado.cantidadPuntos;
       _caducidad?.cancel();
-      if (_ahoraUs - recibidoUs > 200000) {
-        _fotogramas.value = null;
-        _esperandoPrimerFotograma = false;
-        final avisar = !_seguimientoLento;
-        _seguimientoLento = true;
-        if (avisar) notifyListeners();
-        return;
-      }
       final estabaLento = _seguimientoLento;
-      _seguimientoLento = false;
-      if (_caliente && resultado.rostroDetectado) _utilizados++;
+      // Una detección lenta sigue siendo una detección. No convertirla en
+      // "sin rostro" borrando todos los resultados mayores de 200 ms.
+      _seguimientoLento = duracionUs > 200000;
       if (resultado.rostroDetectado) {
-        _caducidad = Timer(const Duration(milliseconds: 250), () {
+        _utilizados++;
+        final caducidadMs = (_ultimaDeteccionMs * 2 + 100).round().clamp(
+          250,
+          1200,
+        );
+        _caducidad = Timer(Duration(milliseconds: caducidadMs), () {
           if (!_cerrado &&
               generacion == _generacion &&
               identical(_fotogramas.value, resultado)) {
@@ -356,44 +426,74 @@ class SimuladorArViewModel extends ChangeNotifier {
           }
         });
       }
-      if (_esperandoPrimerFotograma ||
-          (_fotogramas.value?.labiosDetectados != true &&
-              resultado.labiosDetectados)) {
-        debugPrint(
-          'AR detector operativo: rostro=${resultado.rostroDetectado}, labios=${resultado.labiosDetectados}',
-        );
-      }
       final cambioEstado =
           _deteccionFallida ||
-          estabaLento ||
+          estabaLento != _seguimientoLento ||
           _esperandoPrimerFotograma ||
           _fotogramas.value?.rostroDetectado != resultado.rostroDetectado ||
           _fotogramas.value?.labiosDetectados != resultado.labiosDetectados;
+      if (_esperandoPrimerFotograma ||
+          (_fotogramas.value?.rostroDetectado != true &&
+              resultado.rostroDetectado)) {
+        debugPrint(
+          'AR resultado: rostros=$_rostros puntos=$_puntos labios=${resultado.labiosDetectados} ms=$_ultimaDeteccionMs',
+        );
+      }
       _fotogramas.value = resultado;
       _deteccionFallida = false;
       _esperandoPrimerFotograma = false;
       if (cambioEstado) notifyListeners();
     } catch (error, stack) {
       if (_cerrado || !_activa || generacion != _generacion) return;
+      _registrarError(error, stack);
       final avisar = !_deteccionFallida;
-      if (avisar) {
-        debugPrint('AR detección: $error');
-        debugPrint(stack.toString());
-      }
+      _caducidad?.cancel();
       _fotogramas.value = null;
+      _rostros = 0;
+      _puntos = 0;
       _deteccionFallida = true;
       _esperandoPrimerFotograma = false;
       if (avisar) notifyListeners();
     }
   }
 
+  Future<void> cambiarDetector(ModoDetectorAr modo) => _encolar(() async {
+    final detector = _adaptativo;
+    if (_cerrado || detector == null || _cambiandoDetector) return;
+    _cambiandoDetector = true;
+    _generacion++;
+    _caducidad?.cancel();
+    _fotogramas.value = null;
+    notifyListeners();
+    try {
+      await _procesamiento;
+      await detector.cambiarModo(modo);
+      _reiniciarMedidas();
+      _ultimoError = null;
+      _rostros = 0;
+      _puntos = 0;
+      _deteccionFallida = false;
+      _seguimientoLento = false;
+      _esperandoPrimerFotograma = true;
+    } catch (e, stack) {
+      _registrarError(e, stack);
+    } finally {
+      _cambiandoDetector = false;
+      if (!_cerrado) {
+        _publicarMedidas();
+        notifyListeners();
+      }
+    }
+  });
+
   Future<void> _liberar() async {
     _caducidad?.cancel();
     _caducidad = null;
+    _mediciones?.cancel();
+    _mediciones = null;
     _seguimientoLento = false;
     final camara = _controlador;
     _controlador = null;
-    _ultimoPendiente = null;
     _generacion++;
     _fotogramas.value = null;
     if (camara == null) return;
@@ -403,14 +503,15 @@ class SimuladorArViewModel extends ChangeNotifier {
         _streamActivo = false;
         try {
           await camara.stopImageStream();
-        } catch (_) {
-          /* Se libera igualmente. */
+        } catch (e, stack) {
+          _registrarError(e, stack);
         }
       }
       await _procesamiento;
       try {
         await _detector.cerrar();
-      } catch (_) {
+      } catch (e, stack) {
+        _registrarError(e, stack);
         _cambiar(EstadoSimuladorAr.error, AppStrings.arErrorDeteccion);
       }
     } finally {

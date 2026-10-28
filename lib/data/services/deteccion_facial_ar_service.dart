@@ -117,6 +117,11 @@ InputImage entradaImagenAr(
   CameraDescription camara,
   DeviceOrientation orientacion,
 ) {
+  if (imagen.format.raw != 17 && imagen.format.raw != 35) {
+    throw FormatException(
+      'Formato Android no compatible: ${imagen.format.raw}',
+    );
+  }
   final rotacion = rotacionImagenAr(camara, orientacion);
   final bytes = convertirANv21(
     imagen.width,
@@ -153,7 +158,9 @@ class DeteccionFacialArService implements DetectorLabiosAr {
     }
     final rotacion = rotacionImagenAr(camara, orientacion);
     final tamano = Size(imagen.width.toDouble(), imagen.height.toDouble());
+    final reloj = Stopwatch()..start();
     final entrada = entradaImagenAr(imagen, camara, orientacion);
+    final conversionMs = reloj.elapsedMicroseconds / 1000;
     final detector = _detector ??= FaceDetector(
       options: FaceDetectorOptions(
         enableContours: true,
@@ -161,7 +168,9 @@ class DeteccionFacialArService implements DetectorLabiosAr {
         minFaceSize: 0.15,
       ),
     );
+    reloj.reset();
     final rostros = await detector.processImage(entrada);
+    final detectorMs = reloj.elapsedMicroseconds / 1000;
     // El modo contornos está diseñado para un rostro prominente.
     final rostro = rostros.isEmpty
         ? null
@@ -183,6 +192,10 @@ class DeteccionFacialArService implements DetectorLabiosAr {
       rotacion: rotacion,
       esFrontal: camara.lensDirection == CameraLensDirection.front,
       rostroDetectado: rostro != null,
+      cantidadRostros: rostros.length,
+      cajaRostro: rostro?.boundingBox,
+      conversionMs: conversionMs,
+      detectorMs: detectorMs,
       regiones: rostro == null
           ? {}
           : {

@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/painting.dart' show Alignment, BoxFit, applyBoxFit;
 
 enum RegionFacialAr {
   ovalo,
@@ -26,12 +27,17 @@ class DeteccionFacialAr {
     List<List<Offset>> contornosLabios = const [],
     Map<RegionFacialAr, List<Offset>> regiones = const {},
     Map<int, PuntoMallaAr> malla = const {},
+    this.cajaRostro,
+    int? cantidadRostros,
+    this.conversionMs = 0,
+    this.detectorMs = 0,
     this.motor = 'ML Kit Face Detection',
   }) : contornosLabios = List.unmodifiable(contornosLabios.map(_validar)),
        regiones = Map.unmodifiable(
          regiones.map((k, v) => MapEntry(k, _validar(v))),
        ),
-       malla = Map.unmodifiable(malla);
+       malla = Map.unmodifiable(malla),
+       cantidadRostros = cantidadRostros ?? (rostroDetectado ? 1 : 0);
   static List<Offset> _validar(List<Offset> puntos) =>
       puntos.every((p) => p.dx.isFinite && p.dy.isFinite)
       ? List.unmodifiable(puntos)
@@ -43,6 +49,15 @@ class DeteccionFacialAr {
   final Map<RegionFacialAr, List<Offset>> regiones;
   final Map<int, PuntoMallaAr> malla;
   final String motor;
+  final Rect? cajaRostro;
+  final int cantidadRostros;
+  final double conversionMs, detectorMs;
+  int get cantidadPuntos => malla.isNotEmpty
+      ? malla.length
+      : {
+          ...contornosLabios.expand((p) => p),
+          ...regiones.values.expand((p) => p),
+        }.length;
   bool get labiosDetectados =>
       rostroDetectado &&
       contornosLabios.length == 4 &&
@@ -60,11 +75,21 @@ class DeteccionFacialAr {
         !punto.dy.isFinite) {
       return Offset.zero;
     }
+    // Mismo recorte central de la vista previa; nunca deformar cada eje
+    // independientemente si stream y preview tienen distinta relación de aspecto.
+    final ajustado = applyBoxFit(BoxFit.cover, origen, lienzo);
+    final fuente = Alignment.center.inscribe(
+      ajustado.source,
+      Offset.zero & origen,
+    );
+    final destino = Alignment.center.inscribe(
+      ajustado.destination,
+      Offset.zero & lienzo,
+    );
+    final x = esFrontal ? origen.width - punto.dx : punto.dx;
     return Offset(
-      (esFrontal ? origen.width - punto.dx : punto.dx) *
-          lienzo.width /
-          origen.width,
-      punto.dy * lienzo.height / origen.height,
+      destino.left + (x - fuente.left) * destino.width / fuente.width,
+      destino.top + (punto.dy - fuente.top) * destino.height / fuente.height,
     );
   }
 
