@@ -518,160 +518,34 @@ flutter run
 
 ## Simulador AR
 
-La documentación del módulo se centraliza en este README. Estado al **28 de octubre de 2026**, con entrega prevista el **29 de octubre de 2026**. El escáner de prendas queda fuera del alcance; no se elimina código heredado de otros módulos que pueda seguir en uso.
+El simulador permite probar maquillaje del catálogo sobre la imagen de la cámara frontal. Se integra con el perfil de colorimetría, las recomendaciones y el Armario de la usuaria.
 
-### Diagnóstico y diseño
+### Modalidades
 
-#### Diagnóstico anterior a la ampliación
+- **Looks para mí:** combina productos reales recomendados según la estación y el subtono del perfil de colorimetría. Las combinaciones dependen de los productos disponibles en el catálogo.
+- **Prueba libre:** permite explorar productos compatibles del catálogo, incluidos los no recomendados para el perfil personal.
 
-Los siguientes párrafos describen el punto de partida de la revisión; la funcionalidad actual se detalla más adelante.
+### Maquillaje por capas
 
-Existe una sola sesión de cámara frontal, permiso, control de ciclo de vida, conversión YUV420/NV21 probada en Samsung, rotación y espejo. ML Kit Face Detection devuelve únicamente cuatro curvas de labios al modelo AR. Un CustomPainter pinta un único labial semitransparente. El repintado utiliza ValueNotifier y solo se conserva el último fotograma pendiente. Web permite vista previa sin reconocimiento.
+- Aplica labial, rubor y sombra simultáneamente.
+- Permite sustituir o quitar un producto y ajustar su intensidad sin retirar los demás.
+- Incluye comparación con la imagen original y limpieza de todas las capas.
+- Permite capturar el resultado, guardarlo por cuenta en el dispositivo, consultarlo desde el Armario y abrir el diálogo del sistema para compartirlo.
 
-MaquillajeArViewModel mantiene un producto y una intensidad global; ProductoProvider filtra por estación y la vista solo ofrece labiales. No hay estado de looks ni mezcla de categorías. RecomendacionProvider ya une recomendaciones con productos activos de Firestore y calcula un respaldo local con datos reales del catálogo cuando la función no está desplegada. ColorimetriaProvider conserva el perfil real. Se reutilizarán esos contratos; no se generarán productos de ejemplo en producción.
+Ambas modalidades utilizan una sola cámara y el mismo motor de capas. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
 
-El catálogo declara cuatro categorías (labial, rubor, sombra, base), colorHex, tono y acabado. No contiene texturas, rugosidad, cobertura, pigmentación medida ni máscaras por producto. Hay captura PNG privada por cuenta, pero no compartir ni una descripción de todas las capas en la captura. El rendimiento del prototipo ampliado requiere una nueva medición física en Samsung.
+### Uso
 
-#### Evaluación técnica
+1. Inicia sesión y abre **Simulador AR**. Concede el permiso de cámara.
+2. Selecciona un look en **Looks para mí** si ya tienes un análisis de colorimetría, o elige productos en **Prueba libre**.
+3. Ajusta las capas, cambia productos y compara el resultado con la imagen original.
+4. Captura el resultado y consúltalo desde **Armario → Mis pruebas de maquillaje**.
 
-| Tecnología | Ventajas para este proyecto | Coste / limitación | Decisión |
-|---|---|---|---|
-| ML Kit Face Detection | Ya integrado, contornos 2D y conversión comprobada; alternativa sin migrar cámara | Geometría escasa; la versión anterior tuvo retraso; no habilitar tracking ID junto con contornos | Conservar como alternativa funcional |
-| ML Kit Face Mesh | 468 puntos 3D, misma entrada InputImage, SDK Android 23+, modelo empaquetado; adecuado para efectos de selfie | Beta, sin soporte web; rendimiento Samsung no medido; adaptador Flutter comunitario | Principal Android del prototipo, con alternativa ante fallo del SDK |
-| MediaPipe Face Landmarker | 478 puntos, seguimiento temporal, suavizado con un rostro, matrices y blendshapes; mejor base futura para expresiones y otras plataformas | Otro modelo y canal nativo/GPU que requiere integración y validación adicionales | Interfaz de detector sustituible; migración posterior, sin prometer integración completada |
+### Compatibilidad y alcance
 
-Las cifras de latencia publicadas por Google corresponden a sus dispositivos y no equivalen a FPS del Samsung. La aceptación de >=20 FPS queda sujeta a medición física en profile.
+El maquillaje AR está orientado a Android y se encuentra en validación en dispositivos reales. La versión web ofrece vista previa de cámara, catálogo, selección de looks y Armario; no aplica maquillaje sobre el vídeo.
 
-Fuentes consultadas:
-
-- https://developers.google.com/ml-kit/vision/face-detection/android
-- https://developers.google.com/ml-kit/vision/face-mesh-detection
-- https://developers.google.com/ml-kit/vision/face-mesh-detection/android
-- https://developers.google.com/edge/mediapipe/solutions/vision/face_landmarker/android
-- https://pub.dev/packages/google_mlkit_face_mesh_detection (adaptador, no mantenido por Google)
-- https://pub.dev/packages/share_plus
-
-#### Arquitectura del motor por capas
-
-~~~mermaid
-flowchart LR
-  PERFIL[ColorimetriaProvider] --> REC[RecomendacionProvider existente]
-  CAT[ProductoProvider / catálogo real] --> VM[MaquillajeArViewModel]
-  REC --> LOOKS[Compositor de looks]
-  LOOKS --> VM
-  VM --> CAPAS[Mapa de capas por categoría]
-  CAM[Una CameraController] --> DET[Detector sustituible Mesh / Detection]
-  DET --> GEO[Regiones faciales y coordenadas]
-  GEO --> RENDER[Pintor común de capas]
-  CAPAS --> RENDER
-  RENDER --> CAPTURA[Captura privada y compartir voluntario]
-~~~
-
-Reconocimiento, geometría, composición de looks, selección y renderizado son piezas separadas. El cambio entre recomendado y libre no crea otra cámara. La lista de capas y sus ajustes son inmutables; cambiar o quitar una categoría conserva las otras. El orden de renderizado no depende del orden de selección.
-
-Los looks son combinaciones deterministas de las recomendaciones reales por categoría, filtradas por compatibilidad de estación/subtono. Se muestran como Combinación 1, 2, etc., sin inventar recomendaciones semánticas de fiesta o noche. Si faltan categorías, se indica que el look es parcial; si no hay datos, se muestra vacío y reintento. El modo libre usa todos los productos activos con color válido, incluidos los no recomendados, y conserva ambos modos sobre el mismo motor.
-
-#### Plan priorizado
-
-1. Estado por capas y compositor: catálogo real, modo recomendado/libre, cambios y borrado individual, limpieza total, invalidación al cambiar sesión/perfil. Pruebas con Firestore falso y datos exclusivamente de prueba.
-2. Geometría: adaptador Face Mesh y alternativa Detection ampliada a ojos, cejas, mejillas y óvalo; conservar NV21 y transformaciones comprobadas. Pérdida del rostro y resultados antiguos no deben dejar maquillaje pegado a una posición.
-3. Renderizado: labial + rubor + sombra simultáneos, máscaras por región, exclusión de ojos/boca, bordes difuminados, mezcla y límites de opacidad. Brillo/cejas y base solo como aproximaciones declaradas si se habilitan; delineador, pestañina, corrector, iluminador y contorno quedan en el registro extensible sin fingir realismo ni aplicar efectos no implementados.
-4. UI: looks, selector por categoría, lista de capas con nombre/producto/tono, intensidad y acabado visual cuando exista, quitar capa, limpiar y comparar original. Captura y compartir con todas las capas.
-5. Verificación: pruebas de no invención de datos, composición y edición, sesión/perfil, espejo/rotación/escala, máscaras fuera de regiones, exclusión de ojos/boca, expiración, métricas. flutter analyze, flutter test y APK profile arm64. Medición Samsung de >=30 s tras calentamiento: FPS de procesamiento válidos, p50/p95 y tiempo de pintado; reportar el resultado real, aunque sea inferior a 20.
-
-#### Evolución compatible del catálogo
-
-No se modifican documentos ni reglas de Firestore automáticamente. Propuesta: campo opcional visualAr={version:1, motor, opacidadInicial, cobertura, suavizadoRelativo, acabadosDisponibles, rugosidad, texturaUrl}. La ausencia de parámetros usa límites conservadores del prototipo y se informa como aproximación. Texturas y parámetros de delineador/pestañas requieren activos y validación; el actual colorHex no basta para afirmar fidelidad del producto. Nuevas categorías necesitarán coordinación con administración, validadores y reglas; el registro AR ya puede reservarlas sin reconstruir la pantalla.
-
-#### Criterio de salida
-
-Una cuenta con análisis y recomendaciones multiclase puede aplicar un look de productos reales, observar las categorías soportadas a la vez y sustituir una sin alterar las demás. En libre puede elegir un producto de otra estación. Si no existe esa información real, se presenta su ausencia. Las capturas se hacen solo por acción del usuario; compartir abre el diálogo del sistema y nunca envía automáticamente a terceros. La calidad visual, la captura de la textura de cámara y los FPS requieren confirmación en el Samsung.
-
-### Funcionalidad, verificación y demostración
-
-#### Resultado implementado
-
-| Función | Estado del prototipo |
-|---|---|
-| Looks personales | Se consume RecomendacionProvider y se une con el catálogo activo actual. Se filtra la estación y el subtono cuando está especificado. Las combinaciones son deterministas y solo contienen productos que realmente existen. |
-| Datos insuficientes | Look parcial o vacío. No se inyectan mocks ni se completan categorías con productos inventados. Un fallo de carga permite reintentar o cambiar a libre. |
-| Prueba libre | Todos los productos activos con tono válido; permite elegir productos de otras estaciones. Las categorías sin renderizador se muestran como no implementadas. |
-| Aplicación simultánea | Mapa de capas por categoría, con orden fijo. Un look se aplica de forma atómica; sustituir, quitar o ajustar una capa conserva el resto. |
-| Labial, rubor y sombra | Máscaras dinámicas con bordes suaves y transparencia. Se protege la abertura de la boca y el interior de los ojos. El rubor y la sombra se recortan al óvalo facial. |
-| Base, cejas y brillo | Representaciones aproximadas, disponibles únicamente si el catálogo contiene esos productos. Base es un velo de color, no cobertura ni reconstrucción real de piel. Cejas es un tinte y brillo una variación visual sencilla. |
-| Delineador, pestañina, corrector, iluminador, contorno | Reservados en el registro extensible; no se aplican ni se presentan como realistas. Requieren parámetros/activos y renderizadores específicos. |
-| Reconocimiento | Face Mesh principal en Android; Face Detection alternativo solo ante fallo del SDK. Ambos producen el mismo modelo de regiones. La pérdida de rostro no cambia artificialmente de motor. |
-| Transformaciones | Rotación de la entrada del detector y proyección orientada sobre el mismo CameraPreview; espejo frontal una sola vez y escala al lienzo sin recorte independiente. |
-| Cámara | Una sola CameraController para los dos modos y todas las capas. No se abre otra al cambiar look, categoría o intensidad. |
-| Capturas | PNG privado por cuenta con descripción de productos y metadatos de todas las capas (id, categoría, tono, HEX, intensidad, acabado y original). Compatibilidad con capturas antiguas conservada. |
-| Compartir | Acción explícita tras capturar o desde Mis pruebas de maquillaje. Abre el diálogo del sistema mediante share_plus; no envía nada automáticamente. |
-| Web | Conserva vista previa de webcam, selección, looks y Armario. La detección, maquillaje sobre vídeo y captura AR de este motor siguen siendo Android. |
-
-Los colores se componen con srcOver para mezclar transparencia de forma predecible sobre CameraPreview. No se afirma que multiply o color modifiquen los píxeles de la cámara desde una capa transparente separada. Los degradados y el difuminado son recursos visuales aproximados, no una medición física del acabado de cada producto.
-
-#### Archivos principales
-
-- lib/models/maquillaje_ar.dart: capas, looks, registro de categorías y candidatos inmutables.
-- lib/data/services/compositor_looks_ar.dart: composición sin acceso a Firebase ni dependencia de providers.
-- lib/ui/simulador_ar/maquillaje_ar_view_model.dart: catálogo, perfil/recomendaciones, modos y edición individual.
-- lib/data/services/malla_facial_ar_service.dart: adaptador de Face Mesh y alternativa de detección.
-- lib/models/deteccion_facial_ar.dart: regiones faciales comunes, malla y transformaciones.
-- lib/ui/simulador_ar/motor/geometria_maquillaje_ar.dart: construcción y recorte de máscaras.
-- lib/ui/simulador_ar/widgets/pintor_maquillaje_ar.dart: renderizado común de todas las capas.
-- lib/ui/simulador_ar/simulador_ar_view_model.dart: cámara, último fotograma pendiente, caducidad y métricas.
-- lib/data/services/compartir_ar_service.dart: diálogo de compartir.
-
-Para añadir otro producto que utilice una región existente basta registrar su categoría y definición. Para una región nueva se añade su generador de máscara y estilo; no hay que reconstruir la cámara, los modos ni el selector. Las categorías globales de administración y sus reglas deben evolucionar con el equipo: el registro de AR no cambia automáticamente el esquema del catálogo.
-
-#### Parámetros faltantes en el catálogo
-
-Actualmente se usan colorHex y acabado, junto con opacidad conservadora por categoría. El campo visualAr propuesto anteriormente es una **propuesta de evolución**, no un campo ya implementado ni leído por este prototipo. Para incorporarlo habría que extender fromMap, toMap, copyWith, formularios y validadores sin perder compatibilidad. No se modificaron documentos ni reglas de Firestore.
-
-#### Verificación automática
-
-- Primera etapa: pruebas de composición sin inventar datos y edición independiente de tres capas.
-- Segunda etapa: pruebas de exclusión de ojos/boca, movimiento, escala, espejo y pintura conjunta comprobada por píxeles.
-- Contrato del adaptador: conversión de formato, rotación, regiones y profundidad desde el canal simulado de Face Mesh; alternativa ante fallo del SDK y ausencia de cambio de motor cuando no hay rostro. Estas pruebas no sustituyen ejecutar el SDK en un teléfono.
-- Interfaz a 360 px: elegir un look de tres productos, quitar una sombra y cambiar el labial por uno no recomendado sin quitar el rubor.
-- Captura y sesión: registra todas las capas, compartir exige otra acción y una cuenta distinta no conserva la última captura de la anterior.
-- Integridad: un perfil nuevo durante una carga descarta la respuesta vieja y recarga candidatos compatibles; productos desaparecidos del catálogo no se fabrican.
-- Seguimiento: resultados de más de 200 ms desde la llegada al proceso Dart se descartan; si no llega otro resultado útil, las coordenadas caducan tras 250 ms.
-- Suite completa final: **214 pruebas aprobadas**.
-- flutter analyze: sin problemas en la última comprobación.
-- Compilación Android ARM64 profile: aprobada. APK: build/app/outputs/flutter-apk/app-profile.apk (104,6 MB).
-- Compilación web release: aprobada, salida build/web. Mantiene vista previa sin maquillaje AR.
-- Ambas compilaciones finalizaron con código 0; no equivalen a una prueba visual en el Samsung.
-
-#### Recorrido de demostración
-
-1. Inicia sesión con una cuenta que tenga análisis de colorimetría y productos activos en el catálogo. Un análisis guardado debe pertenecer al uid de la cuenta actual.
-2. Abre Simulador AR. En Looks para mí selecciona Combinación 1. Para demostrar tres productos, las recomendaciones reales deben contener al menos labial, rubor y sombra compatibles; si falta algo, se indicará que es parcial.
-3. Comprueba las capas aplicadas y sus nombres/tonos. Toca la capa Rubor y ajusta su intensidad. El labial y la sombra deben conservarse.
-4. Borra la sombra desde su capa. Cambia a Prueba libre, elige Labial y selecciona otro tono, incluso de otra estación. El rubor debe permanecer.
-5. Compara Ver original / Ver maquillaje. Quitar todo debe retirar todas las capas.
-6. Con el rostro detectado y maquillaje aplicado, captura. Consulta el resultado desde Armario → Mis pruebas de maquillaje. Compartir debe abrir el diálogo del sistema; solo se comparte si el usuario elige un destino.
-7. Cambia la orientación, sal y regresa a la app. Comprueba alineación, ausencia de cámara duplicada y recuperación. Oculta el rostro para verificar que los efectos desaparecen.
-
-#### Medición pendiente en Samsung
-
-**No hay una medición de FPS nueva ni una validación visual física de este prototipo.** La calidad de ajuste, oclusiones, captura de la textura de cámara y compartir requieren esa prueba.
-
-1. Conecta el Samsung SM-A325M, desbloquéalo y comprueba flutter devices.
-2. Ejecuta `flutter run --profile -d <id-del-dispositivo>` desde la carpeta del proyecto. No evalúes velocidad con debug.
-3. Aplica labial + rubor + sombra. Espera al menos 8 segundos para completar calentamiento y primera ventana.
-4. Abre el icono de velocímetro. Durante 30 segundos mantén el rostro visible y haz movimientos suaves, después giros y gestos habituales. Repite con buena luz y una escena más exigente.
-5. Registra motor, entrada de fotogramas, detecciones procesadas/s, detecciones válidas/s, p50/p95 de procesamiento y coste CPU del pintor. La meta es >=20 detecciones válidas/s de forma sostenida, junto con una superposición visual estable; que la cámara solicite 30 fps no demuestra esa meta.
-6. Comprueba la calidad observando el vídeo y una captura. El tiempo CPU de pintura no es tiempo GPU ni latencia total de sensor a pantalla. La edad medida parte de la llegada a Dart: no existe timestamp del sensor expuesto por este flujo.
-7. Registra los valores reales, aunque estén por debajo de la meta. Si no se alcanza: medir primero el coste de la serialización de malla (el adaptador transfiere triángulos que este renderizador no utiliza), conversión y detector antes de introducir otro motor o reducir resolución por debajo de las recomendaciones del SDK.
-
-| Escenario | Detecciones válidas/s | p50 | p95 | Pintura CPU | Calidad visual |
-|---|---|---|---|---|---|
-| Labial + rubor + sombra | Sin medir | Sin medir | Sin medir | Sin medir | Pendiente en Samsung |
-| Movimiento y giro | Sin medir | Sin medir | Sin medir | Sin medir | Pendiente en Samsung |
-
-#### Límites de entrega
-
-Este es un prototipo 2D guiado por regiones de una malla facial, no un motor de maquillaje físicamente realista equivalente a TikTok o Instagram. No utiliza texturas específicas de cada producto ni segmentación de cabello/manos. El motor solo muestra una cara prominente. Face Mesh y su adaptador Flutter requieren Android y el SDK sigue en beta. La interfaz conserva estados vacíos, errores y reintento; no presenta datos de prueba como recomendaciones personales.
+Base, cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
 
 ## Pruebas
 
