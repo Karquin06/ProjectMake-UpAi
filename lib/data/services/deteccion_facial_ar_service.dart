@@ -111,6 +111,33 @@ int rotacionImagenAr(CameraDescription camara, DeviceOrientation orientacion) {
       360;
 }
 
+/// Misma conversión validada en Samsung para los dos detectores.
+InputImage entradaImagenAr(
+  CameraImage imagen,
+  CameraDescription camara,
+  DeviceOrientation orientacion,
+) {
+  final rotacion = rotacionImagenAr(camara, orientacion);
+  final bytes = convertirANv21(
+    imagen.width,
+    imagen.height,
+    imagen.planes
+        .map((p) => PlanoImagenAr(p.bytes, p.bytesPerRow, p.bytesPerPixel ?? 1))
+        .toList(),
+  );
+  final tamano = Size(imagen.width.toDouble(), imagen.height.toDouble());
+  final entrada = InputImage.fromBytes(
+    bytes: bytes,
+    metadata: InputImageMetadata(
+      size: tamano,
+      rotation: InputImageRotationValue.fromRawValue(rotacion)!,
+      format: InputImageFormat.nv21,
+      bytesPerRow: imagen.width,
+    ),
+  );
+  return entrada;
+}
+
 class DeteccionFacialArService implements DetectorLabiosAr {
   // Se crea solo al recibir el primer fotograma Android.
   FaceDetector? _detector;
@@ -125,25 +152,8 @@ class DeteccionFacialArService implements DetectorLabiosAr {
       throw UnsupportedError('La detección AR está disponible en Android');
     }
     final rotacion = rotacionImagenAr(camara, orientacion);
-    final bytes = convertirANv21(
-      imagen.width,
-      imagen.height,
-      imagen.planes
-          .map(
-            (p) => PlanoImagenAr(p.bytes, p.bytesPerRow, p.bytesPerPixel ?? 1),
-          )
-          .toList(),
-    );
     final tamano = Size(imagen.width.toDouble(), imagen.height.toDouble());
-    final entrada = InputImage.fromBytes(
-      bytes: bytes,
-      metadata: InputImageMetadata(
-        size: tamano,
-        rotation: InputImageRotationValue.fromRawValue(rotacion)!,
-        format: InputImageFormat.nv21,
-        bytesPerRow: imagen.width,
-      ),
-    );
+    final entrada = entradaImagenAr(imagen, camara, orientacion);
     final detector = _detector ??= FaceDetector(
       options: FaceDetectorOptions(
         enableContours: true,
@@ -173,6 +183,27 @@ class DeteccionFacialArService implements DetectorLabiosAr {
       rotacion: rotacion,
       esFrontal: camara.lensDirection == CameraLensDirection.front,
       rostroDetectado: rostro != null,
+      regiones: rostro == null
+          ? {}
+          : {
+              for (final entry in {
+                RegionFacialAr.ovalo: FaceContourType.face,
+                RegionFacialAr.ojoIzquierdo: FaceContourType.leftEye,
+                RegionFacialAr.ojoDerecho: FaceContourType.rightEye,
+                RegionFacialAr.cejaIzquierdaSuperior:
+                    FaceContourType.leftEyebrowTop,
+                RegionFacialAr.cejaIzquierdaInferior:
+                    FaceContourType.leftEyebrowBottom,
+                RegionFacialAr.cejaDerechaSuperior:
+                    FaceContourType.rightEyebrowTop,
+                RegionFacialAr.cejaDerechaInferior:
+                    FaceContourType.rightEyebrowBottom,
+                RegionFacialAr.puenteNariz: FaceContourType.noseBridge,
+              }.entries)
+                entry.key: (rostro.contours[entry.value]?.points ?? [])
+                    .map((p) => Offset(p.x.toDouble(), p.y.toDouble()))
+                    .toList(),
+            },
       contornosLabios: rostro == null
           ? []
           : tipos

@@ -72,11 +72,16 @@ void main() {
   }
 
   test(
-    'solo ofrece labiales activos de su estación con color válido',
+    'el modo libre ofrece categorías activas aunque no sean de su estación',
     () async {
       final (vm, _, _) = await entorno();
-      expect(vm.productos.map((p) => p.id).toSet(), {'rojo', 'rosa'});
-      expect(vm.seleccionado, isNotNull);
+      expect(vm.productos.map((p) => p.id).toSet(), {
+        'rojo',
+        'rosa',
+        'otra-estacion',
+        'rubor',
+      });
+      expect(vm.seleccionado, isNull);
     },
   );
   test(
@@ -95,20 +100,17 @@ void main() {
       expect(vm.intensidad, 1);
     },
   );
-  test(
-    'un producto no labial recibido por ruta informa sin simular otro tipo',
-    () async {
-      final (vm, _, _) = await entorno(inicial: 'rubor');
-      expect(vm.aviso, AppStrings.arProductoNoAdmitido);
-      expect(vm.seleccionado?.categoria, 'labial');
-    },
-  );
-  test('cambiar de estación retira el producto anterior', () async {
+  test('un rubor recibido por ruta utiliza su capa independiente', () async {
+    final (vm, _, _) = await entorno(inicial: 'rubor');
+    expect(vm.aviso, isNull);
+    expect(vm.seleccionado?.categoria, 'rubor');
+  });
+  test('la prueba libre conserva el producto al cambiar de estación', () async {
     final (vm, productos, _) = await entorno(inicial: 'rosa');
     productos.sincronizarEstacion(EstacionColor.primavera);
     await Future<void>.delayed(Duration.zero);
-    expect(vm.productos.single.id, 'otra-estacion');
-    expect(vm.seleccionado?.id, 'otra-estacion');
+    expect(vm.productos.map((p) => p.id), contains('otra-estacion'));
+    expect(vm.seleccionado?.id, 'rosa');
   });
   test('las superficies de maquillaje excluyen la abertura de la boca', () {
     final d = DeteccionFacialAr(

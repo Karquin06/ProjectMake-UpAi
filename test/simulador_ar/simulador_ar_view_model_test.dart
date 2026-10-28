@@ -482,4 +482,60 @@ void main() {
       vm.dispose();
     },
   );
+  test('un resultado tardío no se aplica sobre la cámara actual', () async {
+    var ahora = 0;
+    final detector = DetectorFalso()
+      ..pendiente = Completer<DeteccionFacialAr>();
+    final camara = CamaraFalsa(frontal);
+    final vm = SimuladorArViewModel(
+      PermisosFalsos(),
+      listarCamaras: () async => [frontal],
+      crearControlador: (_) => camara,
+      detector: detector,
+      relojMicrosegundos: () => ahora,
+    );
+    await vm.iniciar();
+    camara.recibir!(ImagenFalsa());
+    ahora = 300001;
+    detector.pendiente!.complete(
+      DeteccionFacialAr(
+        tamanoImagen: const Size(640, 480),
+        rotacion: 90,
+        esFrontal: true,
+        rostroDetectado: true,
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(vm.deteccion, isNull);
+    expect(vm.seguimientoLento, isTrue);
+    await vm.cerrar();
+    vm.dispose();
+  });
+  testWidgets('si el flujo se detiene el maquillaje caduca y no queda fijo', (
+    tester,
+  ) async {
+    final detector = DetectorFalso()
+      ..resultado = DeteccionFacialAr(
+        tamanoImagen: const Size(640, 480),
+        rotacion: 90,
+        esFrontal: true,
+        rostroDetectado: true,
+      );
+    final camara = CamaraFalsa(frontal),
+        vm = SimuladorArViewModel(
+          PermisosFalsos(),
+          listarCamaras: () async => [frontal],
+          crearControlador: (_) => camara,
+          detector: detector,
+        );
+    await vm.iniciar();
+    camara.recibir!(ImagenFalsa());
+    await tester.pump();
+    expect(vm.deteccion, isNotNull);
+    await tester.pump(const Duration(milliseconds: 260));
+    expect(vm.deteccion, isNull);
+    expect(vm.seguimientoLento, isTrue);
+    await vm.cerrar();
+    vm.dispose();
+  });
 }
