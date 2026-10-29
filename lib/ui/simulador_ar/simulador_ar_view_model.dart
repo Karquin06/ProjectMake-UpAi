@@ -1,4 +1,5 @@
 import '../../models/rendimiento_ar.dart';
+import '../../data/services/seguimiento_predictivo_ar.dart';
 import '../../data/services/suavizador_facial_ar.dart';
 import '../../data/services/malla_facial_ar_service.dart';
 import 'package:flutter/foundation.dart';
@@ -44,6 +45,17 @@ class SimuladorArViewModel extends ChangeNotifier {
   final CameraController Function(CameraDescription) _crearControlador;
   final DetectorLabiosAr _detector;
   final _suavizador = SuavizadorFacialAr();
+  final _seguimiento = SeguimientoPredictivoAr();
+  int _obsoletos = 0, _sinRostroConsecutivos = 0;
+  int? _ultimaEntradaRostroUs;
+  bool get compensacionActiva => _seguimiento.compensacionActiva;
+  void cambiarCompensacion(bool activa) {
+    _seguimiento.compensacionActiva = activa;
+    _reiniciarMedidas();
+    notifyListeners();
+  }
+
+  DeteccionFacialAr? geometriaParaPintar() => _seguimiento.muestra(_ahoraUs);
   double _suavizadoMs = 0, _mascarasMs = 0;
   int? _geometriaRecibidaUs;
   double _actualizacionEfectosMs = 0;
@@ -73,7 +85,7 @@ class SimuladorArViewModel extends ChangeNotifier {
   double _segundosMedidos = 0, _minimoRenderFps = double.infinity;
   final _latencias = <int>[];
   double _ultimaDeteccionMs = 0, _conversionMs = 0, _detectorMs = 0;
-  String _motor = '—', _entrada = '—';
+  String _motor = '—', _entrada = '—', _analisis = '—';
   String? _ultimoError;
   int _rostros = 0, _puntos = 0, _capasDibujadas = 0, _mascarasDibujadas = 0;
 
@@ -105,6 +117,9 @@ class SimuladorArViewModel extends ChangeNotifier {
 
   void _reiniciarMedidas() {
     _totalRecibidos = 0;
+    _ultimaEntradaRostroUs = null;
+    _sinRostroConsecutivos = 0;
+    _obsoletos = 0;
     _totalProcesados = 0;
     _descartados = 0;
     _errores = 0;
@@ -171,6 +186,12 @@ class SimuladorArViewModel extends ChangeNotifier {
       recibidos: _totalRecibidos,
       procesados: _totalProcesados,
       descartados: _descartados,
+      obsoletos: _obsoletos,
+      comparacionPrediccionValida: _seguimiento.tieneComparacion,
+      prediccionMs: _seguimiento.prediccionMs,
+      desplazamientoPredichoPx: _seguimiento.desplazamientoPx,
+      errorPrediccionPx: _seguimiento.errorPrediccionPx,
+      errorSinPrediccionPx: _seguimiento.errorSinPrediccionPx,
       errores: _errores + (_adaptativo?.errores ?? 0),
       rostros: _rostros,
       puntos: _puntos,
@@ -187,6 +208,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       actualizacionEfectosMs: _actualizacionEfectosMs,
       composicion: 'máscaras transparentes; cámara única',
       entrada: _entrada,
+      analisis: _analisis,
       preview: _controlador?.value.previewSize.toString() ?? '—',
       ultimoError: _ultimoError ?? _adaptativo?.ultimoError,
       alternativa: _adaptativo?.motivoAlternativa,
@@ -200,6 +222,17 @@ class SimuladorArViewModel extends ChangeNotifier {
         'camara_fps=${resumen.entradaFps.toStringAsFixed(1)} '
         'deteccion_fps=${resumen.procesadoFps.toStringAsFixed(1)} '
         'raster_fps=${resumen.renderFps.toStringAsFixed(1)} '
+        'analisis=$_analisis '
+        'conversion_ms=${resumen.conversionMs.toStringAsFixed(2)} '
+        'inferencia_ms=${resumen.detectorMs.toStringAsFixed(1)} '
+        'edad_ms=${resumen.actualizacionEfectosMs.toStringAsFixed(1)} '
+        'pintura_ms=${resumen.pintadoMs.toStringAsFixed(2)} '
+        'raster_ms=${resumen.rasterMs.toStringAsFixed(2)} '
+        'capas=${resumen.capasDibujadas} obsoletos=$_obsoletos '
+        'prediccion_ms=${resumen.prediccionMs.toStringAsFixed(1)} '
+        'comparacion_pred=${resumen.comparacionPrediccionValida} '
+        'error_pred_px=${resumen.errorPrediccionPx.toStringAsFixed(2)} '
+        'error_sin_pred_px=${resumen.errorSinPrediccionPx.toStringAsFixed(2)} '
         'p95_ms=${resumen.p95Ms.toStringAsFixed(1)} error=${resumen.ultimoError}',
       );
     }
@@ -363,6 +396,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     _caducidad?.cancel();
     _fotogramas.value = null;
     _suavizador.reiniciar();
+    _seguimiento.reiniciar();
     _geometriaRecibidaUs = null;
     _esperandoPrimerFotograma = true;
     if (!_cerrado) notifyListeners();
@@ -417,6 +451,8 @@ class SimuladorArViewModel extends ChangeNotifier {
       _latencias.add(duracionUs);
       _ultimaDeteccionMs = duracionUs / 1000;
       _conversionMs = crudo.conversionMs;
+      final resolucion = crudo.tamanoAnalisis ?? crudo.tamanoImagen;
+      _analisis = '${resolucion.width.round()}x${resolucion.height.round()}';
       _detectorMs = crudo.detectorMs;
       if (_cerrado ||
           !_activa ||
@@ -425,9 +461,41 @@ class SimuladorArViewModel extends ChangeNotifier {
           orientacion != camara.value.deviceOrientation) {
         return;
       }
+      // No publicar geometría ya obsoleta aunque la inferencia haya sido válida.
+      // El arranque lento del SDK se cuenta y el siguiente frame reciente reintenta.
+      if (duracionUs > SeguimientoPredictivoAr.antiguedadMaximaUs) {
+        _obsoletos++;
+        // Un resultado rechazado no borra una capa aún vigente: su plazo
+        // existente continúa y no se prolonga con esta respuesta vieja.
+        final avisar = !_seguimientoLento || _esperandoPrimerFotograma;
+        _seguimientoLento = true;
+        _esperandoPrimerFotograma = false;
+        if (avisar) notifyListeners();
+        return;
+      }
+      if (!crudo.rostroDetectado) {
+        _sinRostroConsecutivos = math.min(2, _sinRostroConsecutivos + 1);
+        _rostros = 0;
+        _puntos = 0;
+        // Tolerar una única ausencia transitoria sin renovar la vigencia.
+        if (_sinRostroConsecutivos == 1 &&
+            _fotogramas.value?.rostroDetectado == true &&
+            _seguimiento.muestra(_ahoraUs) != null) {
+          return;
+        }
+      } else {
+        _sinRostroConsecutivos = 0;
+      }
+      final intervalo = _ultimaEntradaRostroUs == null
+          ? math.max(100000, duracionUs + 33000)
+          : (recibidoUs - _ultimaEntradaRostroUs!).clamp(33000, 250000);
+      final esperaUs = (intervalo * 1.5 + 50000).round().clamp(200000, 350000);
+      final caducaUs = math.min(recibidoUs + 450000, _ahoraUs + esperaUs);
+      if (crudo.rostroDetectado) _ultimaEntradaRostroUs = recibidoUs;
       final relojSuavizado = Stopwatch()..start();
       final resultado = _suavizador.aplicar(crudo, recibidoUs);
       _suavizadoMs = relojSuavizado.elapsedMicroseconds / 1000;
+      _seguimiento.actualizar(resultado, recibidoUs, validoHastaUs: caducaUs);
       _geometriaRecibidaUs = resultado.rostroDetectado ? recibidoUs : null;
       _motor = resultado.motor;
       _rostros = resultado.cantidadRostros;
@@ -439,16 +507,14 @@ class SimuladorArViewModel extends ChangeNotifier {
       _seguimientoLento = duracionUs > 200000;
       if (resultado.rostroDetectado) {
         _utilizados++;
-        final caducidadMs = (_ultimaDeteccionMs * 2 + 100).round().clamp(
-          250,
-          1200,
-        );
+        final caducidadMs = ((caducaUs - _ahoraUs) / 1000).ceil().clamp(1, 450);
         _caducidad = Timer(Duration(milliseconds: caducidadMs), () {
           if (!_cerrado &&
               generacion == _generacion &&
               identical(_fotogramas.value, resultado)) {
             _fotogramas.value = null;
             _suavizador.reiniciar();
+            _seguimiento.reiniciar();
             _geometriaRecibidaUs = null;
             _seguimientoLento = true;
             notifyListeners();

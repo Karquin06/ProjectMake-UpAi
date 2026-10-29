@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,6 +61,12 @@ RecomendacionItem r(ProductoMaquillaje p) => RecomendacionItem(
 class RecomendacionesPrueba extends Fake implements RecomendacionProvider {
   RecomendacionesPrueba(this.items);
   final List<RecomendacionItem> items;
+  @override
+  void addListener(VoidCallback listener) {}
+  @override
+  void removeListener(VoidCallback listener) {}
+  @override
+  void actualizarPerfil(PerfilColorimetria? perfil) {}
   int llamadas = 0;
   @override
   PerfilColorimetria? get perfil => crearPerfilAr();
@@ -123,7 +130,8 @@ void main() {
         'rubor',
         'sombra',
       });
-      expect(looks.single.parcial, isFalse);
+      expect(looks.single.parcial, isTrue);
+      expect(looks.single.categoriasFaltantes, ['base']);
       expect(
         const CompositorLooksAr().crear([], crearPerfilAr(), registros),
         isEmpty,

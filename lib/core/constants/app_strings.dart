@@ -858,6 +858,18 @@ class AppStrings {
   static const arQuitarCapa = 'Quitar este producto';
   static const arSinCapas = 'Elige un look o un producto para comenzar.';
   static const arAproximado = 'Representación aproximada';
+  static String arPerfilLooks(String estacion, String subtono) =>
+      'Tu análisis: $estacion · subtono $subtono. Productos de tus recomendaciones.';
+  static const arFueraPaleta = 'Fuera de tu paleta: producto de prueba libre.';
+  static const arProductoRecomendado =
+      'Producto recomendado para tu colorimetría.';
+  static const arProductoCompatible =
+      'Tono compatible con tu análisis de colorimetría.';
+  static const arCompensarMovimiento = 'Compensar retraso de movimiento';
+  static const arProductoSinTono =
+      'Este producto necesita un tono HEX válido para probarse en AR.';
+  static String arFaltanCategorias(Iterable<String> nombres) =>
+      'Faltan productos recomendados de: ${nombres.join(", ")}. Puedes completar el look en prueba libre.';
   static const arNoImplementado = 'Este efecto aún no está implementado.';
   static const arSinProductosCategoria =
       'No hay productos disponibles para esta categoría.';
@@ -892,6 +904,13 @@ class AppStrings {
 
   static String arMedidas({
     required String motor,
+    String analisis = "—",
+    int obsoletos = 0,
+    bool comparacionValida = false,
+    double prediccion = 0,
+    double avance = 0,
+    double errorPred = 0,
+    double errorSinPred = 0,
     String composicion = 'máscaras transparentes; cámara única',
     double suavizado = 0,
     double mascarasCpu = 0,
@@ -933,6 +952,9 @@ Composición: $composicion
 Suavizado CPU: ${suavizado.toStringAsFixed(2)} ms · Máscaras CPU: ${mascarasCpu.toStringAsFixed(2)} ms
 Entrada → envío al lienzo: ${actualizacionEfectos.toStringAsFixed(1)} ms (no sensor-a-pantalla)
 Edad geometría aprox.: ${edad.toStringAsFixed(1)} ms (no sensor-a-pantalla)
+Resultados obsoletos descartados: $obsoletos
+Predicción rígida: ${prediccion.toStringAsFixed(1)} ms · avance ${avance.toStringAsFixed(1)} px
+${comparacionValida ? "Error retrospectivo del centro: ${errorPred.toStringAsFixed(1)} px compensado / ${errorSinPred.toStringAsFixed(1)} px sin compensar (no error visual)" : "Sin comparación de movimiento todavía"}
 Stream iniciado: $stream · Calentamiento: $calentando
 Recibidos: $recibidos · Procesados: $procesados · Descartados ocupados: $descartados
 Rostros (última respuesta): $rostros · Puntos disponibles: $puntos
@@ -948,7 +970,7 @@ Conversión: ${conversion.toStringAsFixed(2)} ms · Detector + canal: ${detector
 p50: ${p50.toStringAsFixed(1)} ms · p95: ${p95.toStringAsFixed(1)} ms ($muestras muestras)
 Pintura CPU: ${pintura.toStringAsFixed(2)} ms · Raster medio: ${raster.toStringAsFixed(2)} ms
 Entrada: $metadatos
-Preview: $preview
+Preview: $preview · Análisis: $analisis
 Cambio automático: ${alternativa ?? 'Ninguno'}
 Errores: $errores · Último error: ${error ?? arSinError}''';
 }

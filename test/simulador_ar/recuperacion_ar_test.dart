@@ -32,7 +32,7 @@ class EstadoMaquillajePanel extends ChangeNotifier
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
-    'regresión: respuesta de 350 ms pinta las tres categorías y conserva huecos',
+    'respuesta reciente de 150 ms pinta las tres categorías y conserva huecos',
     () async {
       var ahora = 0;
       final detector = DetectorFalso()
@@ -47,13 +47,13 @@ void main() {
       );
       await vm.iniciar();
       camara.recibir!(ImagenFalsa());
-      ahora = 350000;
+      ahora = 150000;
       detector.pendiente!.complete(cara());
       await Future<void>.delayed(Duration.zero);
       expect(vm.deteccion?.labiosDetectados, isTrue);
       final registro = RegistroEfectosAr();
       final r = ui.PictureRecorder(), c = Canvas(r);
-      c.drawColor(Colors.white, BlendMode.src);
+      c.drawColor(const Color(0xffbba18e), BlendMode.src);
       var capasDibujadas = 0, mascarasDibujadas = 0;
       PintorMaquillajeAr(
         vm.fotogramas,
@@ -70,7 +70,7 @@ void main() {
       final bytes = (await img.toByteData())!.buffer.asUint8List();
       bool blanco(int x, int y) {
         final i = (y * 200 + x) * 4;
-        return bytes[i] == 255 && bytes[i + 1] == 255 && bytes[i + 2] == 255;
+        return bytes[i] == 187 && bytes[i + 1] == 161 && bytes[i + 2] == 142;
       }
 
       expect(capasDibujadas, 3);

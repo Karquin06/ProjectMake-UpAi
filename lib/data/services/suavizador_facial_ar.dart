@@ -76,6 +76,7 @@ class SuavizadorFacialAr {
 
     return DeteccionFacialAr(
       tamanoImagen: d.tamanoImagen,
+      tamanoAnalisis: d.tamanoAnalisis,
       rotacion: d.rotacion,
       esFrontal: d.esFrontal,
       rostroDetectado: true,

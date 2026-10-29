@@ -30,6 +30,7 @@ class DeteccionFacialAr {
     this.cajaRostro,
     int? cantidadRostros,
     this.conversionMs = 0,
+    this.tamanoAnalisis,
     this.detectorMs = 0,
     this.motor = 'ML Kit Face Detection',
   }) : contornosLabios = List.unmodifiable(contornosLabios.map(_validar)),
@@ -38,11 +39,39 @@ class DeteccionFacialAr {
        ),
        malla = Map.unmodifiable(malla),
        cantidadRostros = cantidadRostros ?? (rostroDetectado ? 1 : 0);
+  DeteccionFacialAr trasladar(Offset delta) => DeteccionFacialAr(
+    tamanoImagen: tamanoImagen,
+    tamanoAnalisis: tamanoAnalisis,
+    rotacion: rotacion,
+    esFrontal: esFrontal,
+    rostroDetectado: rostroDetectado,
+    cantidadRostros: cantidadRostros,
+    cajaRostro: cajaRostro?.shift(delta),
+    motor: motor,
+    conversionMs: conversionMs,
+    detectorMs: detectorMs,
+    contornosLabios: [
+      for (final puntos in contornosLabios) [for (final p in puntos) p + delta],
+    ],
+    regiones: {
+      for (final e in regiones.entries)
+        e.key: [for (final p in e.value) p + delta],
+    },
+    malla: {
+      for (final e in malla.entries)
+        e.key: PuntoMallaAr(
+          e.value.x + delta.dx,
+          e.value.y + delta.dy,
+          e.value.z,
+        ),
+    },
+  );
   static List<Offset> _validar(List<Offset> puntos) =>
       puntos.every((p) => p.dx.isFinite && p.dy.isFinite)
       ? List.unmodifiable(puntos)
       : const [];
   final Size tamanoImagen;
+  final Size? tamanoAnalisis;
   final int rotacion;
   final bool esFrontal, rostroDetectado;
   final List<List<Offset>> contornosLabios;

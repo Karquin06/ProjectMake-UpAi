@@ -243,17 +243,20 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                 child: Center(
                   child: RepaintBoundary(
                     key: _claveCaptura,
-                    child: CameraPreview(
-                      camara,
-                      child: IgnorePointer(
-                        child: CompositorTexturaAr(
-                          fotogramas: vm.fotogramas,
-                          capas: maquillaje.capas,
-                          original: maquillaje.original,
-                          mostrarGuia: maquillaje.guia,
-                          alPintar: vm.registrarPintado,
-                          alCrearMascaras: vm.registrarMascaras,
-                          alAplicar: vm.registrarCapasDibujadas,
+                    child: GrupoComposicionAr(
+                      child: CameraPreview(
+                        camara,
+                        child: IgnorePointer(
+                          child: CompositorTexturaAr(
+                            fotogramas: vm.fotogramas,
+                            geometriaActual: vm.geometriaParaPintar,
+                            capas: maquillaje.capas,
+                            original: maquillaje.original,
+                            mostrarGuia: maquillaje.guia,
+                            alPintar: vm.registrarPintado,
+                            alCrearMascaras: vm.registrarMascaras,
+                            alAplicar: vm.registrarCapasDibujadas,
+                          ),
                         ),
                       ),
                     ),

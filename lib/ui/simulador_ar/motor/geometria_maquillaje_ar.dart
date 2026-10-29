@@ -76,17 +76,19 @@ class GeometriaMaquillajeAr {
     return p;
   }
 
-  Path _recortar(Path p, {bool excluirCejas = false}) {
-    if (piel.getBounds().isEmpty) return Path();
-    p = Path.combine(PathOperation.intersect, p, piel);
-    if (excluirCejas) {
-      for (final ceja in cejas) {
-        if (!ceja.getBounds().isEmpty) {
-          p = Path.combine(PathOperation.difference, p, ceja);
-        }
+  late final Path pielSinCejas = () {
+    var region = piel;
+    for (final ceja in cejas) {
+      if (!ceja.getBounds().isEmpty) {
+        region = Path.combine(PathOperation.difference, region, ceja);
       }
     }
-    return p;
+    return region;
+  }();
+  Path _recortar(Path p, {bool excluirCejas = false}) {
+    final region = excluirCejas ? pielSinCejas : piel;
+    if (region.getBounds().isEmpty) return Path();
+    return Path.combine(PathOperation.intersect, p, region);
   }
 
   MascaraMaquillajeAr _ovalo(Offset c, double rx, double ry, Offset eje) {

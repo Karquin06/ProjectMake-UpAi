@@ -77,11 +77,13 @@ Future<Uint8List> render(
           child: SizedBox(
             width: 200,
             height: 240,
-            child: CompositorTexturaAr(
-              fotogramas: f,
-              capas: capas,
-              original: original,
-              fondo: const ColoredBox(color: Color(0xffbba18e)),
+            child: GrupoComposicionAr(
+              child: CompositorTexturaAr(
+                fotogramas: f,
+                capas: capas,
+                original: original,
+                fondo: const ColoredBox(color: Color(0xffbba18e)),
+              ),
             ),
           ),
         ),
@@ -175,7 +177,16 @@ void main() {
       final base = await render(t, []);
       final rubor = await render(t, capasDe(['rubor']));
       for (final x in [50, 150]) {
-        expect(diferencia(base, rubor, x, 115), greaterThan(15));
+        final i = (115 * 200 + x) * 4;
+        final antes = HSVColor.fromColor(
+          Color.fromARGB(255, base[i], base[i + 1], base[i + 2]),
+        );
+        final despues = HSVColor.fromColor(
+          Color.fromARGB(255, rubor[i], rubor[i + 1], rubor[i + 2]),
+        );
+        // Las mezclas que conservan luz se validan por cambio de tono, no
+        // exigiendo que un canal de brillo supere un salto fijo de 15 niveles.
+        expect((antes.hue - despues.hue).abs(), greaterThan(3));
       }
       final sombra = await render(t, capasDe(['sombra']));
       for (final x in [65, 135]) {
@@ -313,10 +324,14 @@ void main() {
         const Offset(50, 115),
         const Offset(65, 85),
       ]) {
-        expect(
-          diferencia(base, foto, q.dx.toInt(), q.dy.toInt()),
-          greaterThan(15),
+        final i = (q.dy.toInt() * 200 + q.dx.toInt()) * 4;
+        final antes = HSVColor.fromColor(
+          Color.fromARGB(255, base[i], base[i + 1], base[i + 2]),
         );
+        final despues = HSVColor.fromColor(
+          Color.fromARGB(255, foto[i], foto[i + 1], foto[i + 2]),
+        );
+        expect((antes.hue - despues.hue).abs(), greaterThan(3));
       }
       vm.quitar('labial');
       final sinLabial = await render(t, vm.capas);

@@ -208,6 +208,13 @@ void main() {
       );
       camara.recibir!(ImagenFalsa());
       await Future<void>.delayed(Duration.zero);
+      expect(
+        pantalla,
+        avisosIniciales,
+      ); // Una ausencia transitoria no borra el look.
+      expect(vm.deteccion!.labiosDetectados, isTrue);
+      camara.recibir!(ImagenFalsa());
+      await Future<void>.delayed(Duration.zero);
       expect(pantalla, avisosIniciales + 1);
       expect(vm.deteccion!.labiosDetectados, isFalse);
       await vm.cerrar();
@@ -508,7 +515,7 @@ void main() {
     },
   );
   test(
-    'una detección válida de 300 ms se muestra en vez de desaparecer',
+    'una respuesta obsoleta de 300 ms se descarta y la siguiente reciente se utiliza',
     () async {
       var ahora = 0;
       final detector = DetectorFalso()
@@ -533,8 +540,19 @@ void main() {
         ),
       );
       await Future<void>.delayed(Duration.zero);
-      expect(vm.deteccion?.rostroDetectado, isTrue);
+      expect(vm.deteccion, isNull);
       expect(vm.seguimientoLento, isTrue);
+      detector.pendiente = null;
+      detector.resultado = DeteccionFacialAr(
+        tamanoImagen: const Size(640, 480),
+        rotacion: 90,
+        esFrontal: true,
+        rostroDetectado: true,
+      );
+      camara.recibir!(ImagenFalsa());
+      await Future<void>.delayed(Duration.zero);
+      expect(vm.deteccion?.rostroDetectado, isTrue);
+      expect(vm.seguimientoLento, isFalse);
       await vm.cerrar();
       vm.dispose();
     },

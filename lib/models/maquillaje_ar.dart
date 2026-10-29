@@ -37,9 +37,8 @@ class RegistroEfectosAr {
       AppStrings.arBase,
       FamiliaEfectoAr.rostro,
       0,
-      opacidad: .16,
+      opacidad: .5,
       experimental: true,
-      habilitado: false,
     ),
     DefinicionEfectoAr(
       'corrector',
@@ -133,6 +132,11 @@ class RegistroEfectosAr {
   List<DefinicionEfectoAr> get tipos => List.unmodifiable(_tipos.values);
   static bool tonoValido(String s) =>
       RegExp(r'^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$').hasMatch(s.trim());
+  bool admiteCategoria(String categoria, {String? tipoEfectoAr}) =>
+      buscar(
+        tipoEfectoAr?.trim().isNotEmpty == true ? tipoEfectoAr! : categoria,
+      )?.disponible ==
+      true;
   bool admite(ProductoMaquillaje p) =>
       p.activo && tonoValido(p.colorHex) && paraProducto(p)?.disponible == true;
 }
@@ -175,11 +179,18 @@ class LookMaquillajeAr {
   final String id;
   final List<ProductoMaquillaje> productos;
   final int puntaje;
-  bool get parcial => ![
-    'labial',
-    'rubor',
-    'sombra',
-  ].every((c) => productos.any((p) => (p.tipoEfectoAr ?? p.categoria) == c));
+  List<String> get categoriasFaltantes {
+    final registro = RegistroEfectosAr();
+    final presentes = productos
+        .map((p) => registro.paraProducto(p)?.categoria)
+        .toSet();
+    return [
+      for (final c in ['base', 'labial', 'rubor', 'sombra'])
+        if (!presentes.contains(c)) c,
+    ];
+  }
+
+  bool get parcial => categoriasFaltantes.isNotEmpty;
 }
 
 /// Entrada inmutable al compositor; no depende de providers ni de Firebase.

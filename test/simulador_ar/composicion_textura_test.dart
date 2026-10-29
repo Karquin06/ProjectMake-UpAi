@@ -53,11 +53,13 @@ Future<Uint8List> pintar(
           child: SizedBox(
             width: 200,
             height: 240,
-            child: CompositorTexturaAr(
-              fotogramas: frames,
-              capas: capas,
-              fondo: fondo(),
-              original: original,
+            child: GrupoComposicionAr(
+              child: CompositorTexturaAr(
+                fotogramas: frames,
+                capas: capas,
+                fondo: fondo(),
+                original: original,
+              ),
             ),
           ),
         ),

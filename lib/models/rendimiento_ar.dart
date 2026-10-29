@@ -3,6 +3,12 @@
 class RendimientoAr {
   const RendimientoAr({
     this.suavizadoMs = 0,
+    this.obsoletos = 0,
+    this.comparacionPrediccionValida = false,
+    this.prediccionMs = 0,
+    this.desplazamientoPredichoPx = 0,
+    this.errorPrediccionPx = 0,
+    this.errorSinPrediccionPx = 0,
     this.mascarasMs = 0,
     this.edadGeometriaMs = 0,
     this.actualizacionEfectosMs = 0,
@@ -35,10 +41,17 @@ class RendimientoAr {
     this.calentando = true,
     this.motor = '—',
     this.entrada = '—',
+    this.analisis = '—',
     this.preview = '—',
     this.ultimoError,
     this.alternativa,
   });
+  final int obsoletos;
+  final bool comparacionPrediccionValida;
+  final double prediccionMs,
+      desplazamientoPredichoPx,
+      errorPrediccionPx,
+      errorSinPrediccionPx;
   final double entradaFps, procesadoFps, utilFps, renderFps, repintadoFps;
   final double segundosMedidos, promedioRenderFps, minimoRenderFps;
   final double p50Ms, p95Ms, pintadoMs, rasterMs;
@@ -58,6 +71,6 @@ class RendimientoAr {
   /// No incluye la latencia del sensor ni la presentación física del display.
   final double actualizacionEfectosMs;
   final String composicion;
-  final String motor, entrada, preview;
+  final String motor, entrada, preview, analisis;
   final String? ultimoError, alternativa;
 }

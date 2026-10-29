@@ -59,11 +59,11 @@ void main() {
     },
   );
   test(
-    'base queda desactivada como experimental y tipos desconocidos no se aplican',
+    'base tiene renderizador experimental habilitado y tipos desconocidos no se aplican',
     () {
       final r = RegistroEfectosAr();
       expect(r.buscar('base')!.experimental, isTrue);
-      expect(r.admite(p('b', 'base')), isFalse);
+      expect(r.admite(p('b', 'base')), isTrue);
       expect(
         r.admite(p('x', 'labial').copyWith(tipoEfectoAr: 'inexistente')),
         isFalse,

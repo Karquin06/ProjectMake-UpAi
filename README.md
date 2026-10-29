@@ -532,7 +532,7 @@ El simulador permite probar maquillaje del catálogo sobre la imagen de la cáma
 - Incluye comparación con la imagen original y limpieza de todas las capas.
 - Permite capturar el resultado, guardarlo por cuenta en el dispositivo, consultarlo desde el Armario y abrir el diálogo del sistema para compartirlo.
 
-Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Las capas de color semitransparentes se aplican mediante máscaras regionales suaves y contornos curvos, dejando visible parte de la textura de la imagen original. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
+Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Los pigmentos se mezclan con la luminosidad de la cámara mediante máscaras regionales suaves y contornos curvos, conservando las luces y sombras de la imagen original. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
 
 ### Uso
 
@@ -545,7 +545,7 @@ Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Las capas
 
 El maquillaje AR está orientado a Android y se encuentra en validación en dispositivos reales. La versión web ofrece vista previa de cámara, catálogo, selección de looks y Armario; no aplica maquillaje sobre el vídeo.
 
-La base es experimental y permanece temporalmente desactivada. Cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
+La base ofrece una cobertura uniforme sutil y ajustable sobre la región de piel; su representación es aproximada. Cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
 
 ## Pruebas
 
