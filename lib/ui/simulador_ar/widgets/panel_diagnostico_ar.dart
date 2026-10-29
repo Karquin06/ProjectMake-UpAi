@@ -17,6 +17,10 @@ class PanelDiagnosticoAr extends StatelessWidget {
   final MaquillajeArViewModel maquillaje;
   static String informe(RendimientoAr r) => AppStrings.arMedidas(
     motor: r.motor,
+    composicion: r.composicion,
+    suavizado: r.suavizadoMs,
+    mascarasCpu: r.mascarasMs,
+    edad: r.edadGeometriaMs,
     entrada: r.entradaFps,
     procesado: r.procesadoFps,
     validos: r.utilFps,
@@ -89,6 +93,12 @@ class PanelDiagnosticoAr extends StatelessWidget {
               ),
               if (camara.cambiandoDetector)
                 const Text(AppStrings.arCambiandoDetector),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(AppStrings.arTexturaCamara),
+                value: camara.composicionTextura,
+                onChanged: camara.cambiarComposicion,
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text(AppStrings.arDiagnosticoGuia),

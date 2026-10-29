@@ -183,7 +183,9 @@ void main() {
       ),
     );
     expect(maquillaje.guia, isFalse);
-    await tester.tap(find.byType(Switch));
+    await tester.tap(
+      find.widgetWithText(SwitchListTile, AppStrings.arDiagnosticoGuia),
+    );
     await tester.pumpAndSettle();
     expect(maquillaje.guia, isTrue);
     expect(tester.takeException(), isNull);

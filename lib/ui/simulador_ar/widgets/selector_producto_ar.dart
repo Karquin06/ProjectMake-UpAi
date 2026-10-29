@@ -22,7 +22,7 @@ class SelectorProductoAr extends StatelessWidget {
     final categorias = vm.registro.tipos
         .where(
           (d) => vm.catalogoVisible.any(
-            (p) => vm.registro.buscar(p.categoria)?.categoria == d.categoria,
+            (p) => vm.registro.paraProducto(p)?.categoria == d.categoria,
           ),
         )
         .toList();
@@ -126,7 +126,7 @@ class SelectorProductoAr extends StatelessWidget {
                                         look.productos
                                             .map(
                                               (p) =>
-                                                  '${vm.registro.buscar(p.categoria)!.nombre}: ${p.tono}',
+                                                  '${vm.registro.paraProducto(p)!.nombre}: ${p.tono}',
                                             )
                                             .join(' · '),
                                         maxLines: 3,
@@ -214,7 +214,11 @@ class SelectorProductoAr extends StatelessWidget {
                   categorias.isNotEmpty)
                 const Text(AppStrings.arSinProductosCategoria),
               if (definicion?.disponible == false)
-                const Text(AppStrings.arNoImplementado),
+                Text(
+                  definicion?.experimental == true
+                      ? AppStrings.arExperimentalSuspendido
+                      : AppStrings.arNoImplementado,
+                ),
               const SizedBox(height: 8),
               Text(
                 AppStrings.arCapas,

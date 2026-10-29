@@ -65,6 +65,7 @@ class DeteccionFacialAr {
   Size get tamanoOrientado => rotacion == 90 || rotacion == 270
       ? Size(tamanoImagen.height, tamanoImagen.width)
       : tamanoImagen;
+  final _proyecciones = <Size, ({Rect fuente, Rect destino})>{};
   Offset proyectar(Offset punto, Size lienzo) {
     final origen = tamanoOrientado;
     if (origen.isEmpty ||
@@ -77,15 +78,21 @@ class DeteccionFacialAr {
     }
     // Mismo recorte central de la vista previa; nunca deformar cada eje
     // independientemente si stream y preview tienen distinta relación de aspecto.
-    final ajustado = applyBoxFit(BoxFit.cover, origen, lienzo);
-    final fuente = Alignment.center.inscribe(
-      ajustado.source,
-      Offset.zero & origen,
-    );
-    final destino = Alignment.center.inscribe(
-      ajustado.destination,
-      Offset.zero & lienzo,
-    );
+    // Una transformación por tamaño y detección, no nuevos Rect por cada punto.
+    if (_proyecciones.length >= 2 && !_proyecciones.containsKey(lienzo)) {
+      _proyecciones.clear();
+    }
+    final transformacion = _proyecciones.putIfAbsent(lienzo, () {
+      final ajuste = applyBoxFit(BoxFit.cover, origen, lienzo);
+      return (
+        fuente: Alignment.center.inscribe(ajuste.source, Offset.zero & origen),
+        destino: Alignment.center.inscribe(
+          ajuste.destination,
+          Offset.zero & lienzo,
+        ),
+      );
+    });
+    final fuente = transformacion.fuente, destino = transformacion.destino;
     final x = esFrontal ? origen.width - punto.dx : punto.dx;
     return Offset(
       destino.left + (x - fuente.left) * destino.width / fuente.width,

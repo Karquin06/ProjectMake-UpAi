@@ -870,11 +870,14 @@ class AppStrings {
   static const arCompartir = 'Compartir resultado';
   static const arErrorCompartir = 'No pudimos abrir el diálogo para compartir.';
   static const arCapturaLista = 'Resultado guardado en este dispositivo.';
+  static const arTexturaCamara = 'Conservar textura de cámara';
+  static const arExperimentalSuspendido =
+      'Efecto experimental temporalmente desactivado.';
   static const arDiagnostico = 'Diagnóstico AR';
   static const arCopiarDiagnostico = 'Copiar informe';
   static const arDiagnosticoCopiado = 'Informe copiado';
   static const arDiagnosticoGuia = 'Mostrar puntos y contornos (temporal)';
-  static const arDetectorAutomatico = 'Automático: malla con alternativa';
+  static const arDetectorAutomatico = 'Automático: prioriza respuesta';
   static const arDetectorContornos = 'Solo contornos (Face Detection)';
   static const arDetectorMalla = 'Solo malla (Face Mesh)';
   static const arCambiandoDetector = 'Cambiando detector…';
@@ -889,6 +892,10 @@ class AppStrings {
 
   static String arMedidas({
     required String motor,
+    String composicion = "textura de cámara",
+    double suavizado = 0,
+    double mascarasCpu = 0,
+    double edad = 0,
     required double entrada,
     required double procesado,
     required double validos,
@@ -921,6 +928,9 @@ class AppStrings {
     String? alternativa,
   }) =>
       '''Detector: $motor
+Composición: $composicion
+Suavizado CPU: ${suavizado.toStringAsFixed(2)} ms · Máscaras CPU: ${mascarasCpu.toStringAsFixed(2)} ms
+Edad geometría aprox.: ${edad.toStringAsFixed(1)} ms (no sensor-a-pantalla)
 Stream iniciado: $stream · Calentamiento: $calentando
 Recibidos: $recibidos · Procesados: $procesados · Descartados ocupados: $descartados
 Rostros (última respuesta): $rostros · Puntos disponibles: $puntos

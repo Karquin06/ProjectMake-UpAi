@@ -27,7 +27,7 @@ class CompositorLooksAr {
       if (!registro.admite(p) || !compatible(p, perfil) || !vistos.add(p.id)) {
         continue;
       }
-      final categoria = registro.buscar(p.categoria)!.categoria;
+      final categoria = registro.paraProducto(p)!.categoria;
       (grupos[categoria] ??= []).add(item);
     }
     if (grupos.isEmpty) return [];
@@ -38,9 +38,9 @@ class CompositorLooksAr {
       ];
       seleccion.sort(
         (a, b) => registro
-            .buscar(a.producto.categoria)!
+            .paraProducto(a.producto)!
             .orden
-            .compareTo(registro.buscar(b.producto.categoria)!.orden),
+            .compareTo(registro.paraProducto(b.producto)!.orden),
       );
       final firma = seleccion.map((e) => e.producto.id).join('|');
       if (!firmas.add(firma)) continue;

@@ -2,6 +2,10 @@
 /// distintas; no se deducen FPS de la frecuencia solicitada al controlador.
 class RendimientoAr {
   const RendimientoAr({
+    this.suavizadoMs = 0,
+    this.mascarasMs = 0,
+    this.edadGeometriaMs = 0,
+    this.composicion = "textura de cámara",
     this.entradaFps = 0,
     this.procesadoFps = 0,
     this.utilFps = 0,
@@ -47,6 +51,8 @@ class RendimientoAr {
       muestras;
   final int capasDibujadas, mascarasDibujadas;
   final bool streamActivo, calentando;
+  final double suavizadoMs, mascarasMs, edadGeometriaMs;
+  final String composicion;
   final String motor, entrada, preview;
   final String? ultimoError, alternativa;
 }

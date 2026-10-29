@@ -72,6 +72,17 @@ class DetectorPrueba implements DetectorLabiosAr {
   }
 }
 
+class DetectorNoRegistrado extends DetectorPrueba {
+  @override
+  Future<DeteccionFacialAr> detectar(
+    CameraImage imagen,
+    CameraDescription camara,
+    DeviceOrientation orientacion,
+  ) async {
+    throw MissingPluginException('plugin de prueba ausente');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
@@ -294,6 +305,90 @@ void main() {
       expect(recuperado.labiosDetectados, isTrue);
       expect(alternativa.llamadas, 2);
       await detector.cerrar();
+    },
+  );
+  test(
+    'cliente ligero no materializa triángulos y valida datos esenciales',
+    () {
+      final puntos = [
+        {'index': 0, 'x': 1, 'y': 2, 'z': -1},
+      ];
+      final raw = [
+        {
+          'rect': {'left': 0, 'top': 0, 'right': 4, 'bottom': 4},
+          'points': puntos,
+          'triangles': [
+            {'no': 'utilizado'},
+          ],
+          'contours': {for (var i = 0; i < 12; i++) i: puntos},
+        },
+      ];
+      final d = convertirMallaAr(raw, const Size(4, 4), 90, true);
+      expect(d.malla[0]?.z, -1);
+      expect(d.cantidadRostros, 1);
+      expect(
+        () => convertirMallaAr(
+          [
+            {'points': []},
+          ],
+          const Size(4, 4),
+          90,
+          true,
+        ),
+        throwsA(isA<PlatformException>()),
+      );
+    },
+  );
+  test(
+    'preferir contornos evita esperar el arranque de Mesh pero conserva selección manual',
+    () async {
+      final principal = DetectorPrueba(), alternativa = DetectorPrueba();
+      final d = DetectorFacialAdaptativoAr(
+        principal: principal,
+        alternativa: alternativa,
+        preferirContornos: true,
+      );
+      await d.detectar(Imagen(), camara, DeviceOrientation.portraitUp);
+      expect(principal.llamadas, 0);
+      expect(alternativa.llamadas, 1);
+      await d.cambiarModo(ModoDetectorAr.malla);
+      await d.detectar(Imagen(), camara, DeviceOrientation.portraitUp);
+      expect(principal.llamadas, 1);
+      expect(d.detectorActivo, 'ML Kit Face Mesh');
+      await d.cerrar();
+    },
+  );
+  test(
+    'si contornos falla en automático se intenta Mesh y se conserva el error real',
+    () async {
+      final principal = DetectorPrueba(),
+          alternativa = DetectorPrueba(falla: true);
+      final d = DetectorFacialAdaptativoAr(
+        principal: principal,
+        alternativa: alternativa,
+        preferirContornos: true,
+      );
+      await d.detectar(Imagen(), camara, DeviceOrientation.portraitUp);
+      expect(principal.llamadas, 1);
+      expect(d.ultimoError, contains('sdk'));
+      expect(d.detectorActivo, 'ML Kit Face Mesh');
+      await d.cerrar();
+    },
+  );
+  test(
+    'automático también recupera contornos no registrados usando Mesh',
+    () async {
+      final principal = DetectorPrueba(), alternativa = DetectorNoRegistrado();
+      final d = DetectorFacialAdaptativoAr(
+        principal: principal,
+        alternativa: alternativa,
+        preferirContornos: true,
+      );
+      await d.detectar(Imagen(), camara, DeviceOrientation.portraitUp);
+      expect(principal.llamadas, 1);
+      expect(d.detectorActivo, 'ML Kit Face Mesh');
+      expect(d.ultimoError, contains('ausente'));
+      await d.cerrar();
     },
   );
 }

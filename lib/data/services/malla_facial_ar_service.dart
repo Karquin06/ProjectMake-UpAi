@@ -6,8 +6,13 @@ import 'package:google_mlkit_face_mesh_detection/google_mlkit_face_mesh_detectio
 import '../../models/deteccion_facial_ar.dart';
 import 'deteccion_facial_ar_service.dart';
 
+/// Cliente ligero del canal de google_mlkit_face_mesh_detection 0.6.1 (fijado en
+/// pubspec). Solo materializa puntos/contornos utilizados: no crea los miles de
+/// objetos de triángulos del wrapper. El transporte nativo aún incluye esos datos.
 class MallaFacialArService implements DetectorLabiosAr {
-  mesh.FaceMeshDetector? _detector;
+  static const _canal = MethodChannel('google_mlkit_face_mesh_detector');
+  static int _secuencia = 0;
+  String? _id;
   @override
   Future<DeteccionFacialAr> detectar(
     CameraImage imagen,
@@ -18,73 +23,135 @@ class MallaFacialArService implements DetectorLabiosAr {
       throw UnsupportedError('Malla AR solo Android');
     }
     final reloj = Stopwatch()..start();
-    final entrada = entradaImagenAr(imagen, camara, orientacion);
-    final conversionMs = reloj.elapsedMicroseconds / 1000;
-    final detector = _detector ??= mesh.FaceMeshDetector(
-      option: mesh.FaceMeshDetectorOptions.faceMesh,
-    );
+    final entrada = entradaImagenAr(imagen, camara, orientacion),
+        conversion = reloj.elapsedMicroseconds / 1000;
+    final id = _id ??=
+        'ar-malla-${DateTime.now().microsecondsSinceEpoch}-${_secuencia++}';
     reloj.reset();
-    final caras = await detector.processImage(entrada);
-    final detectorMs = reloj.elapsedMicroseconds / 1000;
-    final cara = caras.isEmpty
-        ? null
-        : caras.reduce(
-            (a, b) =>
-                a.boundingBox.width * a.boundingBox.height >=
-                    b.boundingBox.width * b.boundingBox.height
-                ? a
-                : b,
-          );
-    List<Offset> puntos(mesh.FaceMeshContourType tipo) =>
-        (cara?.contours[tipo] ?? []).map((p) => Offset(p.x, p.y)).toList();
+    final respuesta = await _canal
+        .invokeListMethod<dynamic>('vision#startFaceMeshDetector', {
+          'id': id,
+          'option': mesh.FaceMeshDetectorOptions.faceMesh.index,
+          'imageData': entrada.toJson(),
+        });
+    if (respuesta == null) {
+      throw PlatformException(
+        code: 'ARInvalidMeshResponse',
+        message: 'El SDK devolvió null en vez de una lista',
+      );
+    }
+    final d = convertirMallaAr(
+      respuesta,
+      Size(imagen.width.toDouble(), imagen.height.toDouble()),
+      rotacionImagenAr(camara, orientacion),
+      camara.lensDirection == CameraLensDirection.front,
+      conversionMs: conversion,
+    );
     return DeteccionFacialAr(
-      tamanoImagen: Size(imagen.width.toDouble(), imagen.height.toDouble()),
-      rotacion: rotacionImagenAr(camara, orientacion),
-      esFrontal: camara.lensDirection == CameraLensDirection.front,
-      rostroDetectado: cara != null,
-      cantidadRostros: caras.length,
-      cajaRostro: cara?.boundingBox,
-      conversionMs: conversionMs,
-      detectorMs: detectorMs,
-      motor: 'ML Kit Face Mesh',
-      contornosLabios: cara == null
-          ? []
-          : [
-              puntos(mesh.FaceMeshContourType.upperLipTop),
-              puntos(mesh.FaceMeshContourType.upperLipBottom),
-              puntos(mesh.FaceMeshContourType.lowerLipTop),
-              puntos(mesh.FaceMeshContourType.lowerLipBottom),
-            ],
-      regiones: {
-        RegionFacialAr.ovalo: puntos(mesh.FaceMeshContourType.faceOval),
-        RegionFacialAr.ojoIzquierdo: puntos(mesh.FaceMeshContourType.leftEye),
-        RegionFacialAr.ojoDerecho: puntos(mesh.FaceMeshContourType.rightEye),
-        RegionFacialAr.cejaIzquierdaSuperior: puntos(
-          mesh.FaceMeshContourType.leftEyebrowTop,
-        ),
-        RegionFacialAr.cejaIzquierdaInferior: puntos(
-          mesh.FaceMeshContourType.leftEyebrowBottom,
-        ),
-        RegionFacialAr.cejaDerechaSuperior: puntos(
-          mesh.FaceMeshContourType.rightEyebrowTop,
-        ),
-        RegionFacialAr.cejaDerechaInferior: puntos(
-          mesh.FaceMeshContourType.rightEyebrowBottom,
-        ),
-        RegionFacialAr.puenteNariz: puntos(mesh.FaceMeshContourType.noseBridge),
-      },
-      malla: {
-        for (final p in cara?.points ?? <mesh.FaceMeshPoint>[])
-          p.index: PuntoMallaAr(p.x, p.y, p.z),
-      },
+      tamanoImagen: d.tamanoImagen,
+      rotacion: d.rotacion,
+      esFrontal: d.esFrontal,
+      rostroDetectado: d.rostroDetectado,
+      cantidadRostros: d.cantidadRostros,
+      cajaRostro: d.cajaRostro,
+      contornosLabios: d.contornosLabios,
+      regiones: d.regiones,
+      malla: d.malla,
+      motor: d.motor,
+      conversionMs: conversion,
+      detectorMs: reloj.elapsedMicroseconds / 1000,
     );
   }
 
   @override
   Future<void> cerrar() async {
-    final d = _detector;
-    _detector = null;
-    await d?.close();
+    final id = _id;
+    _id = null;
+    if (id != null) {
+      await _canal.invokeMethod<void>('vision#closeFaceMeshDetector', {
+        'id': id,
+      });
+    }
+  }
+}
+
+DeteccionFacialAr convertirMallaAr(
+  List<dynamic> caras,
+  Size tamano,
+  int rotacion,
+  bool frontal, {
+  double conversionMs = 0,
+}) {
+  try {
+    Rect caja(Map<dynamic, dynamic> cara) {
+      final r = cara['rect'] as Map;
+      return Rect.fromLTRB(
+        (r['left'] as num).toDouble(),
+        (r['top'] as num).toDouble(),
+        (r['right'] as num).toDouble(),
+        (r['bottom'] as num).toDouble(),
+      );
+    }
+
+    Map<dynamic, dynamic>? cara;
+    for (final entrada in caras) {
+      final m = entrada as Map;
+      if (cara == null ||
+          caja(m).size.width * caja(m).size.height >
+              caja(cara).width * caja(cara).height) {
+        cara = m;
+      }
+    }
+    List<Offset> contorno(int indice) {
+      final mapa = cara?['contours'] as Map?;
+      final lista = (mapa?[indice] ?? mapa?['$indice'] ?? const []) as List;
+      return [
+        for (final p in lista)
+          Offset((p['x'] as num).toDouble(), (p['y'] as num).toDouble()),
+      ];
+    }
+
+    final puntos = (cara?['points'] ?? const []) as List;
+    return DeteccionFacialAr(
+      tamanoImagen: tamano,
+      rotacion: rotacion,
+      esFrontal: frontal,
+      rostroDetectado: cara != null,
+      cantidadRostros: caras.length,
+      cajaRostro: cara == null ? null : caja(cara),
+      motor: 'ML Kit Face Mesh',
+      conversionMs: conversionMs,
+      contornosLabios: cara == null
+          ? []
+          : [
+              for (final i in [7, 8, 9, 10]) contorno(i),
+            ],
+      regiones: cara == null
+          ? {}
+          : {
+              RegionFacialAr.ovalo: contorno(0),
+              RegionFacialAr.ojoIzquierdo: contorno(5),
+              RegionFacialAr.ojoDerecho: contorno(6),
+              RegionFacialAr.cejaIzquierdaSuperior: contorno(1),
+              RegionFacialAr.cejaIzquierdaInferior: contorno(2),
+              RegionFacialAr.cejaDerechaSuperior: contorno(3),
+              RegionFacialAr.cejaDerechaInferior: contorno(4),
+              RegionFacialAr.puenteNariz: contorno(11),
+            },
+      malla: {
+        for (final p in puntos)
+          (p['index'] as num).toInt(): PuntoMallaAr(
+            (p['x'] as num).toDouble(),
+            (p['y'] as num).toDouble(),
+            (p['z'] as num).toDouble(),
+          ),
+      },
+    );
+  } catch (e) {
+    throw PlatformException(
+      code: 'ARInvalidMeshResponse',
+      message: 'Respuesta de malla no válida: $e',
+    );
   }
 }
 
@@ -97,10 +164,13 @@ class DetectorFacialAdaptativoAr implements DetectorLabiosAr {
     DetectorLabiosAr? principal,
     DetectorLabiosAr? alternativa,
     int Function()? relojMicrosegundos,
+    this.preferirContornos = false,
   }) : _principal = principal ?? MallaFacialArService(),
        _alternativa = alternativa ?? DeteccionFacialArService(),
-       _relojExterno = relojMicrosegundos;
+       _relojExterno = relojMicrosegundos,
+       _usarAlternativa = preferirContornos;
   final DetectorLabiosAr _principal, _alternativa;
+  final bool preferirContornos;
   final int Function()? _relojExterno;
   final _reloj = Stopwatch()..start();
   int get _ahora => _relojExterno?.call() ?? _reloj.elapsedMicroseconds;
@@ -108,10 +178,11 @@ class DetectorFacialAdaptativoAr implements DetectorLabiosAr {
   String? ultimoError, motivoAlternativa;
   int errores = 0;
   String get detectorActivo =>
-      modo == ModoDetectorAr.contornos || _usarAlternativa
+      modo != ModoDetectorAr.malla &&
+          (modo == ModoDetectorAr.contornos || _usarAlternativa)
       ? 'ML Kit Face Detection'
       : 'ML Kit Face Mesh';
-  bool _usarAlternativa = false;
+  bool _usarAlternativa;
   int _ultimoSondeoUs = -2000000;
   int _sinGeometria = 0, _lentos = 0, _muestras = 0;
   String? _cambioPendiente;
@@ -127,8 +198,32 @@ class DetectorFacialAdaptativoAr implements DetectorLabiosAr {
     CameraDescription camara,
     DeviceOrientation orientacion,
   ) async {
-    if (modo == ModoDetectorAr.contornos || _usarAlternativa) {
-      return _alternativa.detectar(imagen, camara, orientacion);
+    if (modo == ModoDetectorAr.contornos ||
+        (modo == ModoDetectorAr.automatico && _usarAlternativa)) {
+      try {
+        return await _alternativa.detectar(imagen, camara, orientacion);
+      } on PlatformException catch (e) {
+        _registrarError(e);
+        if (modo == ModoDetectorAr.contornos) rethrow;
+        _usarAlternativa = false;
+        motivoAlternativa = 'Contornos falló; se intenta malla: $e';
+        try {
+          await _alternativa.cerrar();
+        } catch (cierre) {
+          _registrarError(cierre);
+        }
+      } on MissingPluginException catch (e) {
+        _registrarError(e);
+        if (modo == ModoDetectorAr.contornos) rethrow;
+        _usarAlternativa = false;
+        motivoAlternativa =
+            'Plugin de contornos no disponible; se intenta malla: $e';
+        try {
+          await _alternativa.cerrar();
+        } catch (cierre) {
+          _registrarError(cierre);
+        }
+      }
     }
     if (_cambioPendiente case final String motivo) {
       _cambioPendiente = null;
@@ -226,7 +321,7 @@ class DetectorFacialAdaptativoAr implements DetectorLabiosAr {
       await _principal.cerrar();
     } finally {
       await _alternativa.cerrar();
-      _usarAlternativa = false;
+      _usarAlternativa = preferirContornos;
       _ultimoSondeoUs = -2000000;
       _sinGeometria = 0;
       _lentos = 0;
