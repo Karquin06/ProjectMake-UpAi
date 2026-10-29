@@ -196,7 +196,10 @@ void main() {
       await Future<void>.delayed(Duration.zero);
       expect(dibujos, 2);
       expect(pantalla, avisosIniciales);
-      expect(vm.deteccion!.contornosLabios.first.first.dx, 30);
+      expect(
+        vm.deteccion!.contornosLabios.first.first.dx,
+        inInclusiveRange(18, 30),
+      );
       detector.resultado = DeteccionFacialAr(
         tamanoImagen: const Size(640, 480),
         rotacion: 90,

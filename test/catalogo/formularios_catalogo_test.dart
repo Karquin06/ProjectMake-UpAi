@@ -215,6 +215,7 @@ void main() {
         marca: 'Mac',
         categoria: 'labial',
         tono: 'Ruby Woo',
+        tipoEfectoAr: 'labial',
         colorHex: '#B71C1C',
         acabado: 'Mate',
         estacionesCompatibles: [EstacionColor.invierno],
@@ -249,6 +250,7 @@ void main() {
       expect(_productoValido(datos), isTrue);
       expect(p.tono, 'Ruby Woo'); // Se conserva.
       expect(p.acabado, 'Mate'); // Se conserva.
+      expect(p.tipoEfectoAr, 'labial'); // Editar la imagen no borra el tipo AR.
       expect(p.imagenRuta, startsWith('catalogo/productos/$id/'));
       expect(storage.borrados, ['catalogo/productos/x/vieja.jpg']);
       vm.dispose();

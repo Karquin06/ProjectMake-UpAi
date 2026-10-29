@@ -13,13 +13,14 @@ class DefinicionEfectoAr {
     this.orden, {
     this.opacidad = .4,
     this.experimental = false,
+    this.habilitado = true,
   });
   final String categoria, nombre;
   final FamiliaEfectoAr familia;
   final int orden;
   final double opacidad;
-  final bool experimental;
-  bool get disponible => familia != FamiliaEfectoAr.pendiente;
+  final bool experimental, habilitado;
+  bool get disponible => habilitado && familia != FamiliaEfectoAr.pendiente;
 }
 
 /// Añadir una categoría y su adaptador de regiones no cambia cámara ni selector.
@@ -38,6 +39,7 @@ class RegistroEfectosAr {
       0,
       opacidad: .16,
       experimental: true,
+      habilitado: false,
     ),
     DefinicionEfectoAr(
       'corrector',
@@ -119,13 +121,18 @@ class RegistroEfectosAr {
     return _tipos[_alias[c] ?? c];
   }
 
+  DefinicionEfectoAr? paraProducto(ProductoMaquillaje p) {
+    final explicito = p.tipoEfectoAr;
+    return buscar(
+      explicito != null && explicito.isNotEmpty ? explicito : p.categoria,
+    );
+  }
+
   List<DefinicionEfectoAr> get tipos => List.unmodifiable(_tipos.values);
   static bool tonoValido(String s) =>
       RegExp(r'^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$').hasMatch(s.trim());
   bool admite(ProductoMaquillaje p) =>
-      p.activo &&
-      tonoValido(p.colorHex) &&
-      buscar(p.categoria)?.disponible == true;
+      p.activo && tonoValido(p.colorHex) && paraProducto(p)?.disponible == true;
 }
 
 class CapaMaquillajeAr {
@@ -170,7 +177,7 @@ class LookMaquillajeAr {
     'labial',
     'rubor',
     'sombra',
-  ].every((c) => productos.any((p) => p.categoria == c));
+  ].every((c) => productos.any((p) => (p.tipoEfectoAr ?? p.categoria) == c));
 }
 
 /// Entrada inmutable al compositor; no depende de providers ni de Firebase.

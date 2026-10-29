@@ -1,4 +1,5 @@
 import '../../models/rendimiento_ar.dart';
+import '../../data/services/suavizador_facial_ar.dart';
 import '../../data/services/malla_facial_ar_service.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
@@ -33,7 +34,8 @@ class SimuladorArViewModel extends ChangeNotifier {
     this.relojMicrosegundos,
   }) : _listarCamaras = listarCamaras ?? availableCameras,
        _crearControlador = crearControlador ?? _crearCamara,
-       _detector = detector ?? DetectorFacialAdaptativoAr();
+       _detector =
+           detector ?? DetectorFacialAdaptativoAr(preferirContornos: true);
 
   /// Web permite ver la webcam; ML Kit procesa imágenes solo en Android.
   final bool soloVistaPrevia;
@@ -41,6 +43,22 @@ class SimuladorArViewModel extends ChangeNotifier {
   final Future<List<CameraDescription>> Function() _listarCamaras;
   final CameraController Function(CameraDescription) _crearControlador;
   final DetectorLabiosAr _detector;
+  final _suavizador = SuavizadorFacialAr();
+  double _suavizadoMs = 0, _mascarasMs = 0;
+  int? _geometriaRecibidaUs;
+  bool _composicionTextura = true;
+  bool get composicionTextura => _composicionTextura;
+  void cambiarComposicion(bool textura) {
+    if (_composicionTextura == textura) return;
+    _composicionTextura = textura;
+    _reiniciarMedidas();
+    notifyListeners();
+  }
+
+  void registrarMascaras(int us) {
+    _mascarasMs += us / 1000;
+  }
+
   final _rendimiento = ValueNotifier<RendimientoAr>(const RendimientoAr());
   ValueListenable<RendimientoAr> get rendimiento => _rendimiento;
   final int Function()? relojMicrosegundos;
@@ -101,6 +119,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     _completados = 0;
     _utilizados = 0;
     _pintadas = 0;
+    _mascarasMs = 0;
     _pintadoUs = 0;
     _rasterizados = 0;
     _rasterUs = 0;
@@ -166,6 +185,12 @@ class SimuladorArViewModel extends ChangeNotifier {
       streamActivo: _streamActivo,
       calentando: _ahoraUs - _inicioSesionUs < 5000000,
       motor: _adaptativo?.detectorActivo ?? _motor,
+      suavizadoMs: _suavizadoMs,
+      mascarasMs: _pintadas == 0 ? 0 : _mascarasMs / _pintadas,
+      edadGeometriaMs: _geometriaRecibidaUs == null
+          ? 0
+          : math.max(0, _ahoraUs - _geometriaRecibidaUs!) / 1000,
+      composicion: _composicionTextura ? "textura de cámara" : "tinte",
       entrada: _entrada,
       preview: _controlador?.value.previewSize.toString() ?? '—',
       ultimoError: _ultimoError ?? _adaptativo?.ultimoError,
@@ -187,6 +212,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     _completados = 0;
     _utilizados = 0;
     _pintadas = 0;
+    _mascarasMs = 0;
     _pintadoUs = 0;
     _rasterizados = 0;
     _rasterUs = 0;
@@ -341,6 +367,8 @@ class SimuladorArViewModel extends ChangeNotifier {
     _generacion++;
     _caducidad?.cancel();
     _fotogramas.value = null;
+    _suavizador.reiniciar();
+    _geometriaRecibidaUs = null;
     _esperandoPrimerFotograma = true;
     if (!_cerrado) notifyListeners();
   }
@@ -383,7 +411,7 @@ class SimuladorArViewModel extends ChangeNotifier {
         _entrada = metadatos;
         debugPrint('AR entrada: $metadatos');
       }
-      final resultado = await _detector.detectar(
+      final crudo = await _detector.detectar(
         imagen,
         camara.description,
         orientacion,
@@ -393,8 +421,8 @@ class SimuladorArViewModel extends ChangeNotifier {
       final duracionUs = math.max(0, _ahoraUs - recibidoUs);
       _latencias.add(duracionUs);
       _ultimaDeteccionMs = duracionUs / 1000;
-      _conversionMs = resultado.conversionMs;
-      _detectorMs = resultado.detectorMs;
+      _conversionMs = crudo.conversionMs;
+      _detectorMs = crudo.detectorMs;
       if (_cerrado ||
           !_activa ||
           generacion != _generacion ||
@@ -402,6 +430,10 @@ class SimuladorArViewModel extends ChangeNotifier {
           orientacion != camara.value.deviceOrientation) {
         return;
       }
+      final relojSuavizado = Stopwatch()..start();
+      final resultado = _suavizador.aplicar(crudo, _ahoraUs);
+      _suavizadoMs = relojSuavizado.elapsedMicroseconds / 1000;
+      _geometriaRecibidaUs = resultado.rostroDetectado ? recibidoUs : null;
       _motor = resultado.motor;
       _rostros = resultado.cantidadRostros;
       _puntos = resultado.cantidadPuntos;
@@ -421,6 +453,8 @@ class SimuladorArViewModel extends ChangeNotifier {
               generacion == _generacion &&
               identical(_fotogramas.value, resultado)) {
             _fotogramas.value = null;
+            _suavizador.reiniciar();
+            _geometriaRecibidaUs = null;
             _seguimientoLento = true;
             notifyListeners();
           }
@@ -449,6 +483,8 @@ class SimuladorArViewModel extends ChangeNotifier {
       final avisar = !_deteccionFallida;
       _caducidad?.cancel();
       _fotogramas.value = null;
+      _suavizador.reiniciar();
+      _geometriaRecibidaUs = null;
       _rostros = 0;
       _puntos = 0;
       _deteccionFallida = true;
@@ -464,6 +500,8 @@ class SimuladorArViewModel extends ChangeNotifier {
     _generacion++;
     _caducidad?.cancel();
     _fotogramas.value = null;
+    _suavizador.reiniciar();
+    _geometriaRecibidaUs = null;
     notifyListeners();
     try {
       await _procesamiento;
@@ -496,6 +534,8 @@ class SimuladorArViewModel extends ChangeNotifier {
     _controlador = null;
     _generacion++;
     _fotogramas.value = null;
+    _suavizador.reiniciar();
+    _geometriaRecibidaUs = null;
     if (camara == null) return;
     camara.removeListener(_alCambiarCamara);
     try {

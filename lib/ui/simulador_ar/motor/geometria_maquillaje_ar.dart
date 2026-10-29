@@ -2,7 +2,9 @@ import 'dart:math' as math;
 import 'dart:ui';
 import '../../../models/deteccion_facial_ar.dart';
 import '../../../models/maquillaje_ar.dart';
-import '../widgets/contorno_labios_painter.dart';
+import 'curvas_faciales_ar.dart';
+
+enum DesvanecidoAr { contorno, radial, parpado }
 
 class MascaraMaquillajeAr {
   const MascaraMaquillajeAr(
@@ -11,58 +13,65 @@ class MascaraMaquillajeAr {
     this.radioX = 1,
     this.radioY = 1,
     this.angulo = 0,
+    this.desvanecido = DesvanecidoAr.contorno,
+    this.exclusiones = const [],
+    this.vertical,
+    this.limite,
   });
   final Path camino;
   final Offset? centro;
   final double radioX, radioY, angulo;
+  final DesvanecidoAr desvanecido;
+  final List<Path> exclusiones;
+  final Path? limite;
+  final Offset? vertical;
 }
 
-/// Todas las regiones se reconstruyen desde el rostro actual; no hay imágenes fijas.
+/// Regiones anatómicas del fotograma actual, compartidas por ambos modos.
 class GeometriaMaquillajeAr {
   GeometriaMaquillajeAr(this.deteccion, this.tamano);
   final DeteccionFacialAr deteccion;
   final Size tamano;
-  List<Offset> region(RegionFacialAr r) => deteccion.proyectarRegion(r, tamano);
-  static Path poligono(List<Offset> puntos) {
-    if (puntos.length < 3) return Path();
-    final p = Path()..moveTo(puntos.first.dx, puntos.first.dy);
-    for (final q in puntos.skip(1)) {
-      p.lineTo(q.dx, q.dy);
-    }
-    return p..close();
-  }
-
+  final _proyectadas = <RegionFacialAr, List<Offset>>{};
+  List<Offset> region(RegionFacialAr r) =>
+      _proyectadas.putIfAbsent(r, () => deteccion.proyectarRegion(r, tamano));
+  static Path poligono(List<Offset> p) => contornoCurvoAr(p);
   static Offset centro(List<Offset> p) => p.isEmpty
       ? Offset.zero
       : p.fold<Offset>(Offset.zero, (a, b) => a + b) / p.length.toDouble();
   static double punto(Offset a, Offset b) => a.dx * b.dx + a.dy * b.dy;
-  Path get boca {
-    if (!deteccion.labiosDetectados) return Path();
-    final fuera = deteccion.contornosLabios[0]
-        .map((p) => deteccion.proyectar(p, tamano))
-        .toList();
-    final abajo = deteccion.contornosLabios[3]
-        .map((p) => deteccion.proyectar(p, tamano))
-        .toList();
-    if ((fuera.last - abajo.last).distanceSquared <
-        (fuera.last - abajo.first).distanceSquared) {
-      return poligono([...fuera, ...abajo.reversed]);
-    }
-    return poligono([...fuera, ...abajo]);
-  }
-
+  static Path curvas(List<Offset> a, List<Offset> b) => unirCurvasAr(a, b);
+  List<Offset> labio(int i) => deteccion.contornosLabios[i]
+      .map((p) => deteccion.proyectar(p, tamano))
+      .toList(growable: false);
+  late final Path ovalo = poligono(region(RegionFacialAr.ovalo));
+  late final Path boca = deteccion.labiosDetectados
+      ? curvas(labio(0), labio(3))
+      : Path();
+  late final Path abertura = deteccion.labiosDetectados
+      ? curvas(labio(1), labio(2))
+      : Path();
+  late final List<Path> ojos = [
+    for (final r in [RegionFacialAr.ojoIzquierdo, RegionFacialAr.ojoDerecho])
+      poligono(region(r)),
+  ];
+  late final List<Path> cejas = [
+    curvas(
+      region(RegionFacialAr.cejaIzquierdaSuperior),
+      region(RegionFacialAr.cejaIzquierdaInferior),
+    ),
+    curvas(
+      region(RegionFacialAr.cejaDerechaSuperior),
+      region(RegionFacialAr.cejaDerechaInferior),
+    ),
+  ];
   late final Path piel = _piel();
   Path _piel() {
-    var p = poligono(region(RegionFacialAr.ovalo));
-    if (p.getBounds().isEmpty) return p;
-    for (final r in [RegionFacialAr.ojoIzquierdo, RegionFacialAr.ojoDerecho]) {
-      final ojo = poligono(region(r));
-      if (!ojo.getBounds().isEmpty) {
-        p = Path.combine(PathOperation.difference, p, ojo);
+    var p = ovalo;
+    for (final fuera in [...ojos, boca]) {
+      if (!fuera.getBounds().isEmpty) {
+        p = Path.combine(PathOperation.difference, p, fuera);
       }
-    }
-    if (!boca.getBounds().isEmpty) {
-      p = Path.combine(PathOperation.difference, p, boca);
     }
     return p;
   }
@@ -71,17 +80,7 @@ class GeometriaMaquillajeAr {
     if (piel.getBounds().isEmpty) return Path();
     p = Path.combine(PathOperation.intersect, p, piel);
     if (excluirCejas) {
-      for (final par in [
-        (
-          RegionFacialAr.cejaIzquierdaSuperior,
-          RegionFacialAr.cejaIzquierdaInferior,
-        ),
-        (
-          RegionFacialAr.cejaDerechaSuperior,
-          RegionFacialAr.cejaDerechaInferior,
-        ),
-      ]) {
-        final ceja = curvas(region(par.$1), region(par.$2));
+      for (final ceja in cejas) {
         if (!ceja.getBounds().isEmpty) {
           p = Path.combine(PathOperation.difference, p, ceja);
         }
@@ -90,28 +89,19 @@ class GeometriaMaquillajeAr {
     return p;
   }
 
-  static Path curvas(List<Offset> a, List<Offset> b) {
-    if (a.length < 2 || b.length < 2) return Path();
-    final vuelta =
-        (a.last - b.first).distanceSquared <= (a.last - b.last).distanceSquared
-        ? b
-        : b.reversed;
-    return poligono([...a, ...vuelta]);
-  }
-
   MascaraMaquillajeAr _ovalo(Offset c, double rx, double ry, Offset eje) {
     final angulo = math.atan2(eje.dy, eje.dx),
-        coseno = math.cos(angulo),
-        seno = math.sin(angulo);
+        cs = math.cos(angulo),
+        sn = math.sin(angulo);
     final puntos = [
-      for (var i = 0; i < 40; i++)
+      for (var i = 0; i < 32; i++)
         Offset(
           c.dx +
-              rx * math.cos(i * math.pi / 20) * coseno -
-              ry * math.sin(i * math.pi / 20) * seno,
+              rx * math.cos(i * math.pi / 16) * cs -
+              ry * math.sin(i * math.pi / 16) * sn,
           c.dy +
-              rx * math.cos(i * math.pi / 20) * seno +
-              ry * math.sin(i * math.pi / 20) * coseno,
+              rx * math.cos(i * math.pi / 16) * sn +
+              ry * math.sin(i * math.pi / 16) * cs,
         ),
     ];
     return MascaraMaquillajeAr(
@@ -120,6 +110,9 @@ class GeometriaMaquillajeAr {
       radioX: rx,
       radioY: ry,
       angulo: angulo,
+      desvanecido: DesvanecidoAr.radial,
+      exclusiones: [...ojos, ...cejas, boca],
+      limite: ovalo,
     );
   }
 
@@ -128,37 +121,27 @@ class GeometriaMaquillajeAr {
     if (familia == FamiliaEfectoAr.labios) {
       if (!deteccion.labiosDetectados) return [];
       return [
-        MascaraMaquillajeAr(
-          ContornoLabiosPainter.superficie(deteccion, tamano, 0, 1),
-        ),
-        MascaraMaquillajeAr(
-          ContornoLabiosPainter.superficie(deteccion, tamano, 3, 2),
-        ),
+        for (final par in [(0, 1), (3, 2)])
+          MascaraMaquillajeAr(
+            curvas(labio(par.$1), labio(par.$2)),
+            exclusiones: [abertura],
+          ),
       ];
     }
     if (familia == FamiliaEfectoAr.rostro) {
-      if (!deteccion.labiosDetectados ||
-          region(RegionFacialAr.ojoIzquierdo).length < 3 ||
-          region(RegionFacialAr.ojoDerecho).length < 3) {
+      if (!deteccion.labiosDetectados || ojos.any((p) => p.getBounds().isEmpty)) {
         return [];
       }
-      return [MascaraMaquillajeAr(_recortar(piel, excluirCejas: true))];
-    }
-    if (familia == FamiliaEfectoAr.cejas) {
       return [
         MascaraMaquillajeAr(
-          curvas(
-            region(RegionFacialAr.cejaIzquierdaSuperior),
-            region(RegionFacialAr.cejaIzquierdaInferior),
-          ),
-        ),
-        MascaraMaquillajeAr(
-          curvas(
-            region(RegionFacialAr.cejaDerechaSuperior),
-            region(RegionFacialAr.cejaDerechaInferior),
-          ),
+          _recortar(piel, excluirCejas: true),
+          exclusiones: [...ojos, ...cejas, boca],
+          limite: ovalo,
         ),
       ];
+    }
+    if (familia == FamiliaEfectoAr.cejas) {
+      return [for (final ceja in cejas) MascaraMaquillajeAr(ceja)];
     }
     final izq = region(RegionFacialAr.ojoIzquierdo),
         der = region(RegionFacialAr.ojoDerecho);
@@ -168,57 +151,80 @@ class GeometriaMaquillajeAr {
     final eje = (cd - ci) / distancia;
     var abajo = Offset(-eje.dy, eje.dx);
     final referencia = deteccion.labiosDetectados
-        ? centro(
-            deteccion.contornosLabios[3]
-                .map((p) => deteccion.proyectar(p, tamano))
-                .toList(),
-          )
+        ? centro(labio(3))
         : centro(region(RegionFacialAr.ovalo));
     if (punto(referencia - (ci + cd) / 2, abajo) < 0) abajo = -abajo;
     if (familia == FamiliaEfectoAr.mejillas) {
       return [
-        _ovalo(
-          ci + abajo * (distancia * .36) - eje * (distancia * .08),
-          distancia * .27,
-          distancia * .18,
-          eje,
-        ),
-        _ovalo(
-          cd + abajo * (distancia * .36) + eje * (distancia * .08),
-          distancia * .27,
-          distancia * .18,
-          eje,
-        ),
+        for (final par in [(ci, -1.0), (cd, 1.0)])
+          _ovalo(
+            par.$1 +
+                eje * (distancia * .22 * par.$2) +
+                abajo * (distancia * .29),
+            distancia * .34,
+            distancia * .14,
+            eje * par.$2 - abajo * .30,
+          ),
       ];
     }
     if (familia == FamiliaEfectoAr.parpados) {
       final resultado = <MascaraMaquillajeAr>[];
-      for (final ojo in [izq, der]) {
-        final c = centro(ojo),
-            xs = ojo.map((p) => punto(p - c, eje)),
-            ys = ojo.map((p) => punto(p - c, abajo));
-        final ancho = xs.reduce(math.max) - xs.reduce(math.min),
-            alto = ys.reduce(math.max) - ys.reduce(math.min);
-        if (ancho < 2 || alto < .3) continue;
-        final mascara = _ovalo(
-          c + abajo * (ys.reduce(math.min) - alto * .28),
-          ancho * .6,
-          math.max(alto * .85, ancho * .13),
-          eje,
+      for (var i = 0; i < 2; i++) {
+        final ojo = i == 0 ? izq : der, c = centro(ojo);
+        final xs = ojo.map((p) => punto(p - c, eje)).toList(),
+            ys = ojo.map((p) => punto(p - c, abajo)).toList();
+        final minX = xs.reduce(math.min),
+            maxX = xs.reduce(math.max),
+            ancho = maxX - minX;
+        if (ancho < 3) continue;
+        final ceja = region(
+          i == 0
+              ? RegionFacialAr.cejaIzquierdaInferior
+              : RegionFacialAr.cejaDerechaInferior,
         );
-        final corte = poligono([
-          c - eje * ancho - abajo * ancho,
-          c + eje * ancho - abajo * ancho,
-          c + eje * ancho + abajo * (alto * .05),
-          c - eje * ancho + abajo * (alto * .05),
-        ]);
+        if (ceja.length < 2) continue;
+        // El límite superior se mantiene debajo de la ceja real, no en una
+        // franja fija. Con el ojo cerrado se conserva la superficie del párpado.
+        final techoCeja = ceja.map((p) => punto(p - c, abajo)).reduce(math.max);
+        final bordeSuperiorOjo = ys.reduce(math.min);
+        final espacio = bordeSuperiorOjo - techoCeja;
+        if (espacio < 1) continue;
+        final altura = (espacio * .65).clamp(1.0, ancho * .30);
+        final superior = <Offset>[], inferior = <Offset>[];
+        for (var j = 0; j < 7; j++) {
+          final t = j / 6.0, x = minX + (maxX - minX) * t;
+          final cerca = [
+            for (var k = 0; k < xs.length; k++)
+              if ((xs[k] - x).abs() < ancho * .24) ys[k],
+          ];
+          final borde = cerca.isEmpty
+              ? bordeSuperiorOjo
+              : cerca.reduce(math.min);
+          final arco = math.sin(t * math.pi);
+          final yTop = math.max(
+            techoCeja + math.max(.8, ancho * .025),
+            borde - altura * arco,
+          );
+          superior.add(c + eje * x + abajo * yTop);
+          inferior.add(
+            c + eje * x + abajo * (borde + math.max(.5, ancho * .012)),
+          );
+        }
+        final camino = _recortar(
+          curvas(superior, inferior),
+          excluirCejas: true,
+        );
         resultado.add(
           MascaraMaquillajeAr(
-            Path.combine(PathOperation.intersect, mascara.camino, corte),
-            centro: mascara.centro,
-            radioX: mascara.radioX,
-            radioY: mascara.radioY,
-            angulo: mascara.angulo,
+            camino,
+            centro: c + abajo * bordeSuperiorOjo,
+            radioX: ancho * .52,
+            radioY: altura,
+            angulo: math.atan2(eje.dy, eje.dx),
+            vertical: abajo,
+            desvanecido: DesvanecidoAr.parpado,
+            exclusiones: [...ojos, ...cejas],
+            limite: ovalo,
           ),
         );
       }

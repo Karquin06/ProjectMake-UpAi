@@ -101,7 +101,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
   List<ProductoMaquillaje> get productos =>
       catalogoVisible.where((p) => registro.admite(p)).toList(growable: false);
   List<ProductoMaquillaje> get productosCategoria => catalogoVisible
-      .where((p) => registro.buscar(p.categoria)?.categoria == _categoria)
+      .where((p) => registro.paraProducto(p)?.categoria == _categoria)
       .toList(growable: false);
   static bool tonoValido(String s) => RegistroEfectosAr.tonoValido(s);
   ProductoMaquillaje? get seleccionado => _capas[_categoria]?.producto;
@@ -254,10 +254,15 @@ class MaquillajeArViewModel extends ChangeNotifier {
         _capas.remove(clave);
         continue;
       }
-      if (!identical(c.producto, p)) {
-        _capas[clave] = CapaMaquillajeAr(
+      final nuevaDefinicion = registro.paraProducto(p)!;
+      if (!identical(c.producto, p) || nuevaDefinicion.categoria != clave) {
+        if (nuevaDefinicion.categoria != clave) {
+          _capas.remove(clave);
+          if (_categoria == clave) _categoria = nuevaDefinicion.categoria;
+        }
+        _capas[nuevaDefinicion.categoria] = CapaMaquillajeAr(
           producto: p,
-          efecto: registro.buscar(p.categoria)!,
+          efecto: registro.paraProducto(p)!,
           intensidad: c.intensidad,
           acabado: c.acabado == c.producto.acabado ? p.acabado : c.acabado,
         );
@@ -289,7 +294,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
         !_idsRecomendados.contains(id)) {
       _modo = ModoMaquillajeAr.libre;
     }
-    final d = registro.buscar(p.categoria)!;
+    final d = registro.paraProducto(p)!;
     _capas[d.categoria] = CapaMaquillajeAr.deProducto(p, d);
     _categoria = d.categoria;
     _original = false;
@@ -313,7 +318,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
         _notificar();
         return;
       }
-      final d = registro.buscar(real.categoria)!;
+      final d = registro.paraProducto(real)!;
       mapa[d.categoria] = CapaMaquillajeAr.deProducto(real, d);
     }
     _capas
