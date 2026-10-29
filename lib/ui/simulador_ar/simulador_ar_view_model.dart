@@ -46,19 +46,8 @@ class SimuladorArViewModel extends ChangeNotifier {
   final _suavizador = SuavizadorFacialAr();
   double _suavizadoMs = 0, _mascarasMs = 0;
   int? _geometriaRecibidaUs;
-  bool _composicionTextura = true;
-  bool get composicionTextura => _composicionTextura;
-  void cambiarComposicion(bool textura) {
-    if (_composicionTextura == textura) return;
-    _composicionTextura = textura;
-    _reiniciarMedidas();
-    notifyListeners();
-  }
-
-  void registrarMascaras(int us) {
-    _mascarasMs += us / 1000;
-  }
-
+  double _actualizacionEfectosMs = 0;
+  void registrarMascaras(int us) => _mascarasMs += us / 1000;
   final _rendimiento = ValueNotifier<RendimientoAr>(const RendimientoAr());
   ValueListenable<RendimientoAr> get rendimiento => _rendimiento;
   final int Function()? relojMicrosegundos;
@@ -91,6 +80,10 @@ class SimuladorArViewModel extends ChangeNotifier {
   void registrarCapasDibujadas(int capas, int mascaras) {
     _capasDibujadas = capas;
     _mascarasDibujadas = mascaras;
+    final fuente = _geometriaRecibidaUs;
+    _actualizacionEfectosMs = capas > 0 && fuente != null
+        ? math.max(0, _ahoraUs - fuente) / 1000
+        : 0;
   }
 
   void registrarPintado(int us) {
@@ -120,6 +113,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     _utilizados = 0;
     _pintadas = 0;
     _mascarasMs = 0;
+    _actualizacionEfectosMs = 0;
     _pintadoUs = 0;
     _rasterizados = 0;
     _rasterUs = 0;
@@ -190,7 +184,8 @@ class SimuladorArViewModel extends ChangeNotifier {
       edadGeometriaMs: _geometriaRecibidaUs == null
           ? 0
           : math.max(0, _ahoraUs - _geometriaRecibidaUs!) / 1000,
-      composicion: _composicionTextura ? "textura de cámara" : "tinte",
+      actualizacionEfectosMs: _actualizacionEfectosMs,
+      composicion: 'máscaras transparentes; cámara única',
       entrada: _entrada,
       preview: _controlador?.value.previewSize.toString() ?? '—',
       ultimoError: _ultimoError ?? _adaptativo?.ultimoError,
@@ -431,7 +426,7 @@ class SimuladorArViewModel extends ChangeNotifier {
         return;
       }
       final relojSuavizado = Stopwatch()..start();
-      final resultado = _suavizador.aplicar(crudo, _ahoraUs);
+      final resultado = _suavizador.aplicar(crudo, recibidoUs);
       _suavizadoMs = relojSuavizado.elapsedMicroseconds / 1000;
       _geometriaRecibidaUs = resultado.rostroDetectado ? recibidoUs : null;
       _motor = resultado.motor;

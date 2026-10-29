@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../../../core/utils/color_utils.dart';
+import '../motor/estilo_maquillaje_ar.dart';
 import '../../../models/deteccion_facial_ar.dart';
 import '../../../models/maquillaje_ar.dart';
 import '../motor/geometria_maquillaje_ar.dart';
@@ -15,6 +15,7 @@ class PintorMaquillajeAr extends CustomPainter {
     this.mostrarGuia = false,
     this.alPintar,
     this.alAplicar,
+    this.alCrearMascaras,
   }) : capas = List.unmodifiable(
          [...capas]..sort((a, b) => a.efecto.orden.compareTo(b.efecto.orden)),
        ),
@@ -22,12 +23,12 @@ class PintorMaquillajeAr extends CustomPainter {
   final ValueListenable<DeteccionFacialAr?> fotogramas;
   final List<CapaMaquillajeAr> capas;
   final bool original, mostrarGuia;
-  final void Function(int microsegundos)? alPintar;
+  final void Function(int microsegundos)? alPintar, alCrearMascaras;
   final void Function(int capas, int mascaras)? alAplicar;
   @override
   void paint(Canvas canvas, Size size) {
     final reloj = Stopwatch()..start();
-    var capasDibujadas = 0, mascarasDibujadas = 0;
+    var capasDibujadas = 0, mascarasDibujadas = 0, geometriaUs = 0;
     try {
       final d = fotogramas.value;
       if (d == null || !d.rostroDetectado) return;
@@ -35,85 +36,102 @@ class PintorMaquillajeAr extends CustomPainter {
           cache = <FamiliaEfectoAr, List<MascaraMaquillajeAr>>{};
       for (final capa in original ? <CapaMaquillajeAr>[] : capas) {
         if (capa.intensidad <= 0) continue;
-        final mascaras = cache.putIfAbsent(
-          capa.efecto.familia,
-          () => geometria.crear(capa.efecto.familia),
-        );
-        final color = ColorUtils.desdeHex(capa.producto.colorHex);
-        final limite = switch (capa.efecto.familia) {
-          FamiliaEfectoAr.rostro => .28,
-          FamiliaEfectoAr.mejillas => .7,
-          _ => .85,
-        };
-        final alpha = (capa.intensidad * limite).clamp(0.0, 1.0);
+        final mascaras = cache.putIfAbsent(capa.efecto.familia, () {
+          final relojMascara = Stopwatch()..start();
+          final resultado = geometria.crear(capa.efecto.familia);
+          geometriaUs += relojMascara.elapsedMicroseconds;
+          return resultado;
+        });
+        if (!capa.efecto.disponible) continue;
+        final estilo = EstiloMaquillajeAr.deCapa(capa);
+        final color = estilo.color, alpha = estilo.opacidad;
         var capaDibujada = false;
         for (final mascara in mascaras) {
           final rect = mascara.camino.getBounds();
           if (rect.isEmpty || !rect.overlaps(Offset.zero & size)) continue;
+          // La cámara queda fuera de cualquier saveLayer o filtro de color.
+          // SrcOver mantiene parte del detalle original; es pigmento aproximado,
+          // no una reconstrucción física de reflectancia.
           final pintura = Paint()
             ..isAntiAlias = true
             ..color = color.withValues(alpha: alpha)
             ..blendMode = BlendMode.srcOver;
-          final borde = math.max(.4, math.min(rect.width, rect.height) * .035);
+          final borde = (math.min(rect.width, rect.height) * .045).clamp(
+            .35,
+            1.8,
+          );
           pintura.maskFilter = MaskFilter.blur(BlurStyle.normal, borde);
-          if (mascara.centro != null) {
-            final coseno = math.cos(mascara.angulo),
-                seno = math.sin(mascara.angulo),
+          if (mascara.centro != null &&
+              mascara.desvanecido == DesvanecidoAr.radial) {
+            final cs = math.cos(mascara.angulo),
+                sn = math.sin(mascara.angulo),
                 c = mascara.centro!;
-            final matriz = Float64List.fromList([
-              mascara.radioX * coseno,
-              mascara.radioX * seno,
-              0,
-              0,
-              -mascara.radioY * seno,
-              mascara.radioY * coseno,
-              0,
-              0,
-              0,
-              0,
-              1,
-              0,
-              c.dx,
-              c.dy,
-              0,
-              1,
-            ]);
             pintura.shader = ui.Gradient.radial(
               Offset.zero,
               1,
               [
                 color.withValues(alpha: alpha),
-                color.withValues(alpha: alpha * .55),
+                color.withValues(alpha: alpha * .7),
                 color.withValues(alpha: 0),
               ],
-              const [0, .48, 1],
+              const [0, .4, 1],
               TileMode.clamp,
-              matriz,
+              Float64List.fromList([
+                mascara.radioX * cs,
+                mascara.radioX * sn,
+                0,
+                0,
+                -mascara.radioY * sn,
+                mascara.radioY * cs,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                c.dx,
+                c.dy,
+                0,
+                1,
+              ]),
             );
-          } else if (capa.acabado.toLowerCase().contains('brill') ||
-              capa.acabado.toLowerCase().contains('satin')) {
-            // Acabado visual aproximado; no reconstruye propiedades físicas.
+          } else if (mascara.centro != null &&
+              mascara.desvanecido == DesvanecidoAr.parpado) {
+            final abajo =
+                mascara.vertical ??
+                Offset(-math.sin(mascara.angulo), math.cos(mascara.angulo));
             pintura.shader = ui.Gradient.linear(
-              rect.topCenter,
-              rect.bottomCenter,
+              mascara.centro! + abajo * borde,
+              mascara.centro! - abajo * mascara.radioY,
               [
                 color.withValues(alpha: alpha),
-                Color.lerp(
-                  color,
-                  Colors.white,
-                  .24,
-                )!.withValues(alpha: alpha * .75),
-                color.withValues(alpha: alpha),
+                color.withValues(alpha: alpha * .8),
+                color.withValues(alpha: 0),
               ],
-              const [0, .4, 1],
+              const [0, .55, 1],
             );
           }
           canvas.save();
-          canvas.clipPath(mascara.camino, doAntiAlias: true);
+          final limite = mascara.limite;
+          if (limite != null && !limite.getBounds().isEmpty) {
+            canvas.clipPath(limite);
+          }
+          // Recortar únicamente las exclusiones permite difuminar el borde
+          // exterior sin borrar ni colorear la cámara subyacente.
+          for (final hueco in mascara.exclusiones) {
+            if (hueco.getBounds().isEmpty) continue;
+            canvas.clipPath(
+              Path.combine(
+                PathOperation.difference,
+                Path()..addRect(Offset.zero & size),
+                hueco,
+              ),
+            );
+          }
           canvas.drawPath(mascara.camino, pintura);
+          canvas.restore();
           mascarasDibujadas++;
           capaDibujada = true;
-          canvas.restore();
         }
         if (capaDibujada) capasDibujadas++;
       }
@@ -160,6 +178,7 @@ class PintorMaquillajeAr extends CustomPainter {
         }
       }
     } finally {
+      alCrearMascaras?.call(geometriaUs);
       alPintar?.call(reloj.elapsedMicroseconds);
       alAplicar?.call(capasDibujadas, mascarasDibujadas);
     }

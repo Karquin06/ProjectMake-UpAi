@@ -58,7 +58,7 @@ class RegistroEfectosAr {
       AppStrings.arRubor,
       FamiliaEfectoAr.mejillas,
       3,
-      opacidad: .28,
+      opacidad: .52,
     ),
     DefinicionEfectoAr(
       'iluminador',
@@ -71,7 +71,7 @@ class RegistroEfectosAr {
       AppStrings.arSombra,
       FamiliaEfectoAr.parpados,
       5,
-      opacidad: .36,
+      opacidad: .64,
     ),
     DefinicionEfectoAr(
       'delineador',
@@ -98,7 +98,7 @@ class RegistroEfectosAr {
       AppStrings.arLabial,
       FamiliaEfectoAr.labios,
       9,
-      opacidad: .48,
+      opacidad: .60,
     ),
     DefinicionEfectoAr(
       'brillo',
@@ -124,7 +124,9 @@ class RegistroEfectosAr {
   DefinicionEfectoAr? paraProducto(ProductoMaquillaje p) {
     final explicito = p.tipoEfectoAr;
     return buscar(
-      explicito != null && explicito.isNotEmpty ? explicito : p.categoria,
+      explicito != null && explicito.trim().isNotEmpty
+          ? explicito
+          : p.categoria,
     );
   }
 

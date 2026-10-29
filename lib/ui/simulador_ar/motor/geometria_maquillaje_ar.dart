@@ -46,10 +46,10 @@ class GeometriaMaquillajeAr {
       .toList(growable: false);
   late final Path ovalo = poligono(region(RegionFacialAr.ovalo));
   late final Path boca = deteccion.labiosDetectados
-      ? curvas(labio(0), labio(3))
+      ? franjaEntreCurvasAr(labio(0), labio(3))
       : Path();
   late final Path abertura = deteccion.labiosDetectados
-      ? curvas(labio(1), labio(2))
+      ? franjaEntreCurvasAr(labio(1), labio(2))
       : Path();
   late final List<Path> ojos = [
     for (final r in [RegionFacialAr.ojoIzquierdo, RegionFacialAr.ojoDerecho])
@@ -123,13 +123,15 @@ class GeometriaMaquillajeAr {
       return [
         for (final par in [(0, 1), (3, 2)])
           MascaraMaquillajeAr(
-            curvas(labio(par.$1), labio(par.$2)),
+            franjaEntreCurvasAr(labio(par.$1), labio(par.$2)),
             exclusiones: [abertura],
+            limite: boca,
           ),
       ];
     }
     if (familia == FamiliaEfectoAr.rostro) {
-      if (!deteccion.labiosDetectados || ojos.any((p) => p.getBounds().isEmpty)) {
+      if (!deteccion.labiosDetectados ||
+          ojos.any((p) => p.getBounds().isEmpty)) {
         return [];
       }
       return [

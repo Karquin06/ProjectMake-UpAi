@@ -892,10 +892,11 @@ class AppStrings {
 
   static String arMedidas({
     required String motor,
-    String composicion = "textura de cámara",
+    String composicion = 'máscaras transparentes; cámara única',
     double suavizado = 0,
     double mascarasCpu = 0,
     double edad = 0,
+    double actualizacionEfectos = 0,
     required double entrada,
     required double procesado,
     required double validos,
@@ -930,12 +931,13 @@ class AppStrings {
       '''Detector: $motor
 Composición: $composicion
 Suavizado CPU: ${suavizado.toStringAsFixed(2)} ms · Máscaras CPU: ${mascarasCpu.toStringAsFixed(2)} ms
+Entrada → envío al lienzo: ${actualizacionEfectos.toStringAsFixed(1)} ms (no sensor-a-pantalla)
 Edad geometría aprox.: ${edad.toStringAsFixed(1)} ms (no sensor-a-pantalla)
 Stream iniciado: $stream · Calentamiento: $calentando
 Recibidos: $recibidos · Procesados: $procesados · Descartados ocupados: $descartados
 Rostros (última respuesta): $rostros · Puntos disponibles: $puntos
 Capas enviadas al lienzo: $capas · Máscaras: $mascaras
-Cámara estimada: ${entrada.toStringAsFixed(1)} fps
+Entrada al stream de cámara: ${entrada.toStringAsFixed(1)} fps
 Detección: ${procesado.toStringAsFixed(1)} fps · Con rostro: ${validos.toStringAsFixed(1)} fps
 Flutter rasterizados: ${render.toStringAsFixed(1)} fps
 Medición tras calentamiento: ${segundos.toStringAsFixed(1)} s

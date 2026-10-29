@@ -532,7 +532,7 @@ El simulador permite probar maquillaje del catálogo sobre la imagen de la cáma
 - Incluye comparación con la imagen original y limpieza de todas las capas.
 - Permite capturar el resultado, guardarlo por cuenta en el dispositivo, consultarlo desde el Armario y abrir el diálogo del sistema para compartirlo.
 
-Ambas modalidades utilizan una sola cámara y el mismo motor de capas. El maquillaje se mezcla con la textura de cámara mediante máscaras regionales suaves y contornos curvos. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
+Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Las capas de color semitransparentes se aplican mediante máscaras regionales suaves y contornos curvos, dejando visible parte de la textura de la imagen original. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
 
 ### Uso
 

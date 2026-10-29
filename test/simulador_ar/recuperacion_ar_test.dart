@@ -238,4 +238,38 @@ void main() {
       vm.dispose();
     },
   );
+  testWidgets(
+    'separa análisis y envío al lienzo sin presentarlo como latencia física',
+    (tester) async {
+      var ahora = 0;
+      final detector = DetectorFalso()
+        ..pendiente = Completer<DeteccionFacialAr>();
+      final camara = CamaraFalsa(frontal);
+      final vm = SimuladorArViewModel(
+        PermisosFalsos(),
+        detector: detector,
+        listarCamaras: () async => [frontal],
+        crearControlador: (_) => camara,
+        relojMicrosegundos: () => ahora,
+      );
+      await vm.iniciar();
+      camara.recibir!(ImagenFalsa());
+      ahora = 100000;
+      detector.pendiente!.complete(cara());
+      await tester.pump();
+      ahora = 116000;
+      vm.registrarCapasDibujadas(3, 6);
+      vm.registrarMascaras(1200);
+      vm.registrarPintado(2000);
+      ahora = 1000000;
+      await tester.pump(const Duration(seconds: 1));
+      final r = vm.rendimiento.value;
+      expect(r.ultimaDeteccionMs, 100);
+      expect(r.actualizacionEfectosMs, 116);
+      expect(r.mascarasMs, 1.2);
+      expect(PanelDiagnosticoAr.informe(r), contains('no sensor-a-pantalla'));
+      await vm.cerrar();
+      vm.dispose();
+    },
+  );
 }

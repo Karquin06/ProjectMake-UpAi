@@ -11,7 +11,8 @@ Path contornoCurvoAr(Iterable<Offset> entrada) {
       puntos.add(p);
     }
   }
-  if (puntos.length > 1 && (puntos.first - puntos.last).distanceSquared < .0001) {
+  if (puntos.length > 1 &&
+      (puntos.first - puntos.last).distanceSquared < .0001) {
     puntos.removeLast();
   }
   if (puntos.length < 3) return Path();
@@ -45,4 +46,42 @@ Path unirCurvasAr(List<Offset> a, List<Offset> b) {
       ? b
       : b.reversed;
   return contornoCurvoAr([...a, ...vuelta]);
+}
+
+/// Une dos bordes abiertos sin interpolar a través de las comisuras. El SDK
+/// puede entregar cada contorno en sentido distinto y con diferente longitud.
+/// Las dos curvas se interpolan por separado; los cierres son segmentos cortos.
+Path franjaEntreCurvasAr(List<Offset> a, List<Offset> b) {
+  if (a.length < 2 ||
+      b.length < 2 ||
+      [...a, ...b].any((p) => !p.dx.isFinite || !p.dy.isFinite)) {
+    return Path();
+  }
+  final igual =
+      (a.first - b.first).distanceSquared + (a.last - b.last).distanceSquared;
+  final opuesto =
+      (a.first - b.last).distanceSquared + (a.last - b.first).distanceSquared;
+  final vuelta = igual <= opuesto ? b.reversed.toList() : b;
+  final path = Path()..moveTo(a.first.dx, a.first.dy);
+  void borde(List<Offset> puntos) {
+    for (var i = 0; i < puntos.length - 1; i++) {
+      final p0 = puntos[math.max(0, i - 1)],
+          p1 = puntos[i],
+          p2 = puntos[i + 1],
+          p3 = puntos[math.min(puntos.length - 1, i + 2)];
+      final rect = Rect.fromPoints(p1, p2).inflate((p2 - p1).distance * .02);
+      Offset limitar(Offset p) => Offset(
+        p.dx.clamp(rect.left, rect.right),
+        p.dy.clamp(rect.top, rect.bottom),
+      );
+      final c1 = limitar(p1 + (p2 - p0) * .11),
+          c2 = limitar(p2 - (p3 - p1) * .11);
+      path.cubicTo(c1.dx, c1.dy, c2.dx, c2.dy, p2.dx, p2.dy);
+    }
+  }
+
+  borde(a);
+  path.lineTo(vuelta.first.dx, vuelta.first.dy);
+  borde(vuelta);
+  return path..close();
 }

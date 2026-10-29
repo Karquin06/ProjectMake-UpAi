@@ -307,6 +307,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
     final look = _looks.where((l) => l.id == id).firstOrNull;
     if (look == null) return;
     final mapa = <String, CapaMaquillajeAr>{};
+    var omitidos = 0;
     for (final p in look.productos) {
       final real = _productos.buscar(p.id);
       if (real == null ||
@@ -314,12 +315,16 @@ class MaquillajeArViewModel extends ChangeNotifier {
           !_idsRecomendados.contains(real.id) ||
           perfil == null ||
           !CompositorLooksAr.compatible(real, perfil!)) {
-        aviso = AppStrings.arSinLooks;
-        _notificar();
-        return;
+        omitidos++;
+        continue;
       }
       final d = registro.paraProducto(real)!;
       mapa[d.categoria] = CapaMaquillajeAr.deProducto(real, d);
+    }
+    if (mapa.isEmpty) {
+      aviso = AppStrings.arSinLooks;
+      _notificar();
+      return;
     }
     _capas
       ..clear()
@@ -328,7 +333,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
     lookSeleccionado = id;
     _categoria = mapa.containsKey('labial') ? 'labial' : mapa.keys.first;
     _original = false;
-    aviso = null;
+    aviso = omitidos > 0 ? AppStrings.arLookParcial : null;
     _notificar();
   }
 

@@ -21,6 +21,7 @@ class PanelDiagnosticoAr extends StatelessWidget {
     suavizado: r.suavizadoMs,
     mascarasCpu: r.mascarasMs,
     edad: r.edadGeometriaMs,
+    actualizacionEfectos: r.actualizacionEfectosMs,
     entrada: r.entradaFps,
     procesado: r.procesadoFps,
     validos: r.utilFps,
@@ -93,12 +94,6 @@ class PanelDiagnosticoAr extends StatelessWidget {
               ),
               if (camara.cambiandoDetector)
                 const Text(AppStrings.arCambiandoDetector),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text(AppStrings.arTexturaCamara),
-                value: camara.composicionTextura,
-                onChanged: camara.cambiarComposicion,
-              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text(AppStrings.arDiagnosticoGuia),

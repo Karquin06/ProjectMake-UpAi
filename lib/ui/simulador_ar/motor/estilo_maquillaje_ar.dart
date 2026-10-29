@@ -5,8 +5,8 @@ import '../../../models/maquillaje_ar.dart';
 enum AcabadoVisualAr { mate, cremoso, satinado, brillante }
 
 class EstiloMaquillajeAr {
-  const EstiloMaquillajeAr(this.filtro, this.opacidad, this.acabado);
-  final ColorFilter filtro;
+  const EstiloMaquillajeAr(this.color, this.opacidad, this.acabado);
+  final Color color;
   final double opacidad;
   final AcabadoVisualAr acabado;
   static AcabadoVisualAr resolverAcabado(String valor) {
@@ -32,21 +32,17 @@ class EstiloMaquillajeAr {
     final brillo = capa.efecto.categoria == 'brillo';
     final intensidad = capa.intensidad.clamp(0.0, 1.0);
     final factor = switch (capa.efecto.familia) {
-      FamiliaEfectoAr.mejillas => .65,
-      FamiliaEfectoAr.parpados => .8,
+      FamiliaEfectoAr.mejillas => .85,
+      FamiliaEfectoAr.parpados => 1.0,
       FamiliaEfectoAr.labios =>
-        brillo ? .45 : (acabado == AcabadoVisualAr.mate ? .85 : .65),
-      _ => .3,
+        brillo ? .65 : (acabado == AcabadoVisualAr.mate ? .9 : .78),
+      _ => .5,
     };
-    // El destino de este filtro es la textura de cámara, no una capa vacía.
-    // SoftLight solo se usa para el tipo explícito brillo. No hay bandas blancas
-    // inventadas ni una luz constante que ilumine una escena oscura.
+    // La intensidad se aplica UNA vez. La transparencia deja ver textura e
+    // iluminación, sin bandas blancas ni colores opacos sobre toda la región.
     return EstiloMaquillajeAr(
-      ColorFilter.mode(
-        color,
-        brillo ? BlendMode.softLight : BlendMode.multiply,
-      ),
-      (intensidad * factor).clamp(0.0, .85),
+      color,
+      (intensidad * factor).clamp(0.0, .72),
       acabado,
     );
   }

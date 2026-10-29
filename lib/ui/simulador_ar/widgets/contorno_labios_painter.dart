@@ -29,7 +29,7 @@ class ContornoLabiosPainter extends CustomPainter {
     final dentro = d.contornosLabios[interior]
         .map((p) => d.proyectar(p, size))
         .toList();
-    return unirCurvasAr(fuera, dentro);
+    return franjaEntreCurvasAr(fuera, dentro);
   }
 
   @override

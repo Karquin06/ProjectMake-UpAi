@@ -5,7 +5,8 @@ class RendimientoAr {
     this.suavizadoMs = 0,
     this.mascarasMs = 0,
     this.edadGeometriaMs = 0,
-    this.composicion = "textura de cámara",
+    this.actualizacionEfectosMs = 0,
+    this.composicion = 'máscaras transparentes; cámara única',
     this.entradaFps = 0,
     this.procesadoFps = 0,
     this.utilFps = 0,
@@ -52,6 +53,10 @@ class RendimientoAr {
   final int capasDibujadas, mascarasDibujadas;
   final bool streamActivo, calentando;
   final double suavizadoMs, mascarasMs, edadGeometriaMs;
+
+  /// Desde entrada al stream Dart hasta enviar las máscaras al lienzo.
+  /// No incluye la latencia del sensor ni la presentación física del display.
+  final double actualizacionEfectosMs;
   final String composicion;
   final String motor, entrada, preview;
   final String? ultimoError, alternativa;
