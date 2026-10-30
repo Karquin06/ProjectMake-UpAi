@@ -34,7 +34,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido],
       precio: 119900,
-      imagenUrl: 'https://images.pexels.com/photos/20433906/pexels-photo-20433906.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/20433906/pexels-photo-20433906.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-melocoton',
@@ -52,7 +53,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido, Subtono.neutro],
       precio: 229900,
-      imagenUrl: 'https://images.pexels.com/photos/22891925/pexels-photo-22891925.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/22891925/pexels-photo-22891925.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-pantalon-camel-claro',
@@ -70,7 +72,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido, Subtono.neutro],
       precio: 169900,
-      imagenUrl: 'https://images.pexels.com/photos/31400265/pexels-photo-31400265.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/31400265/pexels-photo-31400265.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-chaqueta-aguamarina',
@@ -88,7 +91,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido],
       precio: 139900,
-      imagenUrl: 'https://images.pexels.com/photos/34109700/pexels-photo-34109700.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/34109700/pexels-photo-34109700.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-blusa-lavanda',
@@ -106,7 +110,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio],
       precio: 139900,
-      imagenUrl: 'https://images.pexels.com/photos/29692131/pexels-photo-29692131.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/29692131/pexels-photo-29692131.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-falda-rosa-empolvado',
@@ -124,7 +129,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 159900,
-      imagenUrl: 'https://images.pexels.com/photos/32408043/pexels-photo-32408043.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/32408043/pexels-photo-32408043.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-pantalon-azul-pizarra',
@@ -142,7 +148,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio],
       precio: 179900,
-      imagenUrl: 'https://images.pexels.com/photos/26309759/pexels-photo-26309759.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/26309759/pexels-photo-26309759.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-bolso-gris-perla',
@@ -160,7 +167,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 149900,
-      imagenUrl: 'https://images.pexels.com/photos/22434759/pexels-photo-22434759.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/22434759/pexels-photo-22434759.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-abrigo-camel',
@@ -178,7 +186,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido],
       precio: 349900,
-      imagenUrl: 'https://images.pexels.com/photos/4872101/pexels-photo-4872101.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4872101/pexels-photo-4872101.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-sueter-terracota',
@@ -196,7 +205,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido],
       precio: 109900,
-      imagenUrl: 'https://images.pexels.com/photos/32240360/pexels-photo-32240360.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/32240360/pexels-photo-32240360.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-verde-oliva',
@@ -214,7 +224,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido, Subtono.neutro],
       precio: 149900,
-      imagenUrl: 'https://images.pexels.com/photos/18957787/pexels-photo-18957787.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/18957787/pexels-photo-18957787.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-panoleta-mostaza',
@@ -232,7 +243,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido, Subtono.neutro],
       precio: 59900,
-      imagenUrl: 'https://images.pexels.com/photos/19302202/pexels-photo-19302202.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/19302202/pexels-photo-19302202.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-esmeralda',
@@ -250,7 +262,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio],
       precio: 259900,
-      imagenUrl: 'https://images.pexels.com/photos/20264904/pexels-photo-20264904.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/20264904/pexels-photo-20264904.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-blazer-azul-marino',
@@ -268,7 +281,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 249900,
-      imagenUrl: 'https://images.pexels.com/photos/31292397/pexels-photo-31292397.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/31292397/pexels-photo-31292397.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-top-fucsia-deportivo',
@@ -286,7 +300,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio],
       precio: 69900,
-      imagenUrl: 'https://images.pexels.com/photos/5036978/pexels-photo-5036978.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/5036978/pexels-photo-5036978.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-pantalon-negro',
@@ -304,7 +319,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 119900,
-      imagenUrl: 'https://images.pexels.com/photos/30887099/pexels-photo-30887099.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/30887099/pexels-photo-30887099.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-blusa-amarillo-mantequilla',
@@ -322,7 +338,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido],
       precio: 69900,
-      imagenUrl: 'https://images.pexels.com/photos/20421161/pexels-photo-20421161.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/20421161/pexels-photo-20421161.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-rojo-amapola',
@@ -340,7 +357,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido],
       precio: 199900,
-      imagenUrl: 'https://images.pexels.com/photos/32090016/pexels-photo-32090016.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/32090016/pexels-photo-32090016.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-top-deportivo-verde-manzana',
@@ -358,7 +376,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonosCompatibles: [Subtono.calido],
       precio: 59900,
-      imagenUrl: 'https://images.pexels.com/photos/7879993/pexels-photo-7879993.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7879993/pexels-photo-7879993.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-azul-cielo',
@@ -376,7 +395,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 219900,
-      imagenUrl: 'https://images.pexels.com/photos/25025563/pexels-photo-25025563.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/25025563/pexels-photo-25025563.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-camisa-frambuesa-suave',
@@ -394,7 +414,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio],
       precio: 139900,
-      imagenUrl: 'https://images.pexels.com/photos/16459034/pexels-photo-16459034.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/16459034/pexels-photo-16459034.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-conjunto-deportivo-salvia',
@@ -412,7 +433,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 129900,
-      imagenUrl: 'https://images.pexels.com/photos/5036985/pexels-photo-5036985.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/5036985/pexels-photo-5036985.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-chaqueta-cuero-chocolate',
@@ -430,7 +452,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido],
       precio: 279900,
-      imagenUrl: 'https://images.pexels.com/photos/4872128/pexels-photo-4872128.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4872128/pexels-photo-4872128.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-gabardina-crema',
@@ -448,7 +471,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido, Subtono.neutro],
       precio: 299900,
-      imagenUrl: 'https://images.pexels.com/photos/4872117/pexels-photo-4872117.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4872117/pexels-photo-4872117.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-chaqueta-jean-petroleo',
@@ -466,7 +490,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido],
       precio: 149900,
-      imagenUrl: 'https://images.pexels.com/photos/5479353/pexels-photo-5479353.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/5479353/pexels-photo-5479353.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-leggings-verde-oliva',
@@ -484,7 +509,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonosCompatibles: [Subtono.calido],
       precio: 79900,
-      imagenUrl: 'https://images.pexels.com/photos/5036967/pexels-photo-5036967.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/5036967/pexels-photo-5036967.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-sueter-negro',
@@ -502,7 +528,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio],
       precio: 129900,
-      imagenUrl: 'https://images.pexels.com/photos/34805333/pexels-photo-34805333.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/34805333/pexels-photo-34805333.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-vestido-negro-noche',
@@ -520,7 +547,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio, Subtono.neutro],
       precio: 259900,
-      imagenUrl: 'https://images.pexels.com/photos/29557899/pexels-photo-29557899.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/29557899/pexels-photo-29557899.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-cuello-tortuga-esmeralda',
@@ -538,7 +566,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio],
       precio: 109900,
-      imagenUrl: 'https://images.pexels.com/photos/30347645/pexels-photo-30347645.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/30347645/pexels-photo-30347645.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     PrendaRopa(
       id: 'prenda-leggings-carbon',
@@ -556,7 +585,297 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonosCompatibles: [Subtono.frio],
       precio: 89900,
-      imagenUrl: 'https://images.pexels.com/photos/5037297/pexels-photo-5037297.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/5037297/pexels-photo-5037297.jpeg?auto=compress&cs=tinysrgb&w=800',
+    ),
+    // Colores ampliados de la paleta (sin foto: la app muestra su color).
+    PrendaRopa(
+      id: 'prenda-blusa-mandarina',
+      nombre: 'Blusa mandarina con lazo',
+      descripcion: 'Blusa fluida con lazo al cuello, alegre para el día.',
+      marca: 'Pat Primo',
+      tipoPrenda: 'superior',
+      colorPrincipal: 'Mandarina',
+      colorHex: '#FF9E44',
+      talla: 'S-M-L',
+      material: 'Viscosa',
+      estilo: 'Romántico',
+      formalidad: 'Informal',
+      ocasiones: ['casual', 'cita'],
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 99900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-pantalon-verde-lima',
+      nombre: 'Pantalón recto verde lima',
+      descripcion: 'Pantalón de lino de tiro alto y bota recta.',
+      marca: 'Zara',
+      tipoPrenda: 'inferior',
+      colorPrincipal: 'Verde lima',
+      colorHex: '#B5D33D',
+      talla: '6-8-10-12',
+      material: 'Lino',
+      estilo: 'Casual',
+      formalidad: 'Semiformal',
+      ocasiones: ['casual', 'trabajo'],
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 139900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-vestido-amarillo-limon',
+      nombre: 'Vestido camisero amarillo limón',
+      descripcion: 'Vestido camisero con cinturón, fresco y luminoso.',
+      marca: 'Mango',
+      tipoPrenda: 'vestido',
+      colorPrincipal: 'Amarillo limón',
+      colorHex: '#FFE066',
+      talla: 'XS-S-M-L',
+      material: 'Algodón',
+      estilo: 'Casual',
+      formalidad: 'Informal',
+      ocasiones: ['casual', 'cita'],
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 189900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-blazer-coral-claro',
+      nombre: 'Blazer coral claro',
+      descripcion: 'Blazer entallado que ilumina el rostro en la oficina.',
+      marca: 'Studio F',
+      tipoPrenda: 'abrigo',
+      colorPrincipal: 'Coral claro',
+      colorHex: '#F88379',
+      talla: 'S-M-L',
+      material: 'Poliéster',
+      estilo: 'Elegante',
+      formalidad: 'Formal',
+      ocasiones: ['trabajo', 'entrevista', 'fiesta'],
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 229900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-blusa-rosa-palo',
+      nombre: 'Blusa rosa palo de satén',
+      descripcion: 'Blusa de satén con caída suave y botones forrados.',
+      marca: 'Mango',
+      tipoPrenda: 'superior',
+      colorPrincipal: 'Rosa palo',
+      colorHex: '#E8C4C8',
+      talla: 'S-M-L',
+      material: 'Satén',
+      estilo: 'Romántico',
+      formalidad: 'Semiformal',
+      ocasiones: ['trabajo', 'cita'],
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonosCompatibles: [Subtono.frio, Subtono.neutro],
+      precio: 129900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-vestido-verde-agua',
+      nombre: 'Vestido plisado verde agua',
+      descripcion: 'Vestido midi plisado, ligero y elegante.',
+      marca: 'Zara',
+      tipoPrenda: 'vestido',
+      colorPrincipal: 'Verde agua',
+      colorHex: '#A8D5C8',
+      talla: 'XS-S-M-L',
+      material: 'Poliéster',
+      estilo: 'Elegante',
+      formalidad: 'Semiformal',
+      ocasiones: ['fiesta', 'cita'],
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 199900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-pantalon-azul-acero',
+      nombre: 'Pantalón de vestir azul acero',
+      descripcion: 'Pantalón de pinzas con caída recta.',
+      marca: 'Arturo Calle',
+      tipoPrenda: 'inferior',
+      colorPrincipal: 'Azul acero',
+      colorHex: '#7A93AC',
+      talla: '6-8-10-12',
+      material: 'Lana fría',
+      estilo: 'Clásico',
+      formalidad: 'Formal',
+      ocasiones: ['trabajo', 'entrevista'],
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 179900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-cardigan-orquidea',
+      nombre: 'Cárdigan orquídea suave',
+      descripcion: 'Cárdigan de punto fino para las tardes frescas.',
+      marca: 'Koaj',
+      tipoPrenda: 'abrigo',
+      colorPrincipal: 'Orquídea suave',
+      colorHex: '#C3A1C9',
+      talla: 'S-M-L',
+      material: 'Punto de algodón',
+      estilo: 'Casual',
+      formalidad: 'Informal',
+      ocasiones: ['casual'],
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 109900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-sueter-calabaza',
+      nombre: 'Suéter calabaza de punto',
+      descripcion: 'Suéter de punto grueso, cálido y acogedor.',
+      marca: 'Zara',
+      tipoPrenda: 'superior',
+      colorPrincipal: 'Calabaza',
+      colorHex: '#D2691E',
+      talla: 'S-M-L',
+      material: 'Punto acrílico',
+      estilo: 'Casual',
+      formalidad: 'Informal',
+      ocasiones: ['casual'],
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 119900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-pantalon-verde-musgo',
+      nombre: 'Pantalón cargo verde musgo',
+      descripcion: 'Pantalón cargo de algodón con bolsillos laterales.',
+      marca: 'Tennis',
+      tipoPrenda: 'inferior',
+      colorPrincipal: 'Verde musgo',
+      colorHex: '#6B7B3A',
+      talla: '6-8-10-12',
+      material: 'Algodón',
+      estilo: 'Casual',
+      formalidad: 'Informal',
+      ocasiones: ['casual', 'deporte'],
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 129900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-vestido-teja',
+      nombre: 'Vestido envolvente teja',
+      descripcion: 'Vestido cruzado que estiliza la figura.',
+      marca: 'Studio F',
+      tipoPrenda: 'vestido',
+      colorPrincipal: 'Teja',
+      colorHex: '#B5523B',
+      talla: 'XS-S-M-L',
+      material: 'Viscosa',
+      estilo: 'Elegante',
+      formalidad: 'Semiformal',
+      ocasiones: ['cita', 'fiesta'],
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonosCompatibles: [Subtono.calido],
+      precio: 209900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-gabardina-caqui',
+      nombre: 'Gabardina caqui clásica',
+      descripcion: 'Gabardina cruzada con cinturón, atemporal.',
+      marca: 'Arturo Calle',
+      tipoPrenda: 'abrigo',
+      colorPrincipal: 'Caqui',
+      colorHex: '#A39264',
+      talla: 'S-M-L',
+      material: 'Gabardina de algodón',
+      estilo: 'Clásico',
+      formalidad: 'Formal',
+      ocasiones: ['trabajo', 'entrevista'],
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonosCompatibles: [Subtono.calido, Subtono.neutro],
+      precio: 289900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-blusa-rosa-hielo',
+      nombre: 'Blusa rosa hielo de manga larga',
+      descripcion: 'Blusa de satén en un rosa frío muy claro.',
+      marca: 'Mango',
+      tipoPrenda: 'superior',
+      colorPrincipal: 'Rosa hielo',
+      colorHex: '#F2D7E3',
+      talla: 'S-M-L',
+      material: 'Satén',
+      estilo: 'Elegante',
+      formalidad: 'Semiformal',
+      ocasiones: ['trabajo', 'cita'],
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 119900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-vestido-rojo-verdadero',
+      nombre: 'Vestido rojo de cóctel',
+      descripcion: 'Vestido entallado en rojo puro para ocasiones especiales.',
+      marca: 'Zara',
+      tipoPrenda: 'vestido',
+      colorPrincipal: 'Rojo verdadero',
+      colorHex: '#C8102E',
+      talla: 'XS-S-M-L',
+      material: 'Crepé',
+      estilo: 'Elegante',
+      formalidad: 'Formal',
+      ocasiones: ['fiesta', 'cita'],
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 229900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-blazer-azul-real',
+      nombre: 'Blazer azul real',
+      descripcion: 'Blazer de corte recto en un azul intenso.',
+      marca: 'Studio F',
+      tipoPrenda: 'abrigo',
+      colorPrincipal: 'Azul real',
+      colorHex: '#2747A8',
+      talla: 'S-M-L',
+      material: 'Poliéster',
+      estilo: 'Clásico',
+      formalidad: 'Formal',
+      ocasiones: ['trabajo', 'entrevista'],
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 249900,
+      imagenUrl: '',
+    ),
+    PrendaRopa(
+      id: 'prenda-falda-verde-pino',
+      nombre: 'Falda lápiz verde pino',
+      descripcion: 'Falda lápiz a la rodilla, sobria y elegante.',
+      marca: 'Pat Primo',
+      tipoPrenda: 'inferior',
+      colorPrincipal: 'Verde pino',
+      colorHex: '#0B5D4B',
+      talla: '6-8-10-12',
+      material: 'Crepé',
+      estilo: 'Elegante',
+      formalidad: 'Formal',
+      ocasiones: ['trabajo', 'entrevista'],
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonosCompatibles: [Subtono.frio],
+      precio: 129900,
+      imagenUrl: '',
     ),
   ];
 
@@ -573,7 +892,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 115000,
-      imagenUrl: 'https://images.pexels.com/photos/7810600/pexels-photo-7810600.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810600/pexels-photo-7810600.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-rosa-salmon-loreal',
@@ -587,7 +907,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido, Subtono.neutro],
       precio: 55000,
-      imagenUrl: 'https://images.pexels.com/photos/7256149/pexels-photo-7256149.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7256149/pexels-photo-7256149.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-melocoton-nyx',
@@ -601,7 +922,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 42000,
-      imagenUrl: 'https://images.pexels.com/photos/31251105/pexels-photo-31251105.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/31251105/pexels-photo-31251105.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-dorada-maybelline',
@@ -615,7 +937,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 35000,
-      imagenUrl: 'https://images.pexels.com/photos/7514865/pexels-photo-7514865.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7514865/pexels-photo-7514865.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-turquesa-bloomshell',
@@ -629,7 +952,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 28000,
-      imagenUrl: 'https://images.pexels.com/photos/4620875/pexels-photo-4620875.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4620875/pexels-photo-4620875.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-rosa-empolvado-maybelline',
@@ -643,7 +967,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio, Subtono.neutro],
       precio: 45000,
-      imagenUrl: 'https://images.pexels.com/photos/7256154/pexels-photo-7256154.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7256154/pexels-photo-7256154.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-malva-revlon',
@@ -657,7 +982,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio],
       precio: 48000,
-      imagenUrl: 'https://images.pexels.com/photos/25533521/pexels-photo-25533521.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/25533521/pexels-photo-25533521.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-rosa-suave-bloomshell',
@@ -671,7 +997,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio, Subtono.neutro],
       precio: 32000,
-      imagenUrl: 'https://images.pexels.com/photos/7712448/pexels-photo-7712448.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7712448/pexels-photo-7712448.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-lavanda-nyx',
@@ -685,7 +1012,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio],
       precio: 38000,
-      imagenUrl: 'https://images.pexels.com/photos/7290189/pexels-photo-7290189.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7290189/pexels-photo-7290189.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-gris-paloma-samy',
@@ -699,7 +1027,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio, Subtono.neutro],
       precio: 20000,
-      imagenUrl: 'https://images.pexels.com/photos/4774061/pexels-photo-4774061.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4774061/pexels-photo-4774061.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-terracota-loreal',
@@ -713,7 +1042,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 55000,
-      imagenUrl: 'https://images.pexels.com/photos/7810573/pexels-photo-7810573.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810573/pexels-photo-7810573.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-nude-calido-vogue',
@@ -727,7 +1057,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido, Subtono.neutro],
       precio: 25000,
-      imagenUrl: 'https://images.pexels.com/photos/7664366/pexels-photo-7664366.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7664366/pexels-photo-7664366.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-bronce-mac',
@@ -741,7 +1072,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 130000,
-      imagenUrl: 'https://images.pexels.com/photos/4938498/pexels-photo-4938498.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4938498/pexels-photo-4938498.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-cobre-esika',
@@ -755,7 +1087,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 28000,
-      imagenUrl: 'https://images.pexels.com/photos/4620838/pexels-photo-4620838.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/4620838/pexels-photo-4620838.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-verde-bosque-revlon',
@@ -769,7 +1102,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 40000,
-      imagenUrl: 'https://images.pexels.com/photos/15657763/pexels-photo-15657763.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/15657763/pexels-photo-15657763.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-rojo-frambuesa-mac',
@@ -783,7 +1117,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 115000,
-      imagenUrl: 'https://images.pexels.com/photos/7810641/pexels-photo-7810641.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810641/pexels-photo-7810641.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-vino-nyx',
@@ -797,7 +1132,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 39000,
-      imagenUrl: 'https://images.pexels.com/photos/3060258/pexels-photo-3060258.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/3060258/pexels-photo-3060258.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-rosa-frio-vogue',
@@ -811,7 +1147,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 26000,
-      imagenUrl: 'https://images.pexels.com/photos/12323050/pexels-photo-12323050.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/12323050/pexels-photo-12323050.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-plata-maybelline',
@@ -825,7 +1162,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 35000,
-      imagenUrl: 'https://images.pexels.com/photos/3689976/pexels-photo-3689976.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/3689976/pexels-photo-3689976.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-azul-zafiro-loreal',
@@ -839,7 +1177,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 40000,
-      imagenUrl: 'https://images.pexels.com/photos/38869233/pexels-photo-38869233.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/38869233/pexels-photo-38869233.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-base-calida-maybelline',
@@ -853,7 +1192,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera, EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 52000,
-      imagenUrl: 'https://images.pexels.com/photos/8990590/pexels-photo-8990590.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/8990590/pexels-photo-8990590.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-base-fria-loreal',
@@ -867,7 +1207,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano, EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 75000,
-      imagenUrl: 'https://images.pexels.com/photos/7290197/pexels-photo-7290197.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7290197/pexels-photo-7290197.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-base-neutra-mac',
@@ -878,10 +1219,16 @@ class CatalogoEjemplo {
       tono: 'Medio neutro',
       colorHex: '#D9A784',
       acabado: 'Natural',
-      estacionesCompatibles: [EstacionColor.primavera, EstacionColor.verano, EstacionColor.otono, EstacionColor.invierno],
+      estacionesCompatibles: [
+        EstacionColor.primavera,
+        EstacionColor.verano,
+        EstacionColor.otono,
+        EstacionColor.invierno,
+      ],
       subtonoCompatible: [Subtono.neutro],
       precio: 185000,
-      imagenUrl: 'https://images.pexels.com/photos/12323034/pexels-photo-12323034.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/12323034/pexels-photo-12323034.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-base-profunda-vogue',
@@ -892,10 +1239,16 @@ class CatalogoEjemplo {
       tono: 'Profundo',
       colorHex: '#8D5B3E',
       acabado: 'Satinado',
-      estacionesCompatibles: [EstacionColor.primavera, EstacionColor.verano, EstacionColor.otono, EstacionColor.invierno],
+      estacionesCompatibles: [
+        EstacionColor.primavera,
+        EstacionColor.verano,
+        EstacionColor.otono,
+        EstacionColor.invierno,
+      ],
       subtonoCompatible: [Subtono.calido, Subtono.neutro],
       precio: 35000,
-      imagenUrl: 'https://images.pexels.com/photos/7290736/pexels-photo-7290736.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7290736/pexels-photo-7290736.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-rojo-amapola-revlon',
@@ -909,7 +1262,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 52000,
-      imagenUrl: 'https://images.pexels.com/photos/7810639/pexels-photo-7810639.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810639/pexels-photo-7810639.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombras-melocoton-bloomshell',
@@ -923,7 +1277,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido],
       precio: 65000,
-      imagenUrl: 'https://images.pexels.com/photos/7514844/pexels-photo-7514844.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7514844/pexels-photo-7514844.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-coral-loreal',
@@ -937,7 +1292,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.primavera],
       subtonoCompatible: [Subtono.calido, Subtono.neutro],
       precio: 48000,
-      imagenUrl: 'https://images.pexels.com/photos/28200032/pexels-photo-28200032.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/28200032/pexels-photo-28200032.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-frambuesa-suave-mac',
@@ -951,7 +1307,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio],
       precio: 115000,
-      imagenUrl: 'https://images.pexels.com/photos/7810635/pexels-photo-7810635.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810635/pexels-photo-7810635.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-rosa-empolvado-esika',
@@ -965,7 +1322,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio, Subtono.neutro],
       precio: 29000,
-      imagenUrl: 'https://images.pexels.com/photos/7514817/pexels-photo-7514817.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7514817/pexels-photo-7514817.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-gloss-rosa-nacarado-samy',
@@ -979,7 +1337,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.verano],
       subtonoCompatible: [Subtono.frio, Subtono.neutro],
       precio: 22000,
-      imagenUrl: 'https://images.pexels.com/photos/31251106/pexels-photo-31251106.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/31251106/pexels-photo-31251106.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-burdeos-calido-nyx',
@@ -993,7 +1352,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 39000,
-      imagenUrl: 'https://images.pexels.com/photos/7810637/pexels-photo-7810637.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810637/pexels-photo-7810637.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-chocolate-revlon',
@@ -1007,7 +1367,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 52000,
-      imagenUrl: 'https://images.pexels.com/photos/7810564/pexels-photo-7810564.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810564/pexels-photo-7810564.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-oxido-mac',
@@ -1021,7 +1382,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 98000,
-      imagenUrl: 'https://images.pexels.com/photos/7290638/pexels-photo-7290638.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7290638/pexels-photo-7290638.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-terracota-esika',
@@ -1035,7 +1397,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.otono],
       subtonoCompatible: [Subtono.calido],
       precio: 35000,
-      imagenUrl: 'https://images.pexels.com/photos/31251092/pexels-photo-31251092.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/31251092/pexels-photo-31251092.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-fucsia-loreal',
@@ -1049,7 +1412,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 49000,
-      imagenUrl: 'https://images.pexels.com/photos/7810602/pexels-photo-7810602.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810602/pexels-photo-7810602.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-sombra-violeta-nyx',
@@ -1063,7 +1427,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 36000,
-      imagenUrl: 'https://images.pexels.com/photos/7675373/pexels-photo-7675373.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7675373/pexels-photo-7675373.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-labial-rojo-cereza-maybelline',
@@ -1077,7 +1442,8 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 42000,
-      imagenUrl: 'https://images.pexels.com/photos/7810601/pexels-photo-7810601.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/7810601/pexels-photo-7810601.jpeg?auto=compress&cs=tinysrgb&w=800',
     ),
     ProductoMaquillaje(
       id: 'producto-rubor-frambuesa-samy',
@@ -1091,7 +1457,233 @@ class CatalogoEjemplo {
       estacionesCompatibles: [EstacionColor.invierno],
       subtonoCompatible: [Subtono.frio],
       precio: 25000,
-      imagenUrl: 'https://images.pexels.com/photos/29438040/pexels-photo-29438040.jpeg?auto=compress&cs=tinysrgb&w=800',
+      imagenUrl:
+          'https://images.pexels.com/photos/29438040/pexels-photo-29438040.jpeg?auto=compress&cs=tinysrgb&w=800',
+    ),
+    // Colores ampliados de la paleta (sin foto: la app muestra su color).
+    ProductoMaquillaje(
+      id: 'producto-labial-durazno-maybelline',
+      nombre: 'Labial cremoso durazno brillante',
+      descripcion: 'Labial cremoso de color durazno luminoso.',
+      marca: 'Maybelline',
+      categoria: 'labial',
+      tono: 'Durazno brillante',
+      colorHex: '#FF9A76',
+      acabado: 'Cremoso',
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonoCompatible: [Subtono.calido],
+      precio: 38000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-rojo-coral-loreal',
+      nombre: 'Labial satinado rojo coral',
+      descripcion: 'Rojo con base coral, intenso y cálido.',
+      marca: 'L\'Oréal',
+      categoria: 'labial',
+      tono: 'Rojo coral',
+      colorHex: '#F2552C',
+      acabado: 'Satinado',
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonoCompatible: [Subtono.calido],
+      precio: 52000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-rubor-coral-rosado-vogue',
+      nombre: 'Rubor coral rosado',
+      descripcion: 'Rubor compacto de acabado natural.',
+      marca: 'Vogue',
+      categoria: 'rubor',
+      tono: 'Coral rosado',
+      colorHex: '#F7967E',
+      acabado: 'Mate',
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonoCompatible: [Subtono.calido, Subtono.neutro],
+      precio: 22000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-sombra-champan-samy',
+      nombre: 'Sombra champán iluminada',
+      descripcion: 'Sombra con brillo suave para iluminar el párpado.',
+      marca: 'Samy',
+      categoria: 'sombra',
+      tono: 'Champán',
+      colorHex: '#F1D7A8',
+      acabado: 'Shimmer',
+      estacionesCompatibles: [EstacionColor.primavera],
+      subtonoCompatible: [Subtono.calido, Subtono.neutro],
+      precio: 18000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-rosa-palo-esika',
+      nombre: 'Labial rosa palo',
+      descripcion: 'Rosa suave y frío para un look natural.',
+      marca: 'Ésika',
+      categoria: 'labial',
+      tono: 'Rosa palo',
+      colorHex: '#D99AA5',
+      acabado: 'Cremoso',
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonoCompatible: [Subtono.frio, Subtono.neutro],
+      precio: 36000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-ciruela-suave-mac',
+      nombre: 'Labial ciruela suave',
+      descripcion: 'Ciruela apagado y elegante, de larga duración.',
+      marca: 'MAC',
+      categoria: 'labial',
+      tono: 'Ciruela suave',
+      colorHex: '#8E5A7A',
+      acabado: 'Satinado',
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonoCompatible: [Subtono.frio],
+      precio: 115000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-rubor-orquidea-maybelline',
+      nombre: 'Rubor rosa orquídea',
+      descripcion: 'Rubor rosado frío de acabado satinado.',
+      marca: 'Maybelline',
+      categoria: 'rubor',
+      tono: 'Rosa orquídea',
+      colorHex: '#DDA0B4',
+      acabado: 'Satinado',
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonoCompatible: [Subtono.frio],
+      precio: 39000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-sombra-azul-acero-vogue',
+      nombre: 'Sombra azul acero',
+      descripcion: 'Azul grisáceo suave para el día.',
+      marca: 'Vogue',
+      categoria: 'sombra',
+      tono: 'Azul acero',
+      colorHex: '#7A93AC',
+      acabado: 'Mate',
+      estacionesCompatibles: [EstacionColor.verano],
+      subtonoCompatible: [Subtono.frio],
+      precio: 19000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-canela-loreal',
+      nombre: 'Labial mate canela',
+      descripcion: 'Canela cálido de acabado mate.',
+      marca: 'L\'Oréal',
+      categoria: 'labial',
+      tono: 'Canela',
+      colorHex: '#B5653F',
+      acabado: 'Mate',
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonoCompatible: [Subtono.calido],
+      precio: 52000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-chocolate-rojizo-samy',
+      nombre: 'Labial chocolate rojizo',
+      descripcion: 'Marrón con fondo rojo, profundo y cálido.',
+      marca: 'Samy',
+      categoria: 'labial',
+      tono: 'Chocolate rojizo',
+      colorHex: '#6E2C1F',
+      acabado: 'Cremoso',
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonoCompatible: [Subtono.calido],
+      precio: 24000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-rubor-canela-esika',
+      nombre: 'Rubor canela',
+      descripcion: 'Rubor cálido que da un efecto bronceado.',
+      marca: 'Ésika',
+      categoria: 'rubor',
+      tono: 'Canela',
+      colorHex: '#C27C5A',
+      acabado: 'Mate',
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonoCompatible: [Subtono.calido],
+      precio: 32000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-sombra-oro-viejo-maybelline',
+      nombre: 'Sombra oro viejo',
+      descripcion: 'Dorado envejecido de acabado metálico.',
+      marca: 'Maybelline',
+      categoria: 'sombra',
+      tono: 'Oro viejo',
+      colorHex: '#B08D57',
+      acabado: 'Metálico',
+      estacionesCompatibles: [EstacionColor.otono],
+      subtonoCompatible: [Subtono.calido],
+      precio: 35000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-rojo-verdadero-mac',
+      nombre: 'Labial rojo verdadero',
+      descripcion: 'Rojo puro de base azul, intenso y clásico.',
+      marca: 'MAC',
+      categoria: 'labial',
+      tono: 'Rojo verdadero',
+      colorHex: '#C8102E',
+      acabado: 'Mate',
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonoCompatible: [Subtono.frio],
+      precio: 115000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-labial-ciruela-intensa-vogue',
+      nombre: 'Labial ciruela intensa',
+      descripcion: 'Ciruela profundo para la noche.',
+      marca: 'Vogue',
+      categoria: 'labial',
+      tono: 'Ciruela intensa',
+      colorHex: '#6B1F4A',
+      acabado: 'Cremoso',
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonoCompatible: [Subtono.frio],
+      precio: 21000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-rubor-rosa-intenso-loreal',
+      nombre: 'Rubor rosa intenso',
+      descripcion: 'Rosa frío vibrante de acabado satinado.',
+      marca: 'L\'Oréal',
+      categoria: 'rubor',
+      tono: 'Rosa intenso',
+      colorHex: '#D63A7A',
+      acabado: 'Satinado',
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonoCompatible: [Subtono.frio],
+      precio: 48000,
+      imagenUrl: '',
+    ),
+    ProductoMaquillaje(
+      id: 'producto-sombra-purpura-real-samy',
+      nombre: 'Sombra púrpura real',
+      descripcion: 'Púrpura intenso con destellos.',
+      marca: 'Samy',
+      categoria: 'sombra',
+      tono: 'Púrpura real',
+      colorHex: '#6A1B9A',
+      acabado: 'Shimmer',
+      estacionesCompatibles: [EstacionColor.invierno],
+      subtonoCompatible: [Subtono.frio],
+      precio: 18000,
+      imagenUrl: '',
     ),
   ];
 }

@@ -22,6 +22,7 @@ class CapturasArRepository {
     String uid,
     Uint8List png, {
     required String producto,
+    List<Map<String, dynamic>> capas = const [],
   }) async {
     final carpeta = await _carpeta(uid), fecha = DateTime.now();
     final id = fecha.microsecondsSinceEpoch.toString();
@@ -32,7 +33,11 @@ class CapturasArRepository {
       await temporal.writeAsBytes(png, flush: true);
       await temporal.rename(imagen.path);
       await metadatos.writeAsString(
-        jsonEncode({'producto': producto, 'fecha': fecha.toIso8601String()}),
+        jsonEncode({
+          'producto': producto,
+          'fecha': fecha.toUtc().toIso8601String(),
+          'capas': capas,
+        }),
         flush: true,
       );
     } catch (_) {

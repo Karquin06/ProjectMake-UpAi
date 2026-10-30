@@ -85,21 +85,23 @@ void main() {
   });
 
   group('FormularioPrendaViewModel', () {
-    test('no guarda sin categoría, estación ni imagen y marca los errores',
-        () async {
-      final vm = FormularioPrendaViewModel(repo, storage);
-      await vm.cargar();
-      expect(vm.esNuevo, isTrue);
-      expect(vm.errorCategoria, isNull); // Aún no intentó guardar.
+    test(
+      'no guarda sin categoría, estación ni imagen y marca los errores',
+      () async {
+        final vm = FormularioPrendaViewModel(repo, storage);
+        await vm.cargar();
+        expect(vm.esNuevo, isTrue);
+        expect(vm.errorCategoria, isNull); // Aún no intentó guardar.
 
-      vm.cambiarNombre('Blusa');
-      expect(await vm.guardar(), isFalse);
-      expect(vm.errorCategoria, AppStrings.validacionCategoria);
-      expect(vm.errorEstaciones, AppStrings.validacionEstaciones);
-      expect(vm.errorImagen, AppStrings.validacionImagen);
-      expect((await db.collection(PrendaRopa.collection).get()).size, 0);
-      vm.dispose();
-    });
+        vm.cambiarNombre('Blusa');
+        expect(await vm.guardar(), isFalse);
+        expect(vm.errorCategoria, AppStrings.validacionCategoria);
+        expect(vm.errorEstaciones, AppStrings.validacionEstaciones);
+        expect(vm.errorImagen, AppStrings.validacionImagen);
+        expect((await db.collection(PrendaRopa.collection).get()).size, 0);
+        vm.dispose();
+      },
+    );
 
     test('crea la prenda, sube la imagen y normaliza el color', () async {
       final vm = FormularioPrendaViewModel(repo, storage);
@@ -136,8 +138,10 @@ void main() {
       expect(p.colorHex, '#C2185B');
       // Se guardan en el orden de las listas, no en el que se tocaron.
       expect(p.ocasiones, ['trabajo', 'fiesta']);
-      expect(p.estacionesCompatibles,
-          [EstacionColor.verano, EstacionColor.invierno]);
+      expect(p.estacionesCompatibles, [
+        EstacionColor.verano,
+        EstacionColor.invierno,
+      ]);
       expect(p.subtonosCompatibles, [Subtono.frio]);
       expect(p.precio, 89900);
       expect(p.activo, isTrue);
@@ -147,47 +151,51 @@ void main() {
       vm.dispose();
     });
 
-    test('al editar conserva los campos que el formulario no muestra',
-        () async {
-      final id = await repo.guardarPrenda(const PrendaRopa(
-        id: '',
-        nombre: 'Saco',
-        marca: 'Zara',
-        tipoPrenda: 'abrigo',
-        colorPrincipal: 'Camel',
-        colorHex: '#C19A6B',
-        talla: 'M',
-        material: 'Lana',
-        estilo: 'Clásico',
-        formalidad: 'Formal',
-        estacionesCompatibles: [EstacionColor.otono],
-        precio: 120000,
-        imagenUrl: 'https://imagenes/vieja.jpg',
-        imagenRuta: 'catalogo/prendas/x/vieja.jpg',
-      ));
-      final vm = FormularioPrendaViewModel(repo, storage, id: id);
-      await vm.cargar();
-      expect(vm.cargado, isTrue);
-      expect(vm.nombre, 'Saco');
-      expect(vm.categoria, 'abrigo');
-      expect(vm.precio, '120000');
-      expect(vm.hayCambios, isFalse);
+    test(
+      'al editar conserva los campos que el formulario no muestra',
+      () async {
+        final id = await repo.guardarPrenda(
+          const PrendaRopa(
+            id: '',
+            nombre: 'Saco',
+            marca: 'Zara',
+            tipoPrenda: 'abrigo',
+            colorPrincipal: 'Camel',
+            colorHex: '#C19A6B',
+            talla: 'M',
+            material: 'Lana',
+            estilo: 'Clásico',
+            formalidad: 'Formal',
+            estacionesCompatibles: [EstacionColor.otono],
+            precio: 120000,
+            imagenUrl: 'https://imagenes/vieja.jpg',
+            imagenRuta: 'catalogo/prendas/x/vieja.jpg',
+          ),
+        );
+        final vm = FormularioPrendaViewModel(repo, storage, id: id);
+        await vm.cargar();
+        expect(vm.cargado, isTrue);
+        expect(vm.nombre, 'Saco');
+        expect(vm.categoria, 'abrigo');
+        expect(vm.precio, '120000');
+        expect(vm.hayCambios, isFalse);
 
-      vm.cambiarNombre('Saco largo');
-      vm.cambiarActivo(false);
-      expect(await vm.guardar(), isTrue);
+        vm.cambiarNombre('Saco largo');
+        vm.cambiarActivo(false);
+        expect(await vm.guardar(), isTrue);
 
-      final p = (await repo.obtenerPrenda(id))!;
-      expect(p.nombre, 'Saco largo');
-      expect(p.activo, isFalse);
-      expect(p.talla, 'M');
-      expect(p.material, 'Lana');
-      // Sin imagen nueva no se sube ni se borra nada.
-      expect(p.imagenRuta, 'catalogo/prendas/x/vieja.jpg');
-      expect(storage.archivos, isEmpty);
-      expect(storage.borrados, isEmpty);
-      vm.dispose();
-    });
+        final p = (await repo.obtenerPrenda(id))!;
+        expect(p.nombre, 'Saco largo');
+        expect(p.activo, isFalse);
+        expect(p.talla, 'M');
+        expect(p.material, 'Lana');
+        // Sin imagen nueva no se sube ni se borra nada.
+        expect(p.imagenRuta, 'catalogo/prendas/x/vieja.jpg');
+        expect(storage.archivos, isEmpty);
+        expect(storage.borrados, isEmpty);
+        vm.dispose();
+      },
+    );
 
     test('id que no existe → noEncontrado', () async {
       final vm = FormularioPrendaViewModel(repo, storage, id: 'no-existe');
@@ -209,21 +217,24 @@ void main() {
 
   group('FormularioProductoViewModel', () {
     test('reemplazar la imagen borra la anterior y quita el enlace', () async {
-      final id = await repo.guardarProducto(const ProductoMaquillaje(
-        id: '',
-        nombre: 'Labial Rubí',
-        marca: 'Mac',
-        categoria: 'labial',
-        tono: 'Ruby Woo',
-        colorHex: '#B71C1C',
-        acabado: 'Mate',
-        estacionesCompatibles: [EstacionColor.invierno],
-        subtonoCompatible: [Subtono.frio],
-        precio: 95000,
-        imagenUrl: 'https://imagenes/vieja.jpg',
-        imagenRuta: 'catalogo/productos/x/vieja.jpg',
-        enlace: 'https://tienda.com/rubi',
-      ));
+      final id = await repo.guardarProducto(
+        const ProductoMaquillaje(
+          id: '',
+          nombre: 'Labial Rubí',
+          marca: 'Mac',
+          categoria: 'labial',
+          tono: 'Ruby Woo',
+          tipoEfectoAr: 'labial',
+          colorHex: '#B71C1C',
+          acabado: 'Mate',
+          estacionesCompatibles: [EstacionColor.invierno],
+          subtonoCompatible: [Subtono.frio],
+          precio: 95000,
+          imagenUrl: 'https://imagenes/vieja.jpg',
+          imagenRuta: 'catalogo/productos/x/vieja.jpg',
+          enlace: 'https://tienda.com/rubi',
+        ),
+      );
       final vm = FormularioProductoViewModel(repo, storage, id: id);
       await vm.cargar();
       expect(vm.enlace, 'https://tienda.com/rubi');
@@ -235,11 +246,9 @@ void main() {
       final p = (await repo.obtenerProducto(id))!;
       expect(p.enlace, isNull);
       // Los campos opcionales vacíos no se escriben en Firestore.
-      final datos = (await db
-              .collection(ProductoMaquillaje.collection)
-              .doc(id)
-              .get())
-          .data()!;
+      final datos =
+          (await db.collection(ProductoMaquillaje.collection).doc(id).get())
+              .data()!;
       expect(datos.containsKey('enlace'), isFalse);
       expect(datos.containsKey('codigoBarras'), isFalse);
       expect(datos['marca'], 'Mac');
@@ -249,6 +258,7 @@ void main() {
       expect(_productoValido(datos), isTrue);
       expect(p.tono, 'Ruby Woo'); // Se conserva.
       expect(p.acabado, 'Mate'); // Se conserva.
+      expect(p.tipoEfectoAr, 'labial'); // Editar la imagen no borra el tipo AR.
       expect(p.imagenRuta, startsWith('catalogo/productos/$id/'));
       expect(storage.borrados, ['catalogo/productos/x/vieja.jpg']);
       vm.dispose();
@@ -274,7 +284,8 @@ void main() {
 
       vm.cambiarMarca('Lumina');
       expect(await vm.guardar(), isTrue);
-      final docs = (await db.collection(ProductoMaquillaje.collection).get()).docs;
+      final docs =
+          (await db.collection(ProductoMaquillaje.collection).get()).docs;
       expect(_productoValido(docs.single.data()), isTrue);
       vm.dispose();
     });
@@ -306,8 +317,12 @@ void main() {
       final r1 = await vm.cargarEjemplo();
       expect(r1.exito, isTrue);
       expect(r1.errorImagenes, isNull);
-      // Todos traen foto real (Pexels): no hace falta generar ni subir nada.
-      expect(storage.archivos, isEmpty);
+      // Solo se generan ilustraciones para los ítems sin foto real (Pexels).
+      final sinFoto = [
+        ...CatalogoEjemplo.prendas.where((p) => p.imagenUrl.isEmpty),
+        ...CatalogoEjemplo.productos.where((p) => p.imagenUrl.isEmpty),
+      ];
+      expect(storage.archivos, hasLength(sinFoto.length));
 
       // Segunda vez: no duplica.
       expect((await vm.cargarEjemplo()).exito, isTrue);
@@ -319,9 +334,15 @@ void main() {
       expect(productos, hasLength(CatalogoEjemplo.productos.length));
       for (final d in prendas) {
         expect(_prendaValida(d.data()), isTrue, reason: d.id);
+        final conFoto = CatalogoEjemplo.prendas
+            .firstWhere((p) => p.id == d.id)
+            .imagenUrl
+            .isNotEmpty;
         expect(
           d.data()['imagenURL'],
-          startsWith('https://images.pexels.com/photos/'),
+          startsWith(
+            conFoto ? 'https://images.pexels.com/photos/' : 'https://imagenes/',
+          ),
           reason: d.id,
         );
       }
@@ -346,30 +367,41 @@ void main() {
       await vm.cargarEjemplo();
       final id = CatalogoEjemplo.productos.first.id;
       final p = (await repo.obtenerProducto(id))!;
-      await repo.guardarProducto(p.copyWith(
-        imagenUrl: 'https://imagenes/foto-real.jpg',
-        imagenRuta: 'catalogo/productos/$id/123.jpg',
-      ));
+      await repo.guardarProducto(
+        p.copyWith(
+          imagenUrl: 'https://imagenes/foto-real.jpg',
+          imagenRuta: 'catalogo/productos/$id/123.jpg',
+        ),
+      );
 
       await vm.cargarEjemplo();
-      expect((await repo.obtenerProducto(id))!.imagenUrl,
-          'https://imagenes/foto-real.jpg');
+      expect(
+        (await repo.obtenerProducto(id))!.imagenUrl,
+        'https://imagenes/foto-real.jpg',
+      );
 
       // También la copia que guarda el script en Storage (ejemplo.jpg).
       final otro = CatalogoEjemplo.prendas.first.id;
       final prenda = (await repo.obtenerPrenda(otro))!;
-      await repo.guardarPrenda(prenda.copyWith(
-        imagenUrl: 'https://storage/copia.jpg',
-        imagenRuta: CatalogoRepository.rutaImagenEjemplo('prendas', otro),
-      ));
+      await repo.guardarPrenda(
+        prenda.copyWith(
+          imagenUrl: 'https://storage/copia.jpg',
+          imagenRuta: CatalogoRepository.rutaImagenEjemplo('prendas', otro),
+        ),
+      );
       await vm.cargarEjemplo();
-      expect((await repo.obtenerPrenda(otro))!.imagenUrl,
-          'https://storage/copia.jpg');
+      expect(
+        (await repo.obtenerPrenda(otro))!.imagenUrl,
+        'https://storage/copia.jpg',
+      );
       vm.dispose();
     });
 
     test('genera un JPEG válido para cada categoría', () async {
-      for (final c in [...PrendaRopa.categorias, ...ProductoMaquillaje.categorias]) {
+      for (final c in [
+        ...PrendaRopa.categorias,
+        ...ProductoMaquillaje.categorias,
+      ]) {
         final bytes = await ImagenCatalogo.generar(
           categoria: c,
           colorHex: '#C2185B',
@@ -390,12 +422,15 @@ void main() {
       );
       for (final e in EstacionColor.values) {
         expect(
-          CatalogoEjemplo.prendas.any((p) => p.estacionesCompatibles.contains(e)),
+          CatalogoEjemplo.prendas.any(
+            (p) => p.estacionesCompatibles.contains(e),
+          ),
           isTrue,
         );
         expect(
-          CatalogoEjemplo.productos
-              .any((p) => p.estacionesCompatibles.contains(e)),
+          CatalogoEjemplo.productos.any(
+            (p) => p.estacionesCompatibles.contains(e),
+          ),
           isTrue,
         );
       }
@@ -418,8 +453,10 @@ void main() {
       expect(ValidadoresCatalogo.precio('abc'), AppStrings.validacionPrecio);
       expect(ValidadoresCatalogo.enlace(''), isNull);
       expect(ValidadoresCatalogo.enlace('https://tienda.com'), isNull);
-      expect(ValidadoresCatalogo.enlace('tienda.com'),
-          AppStrings.validacionEnlace);
+      expect(
+        ValidadoresCatalogo.enlace('tienda.com'),
+        AppStrings.validacionEnlace,
+      );
     });
   });
 }

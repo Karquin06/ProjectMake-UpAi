@@ -15,8 +15,8 @@ import '../../../models/enums.dart';
 ///    brillos y sombras (10 % más claro y más oscuro) y se usa la mediana.
 /// 4. Color de la piel en CIELAB:
 ///    - ángulo de tono h = atan2(b*, a*) → subtono (límite rojo/amarillo
-///      en 55°, franja neutra de ±3°),
-///    - ángulo ITA = atan((L* − 50) / b*) → piel clara (≥ 41°, Chardon),
+///      centrado en 61°, la mejilla promedio; franja neutra de ±4°),
+///    - ángulo ITA = atan((L* − 50) / b*) → piel clara (≥ 34°),
 ///    - croma C = √(a*² + b*²) → intensidad,
 ///    - L* frente a los rasgos oscuros (cejas, ojos, cabello: percentil 10
 ///      de L* alrededor del rostro) → contraste.
@@ -87,10 +87,13 @@ class Umbrales {
   Umbrales._();
   static const lumaMinima = 60.0; // brillo medio 0-255
   static const proporcionPielMinima = 0.2;
-  static const tonoFrioMaximo = 52.0; // grados; frío por debajo
-  static const tonoCalidoMinimo = 58.0; // cálido por encima
-  static const tonoRojoAmarillo = 55.0; // inclina a los neutros
-  static const itaClara = 41.0; // grados; "muy clara" y "clara"
+  // Centrados en la piel real: la mejilla promedio publicada (L* 61,9;
+  // a* 7,2; b* 13,0) mide 61°. Con el corte absoluto de 55° casi toda piel
+  // latina salía cálida y no clara (siempre Otoño).
+  static const tonoFrioMaximo = 57.0; // grados; frío por debajo
+  static const tonoCalidoMinimo = 65.0; // cálido por encima
+  static const tonoRojoAmarillo = 61.0; // centro: inclina a los neutros
+  static const itaClara = 34.0; // grados; mitad de "intermedia" (Chardon)
   static const contrasteAlto = 45.0; // diferencia de L*
   static const contrasteMedio = 28.0;
   static const cromaBrillante = 20.0;
@@ -115,7 +118,9 @@ Elipse ovaloGuia(int ancho, int alto) =>
 Lab rgbALab(num r, num g, num b) {
   double lineal(num c) {
     final v = c / 255;
-    return v <= 0.04045 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
+    return v <= 0.04045
+        ? v / 12.92
+        : math.pow((v + 0.055) / 1.055, 2.4).toDouble();
   }
 
   final rl = lineal(r), gl = lineal(g), bl = lineal(b);
@@ -167,7 +172,9 @@ List<double>? balanceEsclera(ImagenRgb img, List<Elipse> ojos) {
   if (candidatos.length < Umbrales.escleraMinima) return null;
   // La mitad más clara de los candidatos: esclera, no iris oscuro.
   candidatos.sort((a, b) => b.$4.compareTo(a.$4));
-  final esclera = candidatos.take(math.max(Umbrales.escleraMinima, candidatos.length ~/ 2));
+  final esclera = candidatos.take(
+    math.max(Umbrales.escleraMinima, candidatos.length ~/ 2),
+  );
   var r = 0.0, g = 0.0, b = 0.0, n = 0;
   for (final c in esclera) {
     r += c.$1;
@@ -205,7 +212,11 @@ class MedidasColor {
 /// Mide la imagen. Sin [zonas] usa el óvalo guía. Si [rostroRequerido] y no
 /// hay [zonas], falla con `rostroNoDetectado` (después de revisar el brillo,
 /// para avisar "foto oscura" cuando esa es la causa).
-MedidasColor medir(ImagenRgb img, {ZonasRostro? zonas, bool rostroRequerido = false}) {
+MedidasColor medir(
+  ImagenRgb img, {
+  ZonasRostro? zonas,
+  bool rostroRequerido = false,
+}) {
   final p = img.pixeles;
   final total = img.ancho * img.alto;
   var sumaLuma = 0.0;
@@ -256,7 +267,9 @@ MedidasColor medir(ImagenRgb img, {ZonasRostro? zonas, bool rostroRequerido = fa
     throw const ErrorAnalisisColor(CodigoAnalisis.rostroNoDetectado);
   }
   lRegion.sort();
-  final oscurosL = lRegion.isEmpty ? 0.0 : lRegion[(lRegion.length * 0.1).floor()];
+  final oscurosL = lRegion.isEmpty
+      ? 0.0
+      : lRegion[(lRegion.length * 0.1).floor()];
   return MedidasColor(
     _medianaSinExtremos(piel),
     oscurosL,
@@ -328,20 +341,20 @@ class _Rasgos {
   Subtono get subtono => tono < Umbrales.tonoFrioMaximo
       ? Subtono.frio
       : tono > Umbrales.tonoCalidoMinimo
-          ? Subtono.calido
-          : Subtono.neutro;
+      ? Subtono.calido
+      : Subtono.neutro;
 
   Contraste get contraste => diferencia >= Umbrales.contrasteAlto
       ? Contraste.alto
       : diferencia >= Umbrales.contrasteMedio
-          ? Contraste.medio
-          : Contraste.bajo;
+      ? Contraste.medio
+      : Contraste.bajo;
 
   Intensidad get intensidad => croma >= Umbrales.cromaBrillante
       ? Intensidad.brillante
       : croma >= Umbrales.cromaMedia
-          ? Intensidad.media
-          : Intensidad.suave;
+      ? Intensidad.media
+      : Intensidad.suave;
 
   EstacionColor get estacion {
     final clara = ita >= Umbrales.itaClara;
@@ -363,8 +376,8 @@ class _Rasgos {
         return inclinaCalido
             ? EstacionColor.otono
             : contraste == Contraste.bajo
-                ? EstacionColor.verano
-                : EstacionColor.invierno;
+            ? EstacionColor.verano
+            : EstacionColor.invierno;
     }
   }
 }
@@ -382,7 +395,11 @@ final List<_Limite> _limites = [
   (
     (r) => r.tono,
     (r, v) => r.con(tono: v),
-    const [Umbrales.tonoFrioMaximo, Umbrales.tonoRojoAmarillo, Umbrales.tonoCalidoMinimo],
+    const [
+      Umbrales.tonoFrioMaximo,
+      Umbrales.tonoRojoAmarillo,
+      Umbrales.tonoCalidoMinimo,
+    ],
     3.0,
   ),
   ((r) => r.ita, (r, v) => r.con(ita: v), const [Umbrales.itaClara], 5.0),
@@ -422,11 +439,11 @@ final List<_Limite> _limites = [
 
 /// La otra estación de la misma familia (cálida o fría).
 EstacionColor _pareja(EstacionColor e) => switch (e) {
-      EstacionColor.primavera => EstacionColor.otono,
-      EstacionColor.otono => EstacionColor.primavera,
-      EstacionColor.verano => EstacionColor.invierno,
-      EstacionColor.invierno => EstacionColor.verano,
-    };
+  EstacionColor.primavera => EstacionColor.otono,
+  EstacionColor.otono => EstacionColor.primavera,
+  EstacionColor.verano => EstacionColor.invierno,
+  EstacionColor.invierno => EstacionColor.verano,
+};
 
 ResultadoColor clasificar(MedidasColor m) {
   final rasgos = _Rasgos(
@@ -442,10 +459,11 @@ ResultadoColor clasificar(MedidasColor m) {
   // modelos publicados aciertan 55–70 %, por eso nunca pasa de 0,95.
   final factorPiel = math.min(1.0, m.proporcionPiel / 0.5);
   final factorLimite = math.min(1.0, distancia / 2);
-  final confianza = (0.35 +
-          0.6 * (0.3 * factorPiel + 0.7 * factorLimite) -
-          (m.balanceAplicado ? 0 : 0.05))
-      .clamp(0.35, 0.95);
+  final confianza =
+      (0.35 +
+              0.6 * (0.3 * factorPiel + 0.7 * factorLimite) -
+              (m.balanceAplicado ? 0 : 0.05))
+          .clamp(0.35, 0.95);
 
   return ResultadoColor(
     estacion: rasgos.estacion,

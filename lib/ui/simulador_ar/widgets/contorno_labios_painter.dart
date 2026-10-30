@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../models/deteccion_facial_ar.dart';
+import '../motor/curvas_faciales_ar.dart';
 
 /// Dos superficies independientes: labio superior e inferior. La boca queda libre.
 class ContornoLabiosPainter extends CustomPainter {
@@ -28,18 +29,7 @@ class ContornoLabiosPainter extends CustomPainter {
     final dentro = d.contornosLabios[interior]
         .map((p) => d.proyectar(p, size))
         .toList();
-    // Independiente del sentido en que ML Kit enumere cada curva.
-    final distanciaInicio = (fuera.last - dentro.first).distanceSquared;
-    final distanciaFin = (fuera.last - dentro.last).distanceSquared;
-    final retorno = distanciaInicio <= distanciaFin ? dentro : dentro.reversed;
-    final camino = Path()..moveTo(fuera.first.dx, fuera.first.dy);
-    for (final p in fuera.skip(1)) {
-      camino.lineTo(p.dx, p.dy);
-    }
-    for (final p in retorno) {
-      camino.lineTo(p.dx, p.dy);
-    }
-    return camino..close();
+    return franjaEntreCurvasAr(fuera, dentro);
   }
 
   @override

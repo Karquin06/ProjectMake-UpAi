@@ -248,7 +248,10 @@ void main() {
     await tester.pumpWidget(app(const PerfilView()));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('Sofía Martínez'), findsOneWidget);
+    // En el encabezado y en "Mis datos".
+    expect(find.text('Sofía Martínez'), findsNWidgets(2));
+    // Las opciones están al final de la pantalla.
+    await tester.scrollUntilVisible(find.text(AppStrings.eliminarCuenta), 200);
     expect(find.text(AppStrings.cerrarSesion), findsOneWidget);
     expect(find.text(AppStrings.eliminarCuenta), findsOneWidget);
     // Una usuaria normal no ve el acceso al catálogo (solo admin).

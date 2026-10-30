@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -15,7 +16,10 @@ import '../../providers/armario_provider.dart';
 import '../../providers/producto_provider.dart';
 import 'maquillaje_ar_view_model.dart';
 import 'simulador_ar_view_model.dart';
-import 'widgets/contorno_labios_painter.dart';
+import 'widgets/compositor_textura_ar.dart';
+import 'widgets/panel_diagnostico_ar.dart';
+import '../../providers/recomendacion_provider.dart';
+import '../../providers/colorimetria_provider.dart';
 import 'widgets/selector_producto_ar.dart';
 
 class SimuladorArView extends StatelessWidget {
@@ -40,6 +44,8 @@ class SimuladorArView extends StatelessWidget {
               c.read<ArmarioProvider>(),
               productoInicial: argumento is String ? argumento : null,
               capturas: c.read<CapturasArRepository>(),
+              recomendaciones: c.read<RecomendacionProvider>(),
+              colorimetria: c.read<ColorimetriaProvider>(),
             );
             unawaited(Future<void>.microtask(vm.cargar));
             return vm;
@@ -86,6 +92,12 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
           content: Text(
             ok ? AppStrings.arCapturaGuardada : AppStrings.arErrorCaptura,
           ),
+          action: ok
+              ? SnackBarAction(
+                  label: AppStrings.arCompartir,
+                  onPressed: () => _compartir(),
+                )
+              : null,
         ),
       );
     } catch (_) {
@@ -99,10 +111,25 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
     }
   }
 
+  Future<void> _compartir() async {
+    final ok = await context.read<MaquillajeArViewModel>().compartirUltima();
+    if (!mounted || ok) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text(AppStrings.arErrorCompartir)));
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addTimingsCallback(_alRasterizar);
+  }
+
+  void _alRasterizar(List<ui.FrameTiming> tiempos) {
+    if (mounted) {
+      context.read<SimuladorArViewModel>().registrarRasterizado(tiempos);
+    }
   }
 
   @override
@@ -113,6 +140,7 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance.removeTimingsCallback(_alRasterizar);
     super.dispose();
   }
 
@@ -124,14 +152,32 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
       appBar: AppBar(
         title: const Text(AppStrings.arTitulo),
         actions: [
+          if (!kReleaseMode && !vm.soloVistaPrevia)
+            IconButton(
+              tooltip: AppStrings.arDiagnostico,
+              icon: const Icon(Icons.speed),
+              onPressed: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) =>
+                    PanelDiagnosticoAr(camara: vm, maquillaje: maquillaje),
+              ),
+            ),
+
+          if (maquillaje.ultimaCaptura != null)
+            IconButton(
+              tooltip: AppStrings.arCompartir,
+              onPressed: _compartir,
+              icon: const Icon(Icons.share_outlined),
+            ),
           IconButton(
             tooltip: AppStrings.arCapturar,
             onPressed:
                 _capturando ||
-                    maquillaje.seleccionado == null ||
+                    maquillaje.capas.isEmpty ||
                     vm.soloVistaPrevia ||
                     vm.estado != EstadoSimuladorAr.lista ||
-                    vm.deteccion?.labiosDetectados != true
+                    vm.deteccion?.rostroDetectado != true
                 ? null
                 : _capturar,
             icon: Icon(
@@ -197,18 +243,19 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                 child: Center(
                   child: RepaintBoundary(
                     key: _claveCaptura,
-                    child: CameraPreview(
-                      camara,
-                      child: IgnorePointer(
-                        child: RepaintBoundary(
-                          child: CustomPaint(
-                            painter: ContornoLabiosPainter(
-                              vm.fotogramas,
-                              color: maquillaje.color,
-                              intensidad: maquillaje.intensidad,
-                              original: maquillaje.original,
-                              mostrarGuia: maquillaje.guia,
-                            ),
+                    child: GrupoComposicionAr(
+                      child: CameraPreview(
+                        camara,
+                        child: IgnorePointer(
+                          child: CompositorTexturaAr(
+                            fotogramas: vm.fotogramas,
+                            geometriaActual: vm.geometriaParaPintar,
+                            capas: maquillaje.capas,
+                            original: maquillaje.original,
+                            mostrarGuia: maquillaje.guia,
+                            alPintar: vm.registrarPintado,
+                            alCrearMascaras: vm.registrarMascaras,
+                            alAplicar: vm.registrarCapasDibujadas,
                           ),
                         ),
                       ),
@@ -226,24 +273,27 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                       ? AppStrings.arVistaPreviaWeb
                       : vm.deteccionFallida
                       ? AppStrings.arErrorDeteccion
+                      : vm.seguimientoLento
+                      ? AppStrings.arSeguimientoLento
                       : vm.esperandoPrimerFotograma
                       ? AppStrings.arBuscandoRostro
                       : vm.deteccion?.rostroDetectado != true
                       ? AppStrings.arSinRostro
-                      : vm.deteccion?.labiosDetectados != true
-                      ? AppStrings.arSinLabios
+                      : maquillaje.capas.isEmpty
+                      ? AppStrings.arSinCapas
                       : maquillaje.original
                       ? AppStrings.arMostrandoOriginal
-                      : maquillaje.seleccionado == null
-                      ? AppStrings.arLabiosDetectados
-                      : AppStrings.arMaquillajeListo,
+                      : AppStrings.arAplicacionLista,
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
-            SelectorProductoAr(
-              alturaMaxima: math.min(260, limites.maxHeight * .38),
-              simulacionDisponible: !vm.soloVistaPrevia,
+            IgnorePointer(
+              ignoring: _capturando,
+              child: SelectorProductoAr(
+                alturaMaxima: math.min(330, limites.maxHeight * .46),
+                simulacionDisponible: !vm.soloVistaPrevia,
+              ),
             ),
           ],
         );

@@ -9,6 +9,7 @@ import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/boton_primario.dart';
 import 'auth_view_model.dart';
 import 'widgets/casilla_consentimiento.dart';
+import 'widgets/fondo_auth.dart';
 import 'widgets/formulario_registro.dart';
 
 class RegistroView extends StatefulWidget {
@@ -65,72 +66,94 @@ class _RegistroViewState extends State<RegistroView> {
       child: Consumer<AuthViewModel>(
         builder: (context, vm, _) {
           return Scaffold(
-            backgroundColor: AppColors.textoPrincipal.withValues(alpha: 0.35),
-            body: SafeArea(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-                  decoration: const BoxDecoration(
-                    color: AppColors.superficie,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                AppStrings.crearCuenta,
-                                style: AppTextStyles.tituloPantalla,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: const Icon(
-                                Icons.close,
-                                color: AppColors.textoSecundario,
-                              ),
+            body: FondoAuth(
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const EncabezadoAuth(),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(22, 22, 22, 26),
+                        decoration: BoxDecoration(
+                          color: AppColors.superficie,
+                          borderRadius: BorderRadius.circular(28),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.violeta.withValues(alpha: 0.1),
+                              blurRadius: 30,
+                              offset: const Offset(0, 12),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        FormularioRegistro(
-                          formKey: _formKey,
-                          nombreController: _nombreController,
-                          correoController: _correoController,
-                          contrasenaController: _contrasenaController,
-                          confirmarController: _confirmarController,
+                        child: Theme(
+                          data: temaCamposAuth(
+                            context,
+                            relleno: const Color(0xFFFDF3F8),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      AppStrings.crearCuenta,
+                                      style: AppTextStyles.tituloPantalla
+                                          .copyWith(
+                                            fontSize: 28,
+                                            color: AppColors.violetaOscuro,
+                                          ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    icon: const Icon(
+                                      Icons.close,
+                                      color: AppColors.violeta,
+                                      size: 28,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              FormularioRegistro(
+                                formKey: _formKey,
+                                nombreController: _nombreController,
+                                correoController: _correoController,
+                                contrasenaController: _contrasenaController,
+                                confirmarController: _confirmarController,
+                              ),
+                              const SizedBox(height: 12),
+                              CasillaConsentimiento(
+                                aceptado: vm.aceptoConsentimiento,
+                                onCambiar: vm.cambiarConsentimiento,
+                                onVerAviso: () => _verAviso(vm),
+                                error:
+                                    vm.error ==
+                                        AppStrings.errorConsentimientoRequerido
+                                    ? vm.error
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              BotonPrimario(
+                                texto: AppStrings.botonCrearCuentaGratis,
+                                icono: Icons.arrow_forward,
+                                cargando: vm.cargando,
+                                // Sin aceptar el aviso el botón queda
+                                // deshabilitado.
+                                onPressed: vm.aceptoConsentimiento
+                                    ? () => _crearCuenta(vm)
+                                    : null,
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        CasillaConsentimiento(
-                          aceptado: vm.aceptoConsentimiento,
-                          onCambiar: vm.cambiarConsentimiento,
-                          onVerAviso: () => _verAviso(vm),
-                          error:
-                              vm.error ==
-                                  AppStrings.errorConsentimientoRequerido
-                              ? vm.error
-                              : null,
-                        ),
-                        const SizedBox(height: 16),
-                        BotonPrimario(
-                          texto: AppStrings.botonCrearCuentaGratis,
-                          cargando: vm.cargando,
-                          // Sin aceptar el aviso el botón queda deshabilitado.
-                          onPressed: vm.aceptoConsentimiento
-                              ? () => _crearCuenta(vm)
-                              : null,
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

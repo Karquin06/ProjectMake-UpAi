@@ -6,6 +6,7 @@ import {
   cuerpoGemini,
   leerPeticionChat,
   MENSAJES_POR_MINUTO,
+  respuestaDeRespaldo,
   textoDeRespuesta,
 } from "./asistente";
 import { prefijosDeUsuaria, reautenticacionReciente } from "./cuenta";
@@ -187,5 +188,37 @@ describe("cuenta y notificaciones", () => {
     });
     assert.throws(() => leerPeticionNotificacion({ titulo: "", mensaje: "x" }, "u1"));
     assert.throws(() => leerPeticionNotificacion({ titulo: "x", mensaje: "y".repeat(301) }, "u1"));
+  });
+});
+
+describe("respuestaDeRespaldo (sin IA)", () => {
+  const catalogo = [
+    { tipo: "producto" as const, nombre: "Labial rojo frambuesa", marca: "Vogue", categoria: "labial", estaciones: ["invierno"] },
+    { tipo: "producto" as const, nombre: "Labial coral", marca: "Vogue", categoria: "labial", estaciones: ["primavera"] },
+    { tipo: "prenda" as const, nombre: "Blazer azul marino", marca: "Arturo Calle", categoria: "superior", estaciones: ["invierno"] },
+  ];
+  const peticion = (mensaje: string, contexto = { estacion: "invierno", subtono: "frio" }) =>
+    leerPeticionChat({ mensaje, contexto });
+
+  it("recomienda labiales de su estación del catálogo", () => {
+    const r = respuestaDeRespaldo(peticion("¿Qué labial me queda?"), catalogo);
+    assert.match(r, /Invierno de subtono frío/);
+    assert.match(r, /Labial rojo frambuesa/);
+    assert.doesNotMatch(r, /Labial coral/);
+    assert.doesNotMatch(r, /Blazer/);
+  });
+
+  it("para ropa sugiere prendas", () => {
+    const r = respuestaDeRespaldo(peticion("Qué ropa uso para una entrevista"), catalogo);
+    assert.match(r, /Blazer azul marino/);
+  });
+
+  it("dice qué colores evitar", () => {
+    assert.match(respuestaDeRespaldo(peticion("¿qué colores debo evitar?"), catalogo), /conviene evitar/);
+  });
+
+  it("sin análisis invita a hacerlo y no da consejos médicos", () => {
+    assert.match(respuestaDeRespaldo(leerPeticionChat({ mensaje: "hola" }), catalogo), /Colorimetría/);
+    assert.match(respuestaDeRespaldo(peticion("tengo una alergia en la piel"), catalogo), /profesional de la salud/);
   });
 });

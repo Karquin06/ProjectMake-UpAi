@@ -51,7 +51,10 @@ class BurbujaMensaje extends StatelessWidget {
         children: [
           SelectableText(
             esUsuaria ? mensaje.contenido : textoLimpio(mensaje.contenido),
-            style: estilos.bodyMedium?.copyWith(color: colorTexto, height: 1.35),
+            style: estilos.bodyMedium?.copyWith(
+              color: colorTexto,
+              height: 1.35,
+            ),
           ),
           const SizedBox(height: 4),
           Row(
@@ -82,10 +85,14 @@ class BurbujaMensaje extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
-        crossAxisAlignment:
-            esUsuaria ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: esUsuaria
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
-          GestureDetector(onTap: conError ? onReintentar : null, child: burbuja),
+          GestureDetector(
+            onTap: conError ? onReintentar : null,
+            child: burbuja,
+          ),
           if (conError)
             InkWell(
               onTap: onReintentar,

@@ -1,10 +1,16 @@
+import '../../data/services/compartir_ar_service.dart';
 import 'package:flutter/foundation.dart';
 import '../../core/constants/app_strings.dart';
 import '../../data/repositories/capturas_ar_repository.dart';
 import '../../models/captura_ar.dart';
 
 class ResultadosArViewModel extends ChangeNotifier {
-  ResultadosArViewModel(this._repositorio, this.uid);
+  ResultadosArViewModel(
+    this._repositorio,
+    this.uid, {
+    CompartirArService? compartir,
+  }) : _compartir = compartir ?? CompartirArService();
+  final CompartirArService _compartir;
   final CapturasArRepository _repositorio;
   final String? uid;
   List<CapturaAr> _capturas = [];
@@ -32,6 +38,16 @@ class ResultadosArViewModel extends ChangeNotifier {
       await cargar();
     } catch (_) {
       error = AppStrings.arErrorCapturas;
+      if (!_cerrado) notifyListeners();
+    }
+  }
+
+  Future<void> compartir(CapturaAr captura) async {
+    if (uid == null) return;
+    try {
+      await _compartir.compartir(captura);
+    } catch (_) {
+      error = AppStrings.arErrorCompartir;
       if (!_cerrado) notifyListeners();
     }
   }

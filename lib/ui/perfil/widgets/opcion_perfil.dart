@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
-/// Fila de opción del perfil: icono, título, subtítulo y flecha.
-/// Con [destructiva] se pinta en rojo (cerrar sesión, eliminar cuenta).
+/// Fila de opción del perfil: icono, título (y subtítulo opcional) y flecha.
+/// Con [destructiva] se pinta en rojo (eliminar cuenta).
 class OpcionPerfil extends StatelessWidget {
   final IconData icono;
   final String titulo;
@@ -28,20 +28,11 @@ class OpcionPerfil extends StatelessWidget {
     return InkWell(
       onTap: cargando ? null : onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: (destructiva ? AppColors.error : AppColors.fucsia)
-                    .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icono, color: color, size: 20),
-            ),
-            const SizedBox(width: 14),
+            Icon(icono, color: color, size: 24),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,6 +41,7 @@ class OpcionPerfil extends StatelessWidget {
                     titulo,
                     style: AppTextStyles.botonSecundario.copyWith(
                       fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
                       color: destructiva
                           ? AppColors.error
                           : AppColors.textoPrincipal,
@@ -60,7 +52,7 @@ class OpcionPerfil extends StatelessWidget {
                       subtitulo!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.subtitulo.copyWith(fontSize: 12.5),
+                      style: AppTextStyles.subtitulo.copyWith(fontSize: 12),
                     ),
                 ],
               ),
@@ -72,7 +64,10 @@ class OpcionPerfil extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             else
-              const Icon(Icons.chevron_right, color: AppColors.textoSecundario),
+              Icon(
+                Icons.chevron_right,
+                color: destructiva ? AppColors.error : AppColors.violeta,
+              ),
           ],
         ),
       ),

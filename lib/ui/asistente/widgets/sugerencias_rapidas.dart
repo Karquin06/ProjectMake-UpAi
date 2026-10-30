@@ -28,17 +28,13 @@ class SugerenciasRapidas extends StatelessWidget {
   ];
 
   Widget _chip(String texto) => ActionChip(
-        label: Text(texto),
-        onPressed: habilitado ? () => onElegir(texto) : null,
-        backgroundColor: AppColors.superficie,
-        side: const BorderSide(color: AppColors.borde),
-        labelStyle: const TextStyle(color: AppColors.violeta),
-        avatar: const Icon(
-          Icons.auto_awesome,
-          size: 16,
-          color: AppColors.fucsia,
-        ),
-      );
+    label: Text(texto),
+    onPressed: habilitado ? () => onElegir(texto) : null,
+    backgroundColor: AppColors.superficie,
+    side: const BorderSide(color: AppColors.borde),
+    labelStyle: const TextStyle(color: AppColors.violeta),
+    avatar: const Icon(Icons.auto_awesome, size: 16, color: AppColors.fucsia),
+  );
 
   @override
   Widget build(BuildContext context) {

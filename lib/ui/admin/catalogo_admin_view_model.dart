@@ -16,6 +16,7 @@ enum TipoCatalogo { prendas, productos }
 /// Vista común de una prenda o un producto para la lista del catálogo.
 class ItemCatalogo {
   final String id;
+  final ProductoMaquillaje? productoAr;
   final TipoCatalogo tipo;
   final String nombre;
   final String categoria;
@@ -28,6 +29,7 @@ class ItemCatalogo {
 
   const ItemCatalogo({
     required this.id,
+    this.productoAr,
     required this.tipo,
     required this.nombre,
     required this.categoria,
@@ -53,6 +55,7 @@ class ItemCatalogo {
       );
 
   factory ItemCatalogo.desdeProducto(ProductoMaquillaje p) => ItemCatalogo(
+        productoAr: p,
         id: p.id,
         tipo: TipoCatalogo.productos,
         nombre: p.nombreVisible,
@@ -66,6 +69,7 @@ class ItemCatalogo {
       );
 
   ItemCatalogo conActivo(bool valor) => ItemCatalogo(
+        productoAr: productoAr?.copyWith(activo: valor),
         id: id,
         tipo: tipo,
         nombre: nombre,

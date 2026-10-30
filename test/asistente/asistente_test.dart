@@ -5,7 +5,7 @@ import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/core/errors/app_exception.dart';
 import 'package:mackeupai/data/repositories/conversacion_repository.dart';
 import 'package:mackeupai/data/repositories/perfil_colorimetria_repository.dart';
-import 'package:mackeupai/data/services/colorimetria_mock_service.dart';
+import '../helpers/colorimetria_mock_service.dart';
 import 'package:mackeupai/data/services/funciones_ia_service.dart';
 import 'package:mackeupai/models/models.dart';
 import 'package:mackeupai/providers/asistente_provider.dart';
@@ -66,34 +66,39 @@ class _Entorno {
 
 void main() {
   group('AsistenteViewModel', () {
-    test('envía con el contexto de colorimetría y guarda la conversación',
-        () async {
-      final e = _Entorno();
-      await e.iniciar();
-      final vm = AsistenteViewModel(e.asistente, e.colorimetria);
-      await vm.cargar();
-      expect(vm.vacio, isTrue);
-      expect(vm.sinPerfil, isFalse);
+    test(
+      'envía con el contexto de colorimetría y guarda la conversación',
+      () async {
+        final e = _Entorno();
+        await e.iniciar();
+        final vm = AsistenteViewModel(e.asistente, e.colorimetria);
+        await vm.cargar();
+        expect(vm.vacio, isTrue);
+        expect(vm.sinPerfil, isFalse);
 
-      expect(await vm.enviar('¿Qué labial me queda?'), isNull);
-      expect(vm.mensajes, hasLength(2));
-      expect(vm.mensajes.first.esUsuaria, isTrue);
-      expect(vm.mensajes.last.contenido, 'Respuesta a: ¿Qué labial me queda?');
-      expect(e.chat.pedidos.single['estacion'], EstacionColor.invierno);
-      expect(e.chat.pedidos.single['subtono'], Subtono.frio);
+        expect(await vm.enviar('¿Qué labial me queda?'), isNull);
+        expect(vm.mensajes, hasLength(2));
+        expect(vm.mensajes.first.esUsuaria, isTrue);
+        expect(
+          vm.mensajes.last.contenido,
+          'Respuesta a: ¿Qué labial me queda?',
+        );
+        expect(e.chat.pedidos.single['estacion'], EstacionColor.invierno);
+        expect(e.chat.pedidos.single['subtono'], Subtono.frio);
 
-      // El segundo mensaje lleva el historial anterior.
-      await vm.enviar('¿Y para una fiesta?');
-      expect(e.chat.pedidos.last['historial'], 2);
+        // El segundo mensaje lleva el historial anterior.
+        await vm.enviar('¿Y para una fiesta?');
+        expect(e.chat.pedidos.last['historial'], 2);
 
-      // Quedó guardada en usuarias/u1/conversaciones (con el uid, por las
-      // reglas de Firestore).
-      final guardada = await e.conversaciones.ultima('u1');
-      expect(guardada, isNotNull);
-      expect(guardada!.uid, 'u1');
-      expect(guardada.mensajes, hasLength(4));
-      vm.dispose();
-    });
+        // Quedó guardada en usuarias/u1/conversaciones (con el uid, por las
+        // reglas de Firestore).
+        final guardada = await e.conversaciones.ultima('u1');
+        expect(guardada, isNotNull);
+        expect(guardada!.uid, 'u1');
+        expect(guardada.mensajes, hasLength(4));
+        vm.dispose();
+      },
+    );
 
     test('recupera la última conversación al abrir', () async {
       final e = _Entorno();
@@ -110,31 +115,35 @@ void main() {
       await e.iniciar();
       final vm = AsistenteViewModel(e.asistente, e.colorimetria);
       await vm.cargar();
-      expect(vm.mensajes.map((m) => m.contenido),
-          ['Hola', '¡Hola! ¿En qué te ayudo?']);
+      expect(vm.mensajes.map((m) => m.contenido), [
+        'Hola',
+        '¡Hola! ¿En qué te ayudo?',
+      ]);
 
       vm.nuevaConversacion();
       expect(vm.vacio, isTrue);
       vm.dispose();
     });
 
-    test('si falla, el mensaje queda con error y se puede reintentar',
-        () async {
-      final e = _Entorno();
-      await e.iniciar();
-      final vm = AsistenteViewModel(e.asistente, e.colorimetria);
-      await vm.cargar();
+    test(
+      'si falla, el mensaje queda con error y se puede reintentar',
+      () async {
+        final e = _Entorno();
+        await e.iniciar();
+        final vm = AsistenteViewModel(e.asistente, e.colorimetria);
+        await vm.cargar();
 
-      e.chat.fallos = 1;
-      expect(await vm.enviar('Hola'), 'Sin conexión');
-      expect(vm.mensajes.single.estado, EstadoMensaje.error);
-      expect(vm.puedeEnviar, isTrue);
+        e.chat.fallos = 1;
+        expect(await vm.enviar('Hola'), 'Sin conexión');
+        expect(vm.mensajes.single.estado, EstadoMensaje.error);
+        expect(vm.puedeEnviar, isTrue);
 
-      expect(await vm.reintentar(vm.mensajes.single), isNull);
-      expect(vm.mensajes, hasLength(2));
-      expect(vm.mensajes.first.estado, EstadoMensaje.enviado);
-      vm.dispose();
-    });
+        expect(await vm.reintentar(vm.mensajes.single), isNull);
+        expect(vm.mensajes, hasLength(2));
+        expect(vm.mensajes.first.estado, EstadoMensaje.enviado);
+        vm.dispose();
+      },
+    );
 
     test('sin análisis avisa y envía sin estación', () async {
       final e = _Entorno();
@@ -162,25 +171,38 @@ void main() {
 
   test('quita el formato Markdown de las respuestas', () {
     expect(
-      BurbujaMensaje.textoLimpio('## Te recomiendo\n* **Labial vino**\n- Rubor'),
+      BurbujaMensaje.textoLimpio(
+        '## Te recomiendo\n* **Labial vino**\n- Rubor',
+      ),
       'Te recomiendo\n• Labial vino\n• Rubor',
     );
   });
 
-  testWidgets('la pantalla muestra la bienvenida y responde a una sugerencia',
-      (tester) async {
+  testWidgets('la pantalla muestra la bienvenida y responde a una sugerencia', (
+    tester,
+  ) async {
     final e = _Entorno();
     await tester.runAsync(e.iniciar);
-    await tester.pumpWidget(MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: e.colorimetria),
-        ChangeNotifierProvider.value(value: e.asistente),
-      ],
-      child: const MaterialApp(home: AsistenteView()),
-    ));
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: e.colorimetria),
+          ChangeNotifierProvider.value(value: e.asistente),
+        ],
+        child: const MaterialApp(home: AsistenteView()),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text(AppStrings.asistenteBienvenidaTitulo), findsOneWidget);
+    expect(find.text(AppStrings.asistenteHola('')), findsOneWidget);
+    // Las preguntas rápidas están al final de la bienvenida.
+    await tester.scrollUntilVisible(
+      find.text(AppStrings.sugerenciaLabial),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.text(AppStrings.sugerenciaLabial));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(AppStrings.sugerenciaLabial));
     await tester.pumpAndSettle();
 
@@ -188,6 +210,6 @@ void main() {
       find.text('Respuesta a: ${AppStrings.sugerenciaLabial}'),
       findsOneWidget,
     );
-    expect(find.text(AppStrings.asistenteBienvenidaTitulo), findsNothing);
+    expect(find.text(AppStrings.asistenteHola('')), findsNothing);
   });
 }

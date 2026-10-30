@@ -89,6 +89,7 @@ class FormularioProductoViewModel extends FormularioCatalogoViewModel {
       colorHex: colorHexNormalizado,
       subtonoCompatible: subtonosOrdenados,
       acabado: base.acabado,
+      tipoEfectoAr: categoria == base.categoria ? base.tipoEfectoAr : null,
       codigoBarras: base.codigoBarras,
       estacionesCompatibles: estacionesOrdenadas,
       precio: precioDesde(precio),

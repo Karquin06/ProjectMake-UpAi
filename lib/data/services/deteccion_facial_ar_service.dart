@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -96,6 +97,55 @@ Uint8List convertirANv21(int ancho, int alto, List<PlanoImagenAr> planos) {
   return salida;
 }
 
+/// Reduce únicamente el buffer de análisis. La textura de vista previa no cambia.
+/// Muestreo centrado en la rejilla Y/VU, sin conversión RGB ni JPEG intermedio.
+Uint8List reducirNv21Ar(
+  Uint8List bytes,
+  int ancho,
+  int alto,
+  int destinoAncho,
+  int destinoAlto,
+) {
+  if ([ancho, alto, destinoAncho, destinoAlto].any((v) => v <= 0 || v.isOdd) ||
+      destinoAncho > ancho ||
+      destinoAlto > alto ||
+      bytes.length < ancho * alto * 3 ~/ 2) {
+    throw const FormatException('Dimensiones NV21 de análisis inválidas');
+  }
+  if (ancho == destinoAncho && alto == destinoAlto) return bytes;
+  final salida = Uint8List(destinoAncho * destinoAlto * 3 ~/ 2);
+  final xs = List<int>.generate(
+    destinoAncho,
+    (x) => ((x + .5) * ancho / destinoAncho).floor().clamp(0, ancho - 1),
+  );
+  for (var y = 0; y < destinoAlto; y++) {
+    final origen =
+        ((y + .5) * alto / destinoAlto).floor().clamp(0, alto - 1) * ancho;
+    final destino = y * destinoAncho;
+    for (var x = 0; x < destinoAncho; x++) {
+      salida[destino + x] = bytes[origen + xs[x]];
+    }
+  }
+  final yOrigen = ancho * alto, yDestino = destinoAncho * destinoAlto;
+  for (var y = 0; y < destinoAlto ~/ 2; y++) {
+    final fila = ((y + .5) * alto / destinoAlto).floor().clamp(
+      0,
+      alto ~/ 2 - 1,
+    );
+    for (var x = 0; x < destinoAncho ~/ 2; x++) {
+      final col = ((x + .5) * ancho / destinoAncho).floor().clamp(
+        0,
+        ancho ~/ 2 - 1,
+      );
+      final origen = yOrigen + fila * ancho + col * 2,
+          destino = yDestino + y * destinoAncho + x * 2;
+      salida[destino] = bytes[origen];
+      salida[destino + 1] = bytes[origen + 1];
+    }
+  }
+  return salida;
+}
+
 int rotacionImagenAr(CameraDescription camara, DeviceOrientation orientacion) {
   final grados = switch (orientacion) {
     DeviceOrientation.portraitUp => 0,
@@ -111,9 +161,52 @@ int rotacionImagenAr(CameraDescription camara, DeviceOrientation orientacion) {
       360;
 }
 
+/// Misma conversión validada en Samsung para los dos detectores.
+InputImage entradaImagenAr(
+  CameraImage imagen,
+  CameraDescription camara,
+  DeviceOrientation orientacion, {
+  Size? tamanoAnalisis,
+}) {
+  if (imagen.format.raw != 17 && imagen.format.raw != 35) {
+    throw FormatException(
+      'Formato Android no compatible: ${imagen.format.raw}',
+    );
+  }
+  final rotacion = rotacionImagenAr(camara, orientacion);
+  final bytes = convertirANv21(
+    imagen.width,
+    imagen.height,
+    imagen.planes
+        .map((p) => PlanoImagenAr(p.bytes, p.bytesPerRow, p.bytesPerPixel ?? 1))
+        .toList(),
+  );
+  final tamano = Size(imagen.width.toDouble(), imagen.height.toDouble());
+  final entrada = InputImage.fromBytes(
+    bytes: tamanoAnalisis == null
+        ? bytes
+        : reducirNv21Ar(
+            bytes,
+            imagen.width,
+            imagen.height,
+            tamanoAnalisis.width.toInt(),
+            tamanoAnalisis.height.toInt(),
+          ),
+    metadata: InputImageMetadata(
+      size: tamanoAnalisis ?? tamano,
+      rotation: InputImageRotationValue.fromRawValue(rotacion)!,
+      format: InputImageFormat.nv21,
+      bytesPerRow: tamanoAnalisis?.width.toInt() ?? imagen.width,
+    ),
+  );
+  return entrada;
+}
+
 class DeteccionFacialArService implements DetectorLabiosAr {
   // Se crea solo al recibir el primer fotograma Android.
   FaceDetector? _detector;
+  bool _reducido = false;
+  double _caraCorta = 0;
 
   @override
   Future<DeteccionFacialAr> detectar(
@@ -125,25 +218,36 @@ class DeteccionFacialArService implements DetectorLabiosAr {
       throw UnsupportedError('La detección AR está disponible en Android');
     }
     final rotacion = rotacionImagenAr(camara, orientacion);
-    final bytes = convertirANv21(
-      imagen.width,
-      imagen.height,
-      imagen.planes
-          .map(
-            (p) => PlanoImagenAr(p.bytes, p.bytesPerRow, p.bytesPerPixel ?? 1),
-          )
-          .toList(),
-    );
     final tamano = Size(imagen.width.toDouble(), imagen.height.toDouble());
-    final entrada = InputImage.fromBytes(
-      bytes: bytes,
-      metadata: InputImageMetadata(
-        size: tamano,
-        rotation: InputImageRotationValue.fromRawValue(rotacion)!,
-        format: InputImageFormat.nv21,
-        bytesPerRow: imagen.width,
-      ),
+    final reloj = Stopwatch()..start();
+    final factor = math.min(
+      1.0,
+      math.max(540 / imagen.width, 360 / imagen.height),
     );
+    // Exigir margen sobre los 200 px de cara recomendados por ML Kit para
+    // contornos. Histéresis evita alternar resolución cerca del umbral.
+    _reducido = factor < 1 && _caraCorta * factor >= (_reducido ? 210 : 240);
+    final analisis = _reducido
+        ? Size(
+            (imagen.width * factor / 2).floor() * 2.0,
+            (imagen.height * factor / 2).floor() * 2.0,
+          )
+        : tamano;
+    final entrada = entradaImagenAr(
+      imagen,
+      camara,
+      orientacion,
+      tamanoAnalisis: analisis,
+    );
+    final sx = (rotacion == 90 || rotacion == 270)
+        ? tamano.height / analisis.height
+        : tamano.width / analisis.width;
+    final sy = (rotacion == 90 || rotacion == 270)
+        ? tamano.width / analisis.width
+        : tamano.height / analisis.height;
+    Offset escalar(num x, num y) =>
+        Offset(x.toDouble() * sx, y.toDouble() * sy);
+    final conversionMs = reloj.elapsedMicroseconds / 1000;
     final detector = _detector ??= FaceDetector(
       options: FaceDetectorOptions(
         enableContours: true,
@@ -151,7 +255,9 @@ class DeteccionFacialArService implements DetectorLabiosAr {
         minFaceSize: 0.15,
       ),
     );
+    reloj.reset();
     final rostros = await detector.processImage(entrada);
+    final detectorMs = reloj.elapsedMicroseconds / 1000;
     // El modo contornos está diseñado para un rostro prominente.
     final rostro = rostros.isEmpty
         ? null
@@ -162,6 +268,15 @@ class DeteccionFacialArService implements DetectorLabiosAr {
                 ? a
                 : b,
           );
+    final caja = rostro == null
+        ? null
+        : Rect.fromLTRB(
+            rostro.boundingBox.left * sx,
+            rostro.boundingBox.top * sy,
+            rostro.boundingBox.right * sx,
+            rostro.boundingBox.bottom * sy,
+          );
+    _caraCorta = caja?.shortestSide ?? 0;
     final tipos = [
       FaceContourType.upperLipTop,
       FaceContourType.upperLipBottom,
@@ -173,12 +288,38 @@ class DeteccionFacialArService implements DetectorLabiosAr {
       rotacion: rotacion,
       esFrontal: camara.lensDirection == CameraLensDirection.front,
       rostroDetectado: rostro != null,
+      cantidadRostros: rostros.length,
+      cajaRostro: caja,
+      tamanoAnalisis: analisis,
+      conversionMs: conversionMs,
+      detectorMs: detectorMs,
+      regiones: rostro == null
+          ? {}
+          : {
+              for (final entry in {
+                RegionFacialAr.ovalo: FaceContourType.face,
+                RegionFacialAr.ojoIzquierdo: FaceContourType.leftEye,
+                RegionFacialAr.ojoDerecho: FaceContourType.rightEye,
+                RegionFacialAr.cejaIzquierdaSuperior:
+                    FaceContourType.leftEyebrowTop,
+                RegionFacialAr.cejaIzquierdaInferior:
+                    FaceContourType.leftEyebrowBottom,
+                RegionFacialAr.cejaDerechaSuperior:
+                    FaceContourType.rightEyebrowTop,
+                RegionFacialAr.cejaDerechaInferior:
+                    FaceContourType.rightEyebrowBottom,
+                RegionFacialAr.puenteNariz: FaceContourType.noseBridge,
+              }.entries)
+                entry.key: (rostro.contours[entry.value]?.points ?? [])
+                    .map((p) => escalar(p.x, p.y))
+                    .toList(),
+            },
       contornosLabios: rostro == null
           ? []
           : tipos
                 .map(
                   (tipo) => (rostro.contours[tipo]?.points ?? [])
-                      .map((p) => Offset(p.x.toDouble(), p.y.toDouble()))
+                      .map((p) => escalar(p.x, p.y))
                       .toList(),
                 )
                 .toList(),

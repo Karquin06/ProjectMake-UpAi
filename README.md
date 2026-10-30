@@ -22,10 +22,11 @@ Proyecto de la materia Programación Móvil, Universidad Popular del Cesar.
 8. [Backend en Firebase](#backend-en-firebase)
 9. [Privacidad y seguridad](#privacidad-y-seguridad)
 10. [Puesta en marcha](#puesta-en-marcha)
-11. [Pruebas](#pruebas)
-12. [Generar el APK](#generar-el-apk)
-13. [Estado del proyecto](#estado-del-proyecto)
-14. [Autores](#autores)
+11. [Simulador AR](#simulador-ar)
+12. [Pruebas](#pruebas)
+13. [Generar el APK](#generar-el-apk)
+14. [Estado del proyecto](#estado-del-proyecto)
+15. [Autores](#autores)
 
 ---
 
@@ -40,8 +41,8 @@ Make Up AI pone esa asesoría en el teléfono:
 - **Analiza la selfie** de la usuaria y determina su estación de color, subtono (cálido, frío o neutro), contraste e intensidad.
 - **Muestra su paleta personal**: colores básicos y para destacar en ropa, tonos de labial, rubor, sombra y base, y los colores que conviene evitar.
 - **Recomienda** maquillaje y prendas acordes con su paleta, con filtros por tipo y ocasión y detalle de cada ítem.
-- **Simula** el maquillaje en tiempo real con la cámara frontal (realidad aumentada).
-- **Analiza prendas** del armario: indica si el color de una prenda combina con la paleta.
+- **Simula** maquillaje con la cámara frontal en Android: looks recomendados por colorimetría y prueba libre, con varias categorías simultáneas.
+- **Organiza el Armario personal**: guarda productos y prendas del catálogo, y consulta capturas del simulador. El escáner de prendas queda fuera del alcance.
 - **Gestiona un catálogo** de prendas y productos mediante un panel de administración (solo rol admin).
 
 Además incluye registro con verificación de correo, inicio de sesión con correo o Google, recuperación de contraseña, perfil editable con foto, notificaciones y eliminación de cuenta.
@@ -72,7 +73,8 @@ Selfie ─► Detección de zona de piel ─► Análisis de color ─► Estaci
 | Archivos | Firebase Storage |
 | Lógica en la nube | Cloud Functions (Node 22, TypeScript, funciones *callable* v2) |
 | Notificaciones | Firebase Cloud Messaging |
-| Cámara y visión | `camera`, `google_mlkit_face_detection`, `image` |
+| Cámara y visión | `camera`, `google_mlkit_face_detection`, `google_mlkit_face_mesh_detection`, `image` |
+| Capturas y compartir | `path_provider`, `share_plus` |
 | Permisos y almacenamiento seguro | `permission_handler`, `flutter_secure_storage` |
 | Selección de imágenes | `image_picker` |
 
@@ -256,9 +258,9 @@ flowchart TD
     C --> D["Piel de mejillas y frente en CIELAB<br/>mediana sin brillos ni sombras"]
     D --> E["Tono h* · ITA · Croma C* · Contraste ΔL*"]
     E --> F{"Subtono"}
-    F -- "h* menor que 52°" --> G["Frío: Invierno o Verano"]
-    F -- "h* mayor que 58°" --> H["Cálido: Primavera u Otoño"]
-    F -- "entre 52° y 58°" --> I["Neutro: deciden contraste,<br/>claridad y 55°"]
+    F -- "h* menor que 57°" --> G["Frío: Invierno o Verano"]
+    F -- "h* mayor que 65°" --> H["Cálido: Primavera u Otoño"]
+    F -- "entre 57° y 65°" --> I["Neutro: deciden contraste,<br/>claridad y 61°"]
     G --> J["Estación + segunda opción + confianza"]
     H --> J
     I --> J
@@ -439,7 +441,7 @@ lib/
     ├── perfil/       perfil, edición y eliminación de cuenta
     ├── colorimetria/ selfie, análisis, resultado y paleta
     ├── recomendaciones/ recomendaciones, filtros y detalle
-    ├── simulador_ar/ simulador con cámara frontal
+    ├── simulador_ar/ cámara, modos, capas y renderizado de maquillaje
     └── admin/        catálogo de prendas y productos
 
 functions/            Cloud Functions (TypeScript)
@@ -514,6 +516,37 @@ flutter run
 | `usarMockStorage` | La foto de perfil no se sube a Storage |
 | `armarioHabilitado` | Muestra el acceso al Armario en Home |
 
+## Simulador AR
+
+El simulador permite probar maquillaje del catálogo sobre la imagen de la cámara frontal. Se integra con el perfil de colorimetría, las recomendaciones y el Armario de la usuaria.
+
+### Modalidades
+
+- **Looks para mí:** combina productos reales recomendados según la estación y el subtono del perfil de colorimetría. Las combinaciones dependen de los productos disponibles en el catálogo.
+- **Prueba libre:** permite explorar productos compatibles del catálogo, incluidos los no recomendados para el perfil personal.
+
+### Maquillaje por capas
+
+- Aplica labial, rubor y sombra simultáneamente.
+- Permite sustituir o quitar un producto y ajustar su intensidad sin retirar los demás.
+- Incluye comparación con la imagen original y limpieza de todas las capas.
+- Permite capturar el resultado, guardarlo por cuenta en el dispositivo, consultarlo desde el Armario y abrir el diálogo del sistema para compartirlo.
+
+Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Los pigmentos se mezclan con la luminosidad de la cámara mediante máscaras regionales suaves y contornos curvos, conservando las luces y sombras de la imagen original. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
+
+### Uso
+
+1. Inicia sesión y abre **Simulador AR**. Concede el permiso de cámara.
+2. Selecciona un look en **Looks para mí** si ya tienes un análisis de colorimetría, o elige productos en **Prueba libre**.
+3. Ajusta las capas, cambia productos y compara el resultado con la imagen original.
+4. Captura el resultado y consúltalo desde **Armario → Mis pruebas de maquillaje**.
+
+### Compatibilidad y alcance
+
+El maquillaje AR está orientado a Android y se encuentra en validación en dispositivos reales. La versión web ofrece vista previa de cámara, catálogo, selección de looks y Armario; no aplica maquillaje sobre el vídeo.
+
+La base ofrece una cobertura uniforme sutil y ajustable sobre la región de piel; su representación es aproximada. Cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
+
 ## Pruebas
 
 ```bash
@@ -543,10 +576,10 @@ El archivo recomendado queda en `build/app/outputs/flutter-apk/app-arm64-v8a-rel
 | Perfil (edición, foto, cierre de sesión, eliminación de cuenta) | Disponible (foto y eliminación completa con modo simulado hasta desplegar la función) |
 | Colorimetría y paleta | Disponible |
 | Catálogo de administración (prendas y productos) | Disponible |
-| Simulador AR | En desarrollo (cámara frontal y permisos listos) |
+| Simulador AR | Prototipo por capas: looks, prueba libre, labial/rubor/sombra, captura y compartir; validación visual y rendimiento en Samsung pendientes |
 | Recomendaciones personalizadas (lista, filtros y detalle de prendas y productos) | Disponible |
 | Asistente de IA | En desarrollo (función en la nube y repositorio listos; pantalla pendiente) |
-| Armario y escáner de prendas | En desarrollo (análisis de prendas disponible; pantalla pendiente) |
+| Armario | Disponible: productos y prendas guardados, resultados y capturas privadas por cuenta |
 
 **Limitaciones conocidas:**
 
@@ -560,4 +593,4 @@ Proyecto desarrollado por un equipo de cuatro integrantes:
 - **Karlos Quintero**: base de la app (core, autenticación, home, perfil y splash).
 - **Jaider Monrroy**: colorimetría, paleta y servicios compartidos.
 - **Ana Cuellar**: recomendaciones, asistente de IA y catálogo.
-- **Mauricio Parra**: simulador AR, escáner y armario.
+- **Mauricio Parra**: simulador AR y armario.

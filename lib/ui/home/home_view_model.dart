@@ -18,6 +18,10 @@ class RecomendacionDestacada {
   final String? productoId;
   final String? prendaId;
 
+  /// Foto del ítem; sin foto, la tarjeta muestra [colorHex].
+  final String imagenUrl;
+  final String colorHex;
+
   const RecomendacionDestacada({
     required this.id,
     required this.titulo,
@@ -25,6 +29,8 @@ class RecomendacionDestacada {
     required this.tipo,
     this.productoId,
     this.prendaId,
+    this.imagenUrl = '',
+    this.colorHex = '',
   });
 }
 

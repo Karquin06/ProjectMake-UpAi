@@ -25,6 +25,9 @@ class ProductoMaquillaje {
   final String colorHex;
   final List<Subtono> subtonoCompatible;
   final String acabado;
+
+  /// Tipo visual AR opcional, independiente de la categoría comercial.
+  final String? tipoEfectoAr;
   final String? codigoBarras;
   final List<EstacionColor> estacionesCompatibles;
   final double precio;
@@ -50,6 +53,7 @@ class ProductoMaquillaje {
     this.colorHex = '',
     this.subtonoCompatible = const [],
     required this.acabado,
+    this.tipoEfectoAr,
     this.codigoBarras,
     this.estacionesCompatibles = const [],
     required this.precio,
@@ -79,6 +83,8 @@ class ProductoMaquillaje {
         subtonoCompatible:
             enumListFromNames(Subtono.values, m['subtonoCompatible']),
         acabado: m['acabado'] as String? ?? '',
+        tipoEfectoAr: m['tipoEfectoAr'] is String
+            ? (m['tipoEfectoAr'] as String).trim().toLowerCase() : null,
         codigoBarras: m['codigoBarras'] as String?,
         estacionesCompatibles:
             enumListFromNames(EstacionColor.values, m['estacionesCompatibles']),
@@ -107,6 +113,7 @@ class ProductoMaquillaje {
         'colorHex': colorHex,
         'subtonoCompatible': subtonoCompatible.map((e) => e.name).toList(),
         'acabado': acabado,
+        'tipoEfectoAr': tipoEfectoAr,
         'codigoBarras': codigoBarras,
         'estacionesCompatibles':
             estacionesCompatibles.map((e) => e.name).toList(),
@@ -128,6 +135,8 @@ class ProductoMaquillaje {
     String? colorHex,
     List<Subtono>? subtonoCompatible,
     String? acabado,
+    String? tipoEfectoAr,
+    bool quitarTipoEfectoAr = false,
     String? codigoBarras,
     List<EstacionColor>? estacionesCompatibles,
     double? precio,
@@ -147,6 +156,7 @@ class ProductoMaquillaje {
         colorHex: colorHex ?? this.colorHex,
         subtonoCompatible: subtonoCompatible ?? this.subtonoCompatible,
         acabado: acabado ?? this.acabado,
+        tipoEfectoAr: quitarTipoEfectoAr ? null : tipoEfectoAr ?? this.tipoEfectoAr,
         codigoBarras: codigoBarras ?? this.codigoBarras,
         estacionesCompatibles:
             estacionesCompatibles ?? this.estacionesCompatibles,

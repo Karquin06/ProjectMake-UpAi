@@ -11,6 +11,12 @@ class AppStrings {
       'Descubrimos tu colorimetría personal y te ofrecemos '
       'recomendaciones únicas de maquillaje, ropa y accesorios.';
 
+  static const String onboardingChatPregunta = '¿Qué labial me queda mejor?';
+  static const String onboardingChatRespuesta =
+      'Con tu paleta de Otoño, los tonos terracota y canela te iluminan.';
+  static const String onboardingChatEtiqueta = 'Asistente IA';
+  static const String arCorto = 'AR';
+
   static const String onboardingTitulo2 = 'Simula antes de comprar';
   static const String onboardingDescripcion2 =
       'Prueba tu maquillaje con realidad aumentada y evita compras '
@@ -32,11 +38,11 @@ class AppStrings {
   static const String iniciaSesionParaContinuar =
       'Inicia sesión para continuar';
   static const String continuarConGoogle = 'Continuar con Google';
-  static const String continuarConApple = 'Continuar con Apple';
   static const String correoElectronico = 'CORREO ELECTRÓNICO';
   static const String contrasena = 'CONTRASEÑA';
   static const String olvidasteContrasena = '¿Olvidaste tu contraseña?';
   static const String botonIniciarSesion = 'Iniciar sesión';
+  static const String ingresaTuContrasena = 'Ingresa tu contraseña';
   static const String noTienesCuenta = '¿No tienes una cuenta? ';
   static const String registrate = 'Regístrate';
 
@@ -52,8 +58,6 @@ class AppStrings {
   static const String errorConsentimientoGoogle =
       'Para usar Make Up AI debes aceptar el aviso de privacidad.';
   static const String recordarme = 'Recordarme';
-  static const String appleProximamente =
-      'El inicio de sesión con Apple estará disponible próximamente.';
 
   // Aviso de privacidad
   // BORRADOR ACADÉMICO: revisar en equipo antes de publicar. Si el texto
@@ -157,16 +161,23 @@ class AppStrings {
 
   // Perfil
   static const String miPerfil = 'Mi perfil';
+  static const String misDatos = 'Mis datos';
+  static const String datoNombre = 'Nombre';
+  static const String datoCorreo = 'Correo electrónico';
+  static const String datoMiembroDesde = 'Miembro desde';
+  static const String datoTipoCuenta = 'Tipo de cuenta';
+  static const String cuentaAdministradora = 'Administradora';
+  static const String cuentaUsuaria = 'Usuaria';
+  static const String miColorimetria = 'Mi colorimetría';
+  static const String colorimetriaActiva = 'Activa';
+  static const String verDetalles = 'Ver detalles';
+  static const String perfilSinColorimetria =
+      'Aún no tienes tu análisis. Descubre los colores que más te favorecen.';
   static const String editarPerfil = 'Editar perfil';
-  static const String editarPerfilSubtitulo = 'Cambia tu nombre y tu foto';
-  static const String avisoPrivacidadSubtitulo = 'Cómo cuidamos tus datos';
-  static const String cerrarSesionSubtitulo = 'Sal de tu cuenta en este equipo';
   static const String cerrarSesionTitulo = '¿Cerrar sesión?';
   static const String cerrarSesionMensaje =
       'Tendrás que volver a iniciar sesión para usar Make Up AI.';
   static const String eliminarCuenta = 'Eliminar cuenta';
-  static const String eliminarCuentaSubtitulo =
-      'Borra tu cuenta y todos tus datos';
   static const String eliminarCuentaTitulo = '¿Eliminar tu cuenta?';
   static const String eliminarCuentaMensaje =
       'Se borrarán tu perfil, tu colorimetría, tus recomendaciones y tus '
@@ -178,11 +189,7 @@ class AppStrings {
       'Tu cuenta fue eliminada. ¡Gracias por usar Make Up AI!';
   static const String errorContrasenaIncorrecta =
       'La contraseña no es correcta.';
-  static const String seccionCuenta = 'CUENTA';
-  static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
   static const String seccionAdministracion = 'ADMINISTRACIÓN';
-  static const String catalogoAdminSubtitulo =
-      'Agrega y edita productos de maquillaje y prendas';
 
   // Editar perfil
   static const String guardarCambios = 'Guardar cambios';
@@ -524,6 +531,39 @@ class AppStrings {
   static const String errorSinPerfilColorimetria =
       'Primero haz tu análisis de colorimetría.';
 
+  // Looks por colorimetría
+  static const String looksTitulo = 'Looks para ti';
+  static const String looksAccion = 'Looks';
+  static const String looksSinAnalisisMensaje =
+      'Haz tu análisis de colorimetría para armar looks con los colores '
+      'que te favorecen.';
+  static const String looksVaciosTitulo = 'Sin looks por ahora';
+  static const String looksVaciosMensaje =
+      'No hay prendas suficientes de tu estación para esta ocasión. Prueba '
+      'con otra.';
+  static const String looksRopa = 'Ropa';
+  static const String looksMaquillaje = 'Maquillaje';
+  static const String looksPorQue = 'Por qué combina';
+  static String looksCompatibilidad(int puntaje) => '$puntaje% de armonía';
+  static const String armoniaMonocromatico = 'Monocromático';
+  static const String armoniaAnalogo = 'Tonos vecinos';
+  static const String armoniaNeutroAcento = 'Neutros + acento';
+  static const String armoniaComplementario = 'Complementario';
+  static const String armoniaNeutros = 'Básicos';
+  static const String armoniaMonocromaticoDetalle =
+      'Varios tonos de un mismo color: alarga la figura y se ve elegante.';
+  static const String armoniaAnalogoDetalle =
+      'Colores vecinos del círculo cromático: combinan sin esfuerzo.';
+  static const String armoniaNeutroAcentoDetalle =
+      'Básicos de tu paleta con un color protagonista cerca del rostro.';
+  static const String armoniaComplementarioDetalle =
+      'Colores opuestos en versión de tu estación: contraste con equilibrio.';
+  static const String armoniaNeutrosDetalle =
+      'Solo básicos de tu paleta: fácil de combinar y nunca falla.';
+  static const String looksMaquillajeDetalle =
+      'Labial y rubor de la misma familia; la sombra acompaña el color '
+      'protagonista del outfit.';
+
   static const String subtonoNeutroDetalle =
       'Tu piel combina reflejos cálidos y fríos. Puedes usar colores de '
       'ambas familias, sobre todo en sus versiones intermedias.';
@@ -738,12 +778,48 @@ class AppStrings {
 
   // Asistente de IA — Ana
   static const String asistenteTitulo = 'Asistente';
+  static const String asistenteIaTitulo = 'Asistente IA';
+  static const String asistenteEstado = 'Tu asesora de belleza';
+  static String asistenteHola(String nombre) =>
+      nombre.isEmpty ? '¡Hola!' : '¡Hola, $nombre!';
+  static const String asistenteIntro =
+      'Estoy aquí para ayudarte a resaltar lo mejor de ti. ¿Qué te gustaría '
+      'explorar hoy?';
+  static const String exploraConIa = 'Explora con IA';
+  static const String preguntasRapidas = 'Preguntas rápidas';
+  static const String exploraMaquillaje = 'Maquillaje';
+  static const String exploraMaquillajeDetalle =
+      'Encuentra los tonos y estilos ideales para ti.';
+  static const String exploraMaquillajePregunta =
+      '¿Qué tonos de maquillaje me favorecen según mi colorimetría?';
+  static const String exploraOutfits = 'Outfits';
+  static const String exploraOutfitsDetalle =
+      'Combina tu estilo con tu colorimetría.';
+  static const String exploraOutfitsPregunta =
+      '¿Cómo combino mi ropa con mi colorimetría?';
+  static const String exploraCuidado = 'Cuidado personal';
+  static const String exploraCuidadoDetalle =
+      'Tips para tu piel, cabello y bienestar.';
+  static const String exploraCuidadoPregunta =
+      'Dame tips de cuidado para mi piel y mi cabello.';
+  static const String exploraProductos = 'Productos';
+  static const String exploraProductosDetalle =
+      'Recomendaciones personalizadas.';
+  static const String exploraProductosPregunta =
+      '¿Qué productos de maquillaje me recomiendas?';
+  static const String asesoraRecomienda = 'Tu asesora te recomienda';
+  static String segunTuColorimetria(String estacion) =>
+      'Según tu colorimetría $estacion';
+  static const String consejoTonosCalido =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono cálido.';
+  static const String consejoTonosFrio =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono frío.';
+  static const String consejoTonosNeutro =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono neutro.';
   static const String nuevaConversacion = 'Nueva conversación';
-  static const String asistenteBienvenidaTitulo =
-      '¡Hola! Soy tu asesora de imagen';
-  static const String asistenteBienvenidaMensaje =
-      'Pregúntame qué colores, prendas o maquillaje te favorecen según tu '
-      'colorimetría.';
   static const String asistenteSinPerfil =
       'Aún no tienes análisis de colorimetría: mis consejos serán generales.';
   static const String hacerAnalisis = 'Hacer análisis';
@@ -829,4 +905,148 @@ class AppStrings {
   static const arSinWebcam = 'No encontramos una webcam disponible en este PC.';
   static const arPermisoWebcam =
       'Permite el acceso a la cámara en el aviso de Chrome. Si lo bloqueaste, cámbialo en los permisos de este sitio.';
+
+  // Motor AR por capas.
+  static const arBase = 'Base';
+  static const arCorrector = 'Corrector';
+  static const arContorno = 'Contorno';
+  static const arRubor = 'Rubor';
+  static const arIluminador = 'Iluminador';
+  static const arSombra = 'Sombra';
+  static const arDelineador = 'Delineador';
+  static const arPestanina = 'Pestañina';
+  static const arCejas = 'Cejas';
+  static const arLabial = 'Labial';
+  static const arBrillo = 'Brillo';
+  static const arModoRecomendado = 'Looks para mí';
+  static const arModoLibre = 'Prueba libre';
+  static const arLook = 'Combinación';
+  static const arLookParcial =
+      'Look parcial: faltan categorías compatibles en las recomendaciones.';
+  static const arSinLooks =
+      'No hay combinaciones recomendadas disponibles. Puedes explorar el modo libre.';
+  static const arErrorLooks =
+      'No pudimos cargar las recomendaciones. Reintenta o usa la prueba libre.';
+  static const arSinPerfilLooks =
+      'Haz tu análisis de colorimetría para obtener looks personales.';
+  static const arCapas = 'Maquillaje aplicado';
+  static const arLimpiar = 'Quitar todo';
+  static const arQuitarCapa = 'Quitar este producto';
+  static const arSinCapas = 'Elige un look o un producto para comenzar.';
+  static const arAproximado = 'Representación aproximada';
+  static String arPerfilLooks(String estacion, String subtono) =>
+      'Tu análisis: $estacion · subtono $subtono. Productos de tus recomendaciones.';
+  static const arFueraPaleta = 'Fuera de tu paleta: producto de prueba libre.';
+  static const arProductoRecomendado =
+      'Producto recomendado para tu colorimetría.';
+  static const arProductoCompatible =
+      'Tono compatible con tu análisis de colorimetría.';
+  static const arCompensarMovimiento = 'Compensar retraso de movimiento';
+  static const arProductoSinTono =
+      'Este producto necesita un tono HEX válido para probarse en AR.';
+  static String arFaltanCategorias(Iterable<String> nombres) =>
+      'Faltan productos recomendados de: ${nombres.join(", ")}. Puedes completar el look en prueba libre.';
+  static const arNoImplementado = 'Este efecto aún no está implementado.';
+  static const arSinProductosCategoria =
+      'No hay productos disponibles para esta categoría.';
+  static const arCambiarAcabado = 'Acabado visual aproximado';
+  static const arMate = 'Mate';
+  static const arSatinado = 'Satinado';
+  static const arBrillante = 'Brillante';
+  static const arAplicacionLista =
+      'Los efectos siguen las regiones detectadas. Evita movimientos bruscos.';
+  static const arCompartir = 'Compartir resultado';
+  static const arErrorCompartir = 'No pudimos abrir el diálogo para compartir.';
+  static const arCapturaLista = 'Resultado guardado en este dispositivo.';
+  static const arTexturaCamara = 'Conservar textura de cámara';
+  static const arExperimentalSuspendido =
+      'Efecto experimental temporalmente desactivado.';
+  static const arDiagnostico = 'Diagnóstico AR';
+  static const arCopiarDiagnostico = 'Copiar informe';
+  static const arDiagnosticoCopiado = 'Informe copiado';
+  static const arDiagnosticoGuia = 'Mostrar puntos y contornos (temporal)';
+  static const arDetectorAutomatico = 'Automático: prioriza respuesta';
+  static const arDetectorContornos = 'Solo contornos (Face Detection)';
+  static const arDetectorMalla = 'Solo malla (Face Mesh)';
+  static const arCambiandoDetector = 'Cambiando detector…';
+  static const arDiagnosticoNota =
+      'Los FPS de cámara son llegadas del stream. '
+      'Los FPS Flutter son fotogramas rasterizados; no equivalen a imágenes nuevas de la cámara ni a detecciones nuevas.';
+  static const arSinError = 'Ninguno registrado';
+  static const arRendimiento = 'Rendimiento';
+  static const arMotor = 'Seguimiento facial';
+  static const arSeguimientoLento =
+      'El seguimiento está tardando. Mantén el rostro centrado y busca buena luz.';
+
+  static String arMedidas({
+    required String motor,
+    String analisis = "—",
+    int obsoletos = 0,
+    bool comparacionValida = false,
+    double prediccion = 0,
+    double avance = 0,
+    double errorPred = 0,
+    double errorSinPred = 0,
+    String composicion = 'máscaras transparentes; cámara única',
+    double suavizado = 0,
+    double mascarasCpu = 0,
+    double edad = 0,
+    double actualizacionEfectos = 0,
+    required double entrada,
+    required double procesado,
+    required double validos,
+    required double p50,
+    required double p95,
+    required double pintura,
+    double segundos = 0,
+    double promedio = 0,
+    double minimo = 0,
+    double render = 0,
+    double repintados = 0,
+    double raster = 0,
+    double ultima = 0,
+    double conversion = 0,
+    double detector = 0,
+    int recibidos = 0,
+    int procesados = 0,
+    int descartados = 0,
+    int capas = 0,
+    int mascaras = 0,
+    int errores = 0,
+    int rostros = 0,
+    int puntos = 0,
+    int muestras = 0,
+    bool stream = false,
+    bool calentando = true,
+    String metadatos = '—',
+    String preview = '—',
+    String? error,
+    String? alternativa,
+  }) =>
+      '''Detector: $motor
+Composición: $composicion
+Suavizado CPU: ${suavizado.toStringAsFixed(2)} ms · Máscaras CPU: ${mascarasCpu.toStringAsFixed(2)} ms
+Entrada → envío al lienzo: ${actualizacionEfectos.toStringAsFixed(1)} ms (no sensor-a-pantalla)
+Edad geometría aprox.: ${edad.toStringAsFixed(1)} ms (no sensor-a-pantalla)
+Resultados obsoletos descartados: $obsoletos
+Predicción rígida: ${prediccion.toStringAsFixed(1)} ms · avance ${avance.toStringAsFixed(1)} px
+${comparacionValida ? "Error retrospectivo del centro: ${errorPred.toStringAsFixed(1)} px compensado / ${errorSinPred.toStringAsFixed(1)} px sin compensar (no error visual)" : "Sin comparación de movimiento todavía"}
+Stream iniciado: $stream · Calentamiento: $calentando
+Recibidos: $recibidos · Procesados: $procesados · Descartados ocupados: $descartados
+Rostros (última respuesta): $rostros · Puntos disponibles: $puntos
+Capas enviadas al lienzo: $capas · Máscaras: $mascaras
+Entrada al stream de cámara: ${entrada.toStringAsFixed(1)} fps
+Detección: ${procesado.toStringAsFixed(1)} fps · Con rostro: ${validos.toStringAsFixed(1)} fps
+Flutter rasterizados: ${render.toStringAsFixed(1)} fps
+Medición tras calentamiento: ${segundos.toStringAsFixed(1)} s
+Raster sostenido: media ${promedio.toStringAsFixed(1)} fps · mínimo por ventana ${minimo.toStringAsFixed(1)} fps
+Repintados de capa: ${repintados.toStringAsFixed(1)} /s
+Último análisis total: ${ultima.toStringAsFixed(1)} ms
+Conversión: ${conversion.toStringAsFixed(2)} ms · Detector + canal: ${detector.toStringAsFixed(1)} ms
+p50: ${p50.toStringAsFixed(1)} ms · p95: ${p95.toStringAsFixed(1)} ms ($muestras muestras)
+Pintura CPU: ${pintura.toStringAsFixed(2)} ms · Raster medio: ${raster.toStringAsFixed(2)} ms
+Entrada: $metadatos
+Preview: $preview · Análisis: $analisis
+Cambio automático: ${alternativa ?? 'Ninguno'}
+Errores: $errores · Último error: ${error ?? arSinError}''';
 }

@@ -25,7 +25,7 @@ export function documentoPrenda(p: PrendaSemilla): Record<string, unknown> {
     estacionesCompatibles: p.estacionesCompatibles,
     subtonosCompatibles: p.subtonosCompatibles,
     precio: p.precio,
-    imagenURL: urlFoto(p.foto),
+    imagenURL: p.foto === undefined ? "" : urlFoto(p.foto),
     activo: true,
   };
 }
@@ -43,7 +43,7 @@ export function documentoProducto(p: ProductoSemilla): Record<string, unknown> {
     acabado: p.acabado,
     estacionesCompatibles: p.estacionesCompatibles,
     precio: p.precio,
-    imagenURL: urlFoto(p.foto),
+    imagenURL: p.foto === undefined ? "" : urlFoto(p.foto),
     activo: true,
   };
 }
