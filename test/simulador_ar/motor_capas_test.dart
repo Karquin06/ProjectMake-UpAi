@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart' show Colors;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/models/deteccion_facial_ar.dart';
 import 'package:mackeupai/models/maquillaje_ar.dart';
@@ -121,7 +120,7 @@ void main() {
       final frames = ValueNotifier<DeteccionFacialAr?>(cara());
       addTearDown(frames.dispose);
       final recorder = PictureRecorder(), canvas = Canvas(recorder);
-      canvas.drawColor(Colors.white, BlendMode.src);
+      canvas.drawColor(const Color(0xffbba18e), BlendMode.src);
       PintorMaquillajeAr(
         frames,
         capas: capas,
@@ -131,7 +130,7 @@ void main() {
       final data = (await imagen.toByteData())!.buffer.asUint8List();
       bool blanco(int x, int y) {
         final i = (y * 200 + x) * 4;
-        return data[i] == 255 && data[i + 1] == 255 && data[i + 2] == 255;
+        return data[i] == 187 && data[i + 1] == 161 && data[i + 2] == 142;
       }
 
       expect(blanco(100, 165), isFalse);

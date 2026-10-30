@@ -46,10 +46,10 @@ class GeometriaMaquillajeAr {
       .toList(growable: false);
   late final Path ovalo = poligono(region(RegionFacialAr.ovalo));
   late final Path boca = deteccion.labiosDetectados
-      ? curvas(labio(0), labio(3))
+      ? franjaEntreCurvasAr(labio(0), labio(3))
       : Path();
   late final Path abertura = deteccion.labiosDetectados
-      ? curvas(labio(1), labio(2))
+      ? franjaEntreCurvasAr(labio(1), labio(2))
       : Path();
   late final List<Path> ojos = [
     for (final r in [RegionFacialAr.ojoIzquierdo, RegionFacialAr.ojoDerecho])
@@ -76,17 +76,19 @@ class GeometriaMaquillajeAr {
     return p;
   }
 
-  Path _recortar(Path p, {bool excluirCejas = false}) {
-    if (piel.getBounds().isEmpty) return Path();
-    p = Path.combine(PathOperation.intersect, p, piel);
-    if (excluirCejas) {
-      for (final ceja in cejas) {
-        if (!ceja.getBounds().isEmpty) {
-          p = Path.combine(PathOperation.difference, p, ceja);
-        }
+  late final Path pielSinCejas = () {
+    var region = piel;
+    for (final ceja in cejas) {
+      if (!ceja.getBounds().isEmpty) {
+        region = Path.combine(PathOperation.difference, region, ceja);
       }
     }
-    return p;
+    return region;
+  }();
+  Path _recortar(Path p, {bool excluirCejas = false}) {
+    final region = excluirCejas ? pielSinCejas : piel;
+    if (region.getBounds().isEmpty) return Path();
+    return Path.combine(PathOperation.intersect, p, region);
   }
 
   MascaraMaquillajeAr _ovalo(Offset c, double rx, double ry, Offset eje) {
@@ -123,13 +125,15 @@ class GeometriaMaquillajeAr {
       return [
         for (final par in [(0, 1), (3, 2)])
           MascaraMaquillajeAr(
-            curvas(labio(par.$1), labio(par.$2)),
+            franjaEntreCurvasAr(labio(par.$1), labio(par.$2)),
             exclusiones: [abertura],
+            limite: boca,
           ),
       ];
     }
     if (familia == FamiliaEfectoAr.rostro) {
-      if (!deteccion.labiosDetectados || ojos.any((p) => p.getBounds().isEmpty)) {
+      if (!deteccion.labiosDetectados ||
+          ojos.any((p) => p.getBounds().isEmpty)) {
         return [];
       }
       return [

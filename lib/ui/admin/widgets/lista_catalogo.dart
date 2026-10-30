@@ -6,6 +6,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/color_utils.dart';
 import '../../../core/widgets/tarjeta_base.dart';
 import '../catalogo_admin_view_model.dart';
+import '../../simulador_ar/widgets/boton_probar_ar.dart';
 
 /// Lista paginada del catálogo. Al llegar al final pide la siguiente página
 /// con [onCargarMas]; también muestra un botón "Cargar más" por si la lista
@@ -142,7 +143,9 @@ class _TarjetaItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.nombre.trim().isEmpty ? AppStrings.sinNombre : item.nombre,
+                    item.nombre.trim().isEmpty
+                        ? AppStrings.sinNombre
+                        : item.nombre,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -172,6 +175,11 @@ class _TarjetaItem extends StatelessWidget {
                         ),
                       for (final e in item.estaciones)
                         _Chip(texto: e.etiqueta, color: e.color),
+                      if (!ocupado && item.productoAr != null)
+                        BotonProbarAr(
+                          producto: item.productoAr!,
+                          compacto: true,
+                        ),
                     ],
                   ),
                 ],

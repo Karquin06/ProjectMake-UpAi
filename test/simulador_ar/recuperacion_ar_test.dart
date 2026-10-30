@@ -32,7 +32,7 @@ class EstadoMaquillajePanel extends ChangeNotifier
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
-    'regresión: respuesta de 350 ms pinta las tres categorías y conserva huecos',
+    'respuesta reciente de 150 ms pinta las tres categorías y conserva huecos',
     () async {
       var ahora = 0;
       final detector = DetectorFalso()
@@ -47,13 +47,13 @@ void main() {
       );
       await vm.iniciar();
       camara.recibir!(ImagenFalsa());
-      ahora = 350000;
+      ahora = 150000;
       detector.pendiente!.complete(cara());
       await Future<void>.delayed(Duration.zero);
       expect(vm.deteccion?.labiosDetectados, isTrue);
       final registro = RegistroEfectosAr();
       final r = ui.PictureRecorder(), c = Canvas(r);
-      c.drawColor(Colors.white, BlendMode.src);
+      c.drawColor(const Color(0xffbba18e), BlendMode.src);
       var capasDibujadas = 0, mascarasDibujadas = 0;
       PintorMaquillajeAr(
         vm.fotogramas,
@@ -70,7 +70,7 @@ void main() {
       final bytes = (await img.toByteData())!.buffer.asUint8List();
       bool blanco(int x, int y) {
         final i = (y * 200 + x) * 4;
-        return bytes[i] == 255 && bytes[i + 1] == 255 && bytes[i + 2] == 255;
+        return bytes[i] == 187 && bytes[i + 1] == 161 && bytes[i + 2] == 142;
       }
 
       expect(capasDibujadas, 3);
@@ -234,6 +234,40 @@ void main() {
       expect(d.segundosMedidos, 3);
       expect(d.promedioRenderFps, closeTo(70 / 3, .001));
       expect(d.minimoRenderFps, 10);
+      await vm.cerrar();
+      vm.dispose();
+    },
+  );
+  testWidgets(
+    'separa análisis y envío al lienzo sin presentarlo como latencia física',
+    (tester) async {
+      var ahora = 0;
+      final detector = DetectorFalso()
+        ..pendiente = Completer<DeteccionFacialAr>();
+      final camara = CamaraFalsa(frontal);
+      final vm = SimuladorArViewModel(
+        PermisosFalsos(),
+        detector: detector,
+        listarCamaras: () async => [frontal],
+        crearControlador: (_) => camara,
+        relojMicrosegundos: () => ahora,
+      );
+      await vm.iniciar();
+      camara.recibir!(ImagenFalsa());
+      ahora = 100000;
+      detector.pendiente!.complete(cara());
+      await tester.pump();
+      ahora = 116000;
+      vm.registrarCapasDibujadas(3, 6);
+      vm.registrarMascaras(1200);
+      vm.registrarPintado(2000);
+      ahora = 1000000;
+      await tester.pump(const Duration(seconds: 1));
+      final r = vm.rendimiento.value;
+      expect(r.ultimaDeteccionMs, 100);
+      expect(r.actualizacionEfectosMs, 116);
+      expect(r.mascarasMs, 1.2);
+      expect(PanelDiagnosticoAr.informe(r), contains('no sensor-a-pantalla'));
       await vm.cerrar();
       vm.dispose();
     },

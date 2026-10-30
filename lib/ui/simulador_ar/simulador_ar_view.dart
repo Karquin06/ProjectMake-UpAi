@@ -16,7 +16,6 @@ import '../../providers/armario_provider.dart';
 import '../../providers/producto_provider.dart';
 import 'maquillaje_ar_view_model.dart';
 import 'simulador_ar_view_model.dart';
-import 'widgets/pintor_maquillaje_ar.dart';
 import 'widgets/compositor_textura_ar.dart';
 import 'widgets/panel_diagnostico_ar.dart';
 import '../../providers/recomendacion_provider.dart';
@@ -244,32 +243,21 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                 child: Center(
                   child: RepaintBoundary(
                     key: _claveCaptura,
-                    child: CameraPreview(
-                      camara,
-                      child: IgnorePointer(
-                        child: vm.composicionTextura
-                            ? CompositorTexturaAr(
-                                fotogramas: vm.fotogramas,
-                                capas: maquillaje.capas,
-                                crearVista: () => CameraPreview(camara),
-                                original: maquillaje.original,
-                                mostrarGuia: maquillaje.guia,
-                                alPintar: vm.registrarPintado,
-                                alAplicar: vm.registrarCapasDibujadas,
-                                alCrearMascara: vm.registrarMascaras,
-                              )
-                            : RepaintBoundary(
-                                child: CustomPaint(
-                                  painter: PintorMaquillajeAr(
-                                    vm.fotogramas,
-                                    capas: maquillaje.capas,
-                                    alPintar: vm.registrarPintado,
-                                    alAplicar: vm.registrarCapasDibujadas,
-                                    original: maquillaje.original,
-                                    mostrarGuia: maquillaje.guia,
-                                  ),
-                                ),
-                              ),
+                    child: GrupoComposicionAr(
+                      child: CameraPreview(
+                        camara,
+                        child: IgnorePointer(
+                          child: CompositorTexturaAr(
+                            fotogramas: vm.fotogramas,
+                            geometriaActual: vm.geometriaParaPintar,
+                            capas: maquillaje.capas,
+                            original: maquillaje.original,
+                            mostrarGuia: maquillaje.guia,
+                            alPintar: vm.registrarPintado,
+                            alCrearMascaras: vm.registrarMascaras,
+                            alAplicar: vm.registrarCapasDibujadas,
+                          ),
+                        ),
                       ),
                     ),
                   ),

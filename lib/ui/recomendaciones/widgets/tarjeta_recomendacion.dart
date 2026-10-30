@@ -13,12 +13,14 @@ class TarjetaRecomendacion extends StatelessWidget {
   final RecomendacionItem item;
   final String subtitulo;
   final VoidCallback? onTap;
+  final Widget? accion;
 
   const TarjetaRecomendacion({
     super.key,
     required this.item,
     required this.subtitulo,
     this.onTap,
+    this.accion,
   });
 
   @override
@@ -87,6 +89,7 @@ class TarjetaRecomendacion extends StatelessWidget {
                     ],
                   ],
                 ),
+                ?accion,
               ],
             ),
           ),

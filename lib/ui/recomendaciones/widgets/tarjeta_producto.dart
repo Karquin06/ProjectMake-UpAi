@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/extensions/enum_labels.dart';
 import '../../../providers/recomendacion_provider.dart';
 import 'tarjeta_recomendacion.dart';
+import '../../simulador_ar/widgets/boton_probar_ar.dart';
 
 /// Tarjeta de un producto de maquillaje recomendado: foto, nombre, marca,
 /// categoría, tono y compatibilidad.
@@ -23,6 +24,7 @@ class TarjetaProducto extends StatelessWidget {
       item: item,
       subtitulo: partes.join(' · '),
       onTap: onTap,
+      accion: BotonProbarAr(producto: producto, compacto: true),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/extensions/enum_labels.dart';
 import '../../../core/routes/app_routes.dart';
 import '../../../core/utils/color_utils.dart';
 import '../../../models/maquillaje_ar.dart';
@@ -66,6 +67,13 @@ class SelectorProductoAr extends StatelessWidget {
                   ],
                 ),
               if (vm.modo == ModoMaquillajeAr.recomendado) ...[
+                if (vm.perfil != null)
+                  Text(
+                    AppStrings.arPerfilLooks(
+                      vm.perfil!.estacionColor.etiqueta,
+                      vm.perfil!.subtono.etiqueta,
+                    ),
+                  ),
                 if (!vm.tienePerfilReal && vm.errorLooks == null)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +134,7 @@ class SelectorProductoAr extends StatelessWidget {
                                         look.productos
                                             .map(
                                               (p) =>
-                                                  '${vm.registro.paraProducto(p)!.nombre}: ${p.tono}',
+                                                  '${vm.registro.paraProducto(p)!.nombre}: ${p.nombreVisible} · ${p.tono}',
                                             )
                                             .join(' · '),
                                         maxLines: 3,
@@ -135,7 +143,12 @@ class SelectorProductoAr extends StatelessWidget {
                                     ),
                                     if (look.parcial)
                                       Text(
-                                        AppStrings.arLookParcial,
+                                        AppStrings.arFaltanCategorias(
+                                          look.categoriasFaltantes.map(
+                                            (c) =>
+                                                vm.registro.buscar(c)!.nombre,
+                                          ),
+                                        ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: Theme.of(
@@ -253,6 +266,8 @@ class SelectorProductoAr extends StatelessWidget {
                 Text(
                   '${seleccion.nombreVisible} · ${seleccion.marca}\n${AppStrings.detalleTono}: ${seleccion.tono}',
                 ),
+                if (vm.compatibilidadSeleccion != null)
+                  Text(vm.compatibilidadSeleccion!),
                 if (definicion?.experimental == true)
                   const Text(AppStrings.arAproximado),
                 Row(

@@ -1,12 +1,19 @@
 import 'dart:ui';
+import 'dart:math' as math;
 import '../../../core/utils/color_utils.dart';
 import '../../../models/maquillaje_ar.dart';
 
 enum AcabadoVisualAr { mate, cremoso, satinado, brillante }
 
 class EstiloMaquillajeAr {
-  const EstiloMaquillajeAr(this.filtro, this.opacidad, this.acabado);
-  final ColorFilter filtro;
+  const EstiloMaquillajeAr(
+    this.color,
+    this.opacidad,
+    this.acabado,
+    this.mezcla,
+  );
+  final Color color;
+  final BlendMode mezcla;
   final double opacidad;
   final AcabadoVisualAr acabado;
   static AcabadoVisualAr resolverAcabado(String valor) {
@@ -31,23 +38,32 @@ class EstiloMaquillajeAr {
         color = ColorUtils.desdeHex(capa.producto.colorHex);
     final brillo = capa.efecto.categoria == 'brillo';
     final intensidad = capa.intensidad.clamp(0.0, 1.0);
-    final factor = switch (capa.efecto.familia) {
-      FamiliaEfectoAr.mejillas => .65,
-      FamiliaEfectoAr.parpados => .8,
+    // Calibraciones visuales independientes: cobertura uniforme sutil para
+    // base; pigmento más denso en labios/párpados y difusión progresiva en rubor.
+    // Son aproximaciones ajustables, no parámetros ópticos medidos del producto.
+    final cobertura = switch (capa.efecto.familia) {
+      FamiliaEfectoAr.rostro => intensidad * .24,
+      FamiliaEfectoAr.mejillas => intensidad * (2 - intensidad) * .65,
+      FamiliaEfectoAr.parpados => math.sqrt(intensidad) * .78,
       FamiliaEfectoAr.labios =>
-        brillo ? .45 : (acabado == AcabadoVisualAr.mate ? .85 : .65),
-      _ => .3,
+        brillo
+            ? intensidad * .45
+            : math.pow(intensidad, .85) *
+                  (acabado == AcabadoVisualAr.mate ? .9 : .78),
+      _ => intensidad * .5,
     };
-    // El destino de este filtro es la textura de cámara, no una capa vacía.
-    // SoftLight solo se usa para el tipo explícito brillo. No hay bandas blancas
-    // inventadas ni una luz constante que ilumine una escena oscura.
     return EstiloMaquillajeAr(
-      ColorFilter.mode(
-        color,
-        brillo ? BlendMode.softLight : BlendMode.multiply,
-      ),
-      (intensidad * factor).clamp(0.0, .85),
+      color,
+      cobertura.toDouble().clamp(0.0, .72),
       acabado,
+      switch (capa.efecto.familia) {
+        FamiliaEfectoAr.rostro => BlendMode.softLight,
+        FamiliaEfectoAr.mejillas => BlendMode.color,
+        FamiliaEfectoAr.labios =>
+          brillo ? BlendMode.softLight : BlendMode.color,
+        FamiliaEfectoAr.parpados => BlendMode.color,
+        _ => BlendMode.multiply,
+      },
     );
   }
 }

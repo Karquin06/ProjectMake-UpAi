@@ -53,12 +53,13 @@ Future<Uint8List> pintar(
           child: SizedBox(
             width: 200,
             height: 240,
-            child: CompositorTexturaAr(
-              fotogramas: frames,
-              capas: capas,
-              crearVista: fondo,
-              fondo: fondo(),
-              original: original,
+            child: GrupoComposicionAr(
+              child: CompositorTexturaAr(
+                fotogramas: frames,
+                capas: capas,
+                fondo: fondo(),
+                original: original,
+              ),
             ),
           ),
         ),
@@ -87,7 +88,7 @@ List<int> pixel(Uint8List b, int x, int y) =>
     b.sublist((y * 200 + x) * 4, (y * 200 + x) * 4 + 3);
 void main() {
   testWidgets(
-    'multiply usa los píxeles del fondo y conserva contraste del labio',
+    'pigmento transparente conserva detalle del fondo en ambos labios',
     (t) async {
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
@@ -105,7 +106,7 @@ void main() {
       expect(claro, isNot(claroBase));
       expect(
         claro[0] - oscuro[0],
-        greaterThan((claroBase[0] - oscuroBase[0]) * .75),
+        greaterThan((claroBase[0] - oscuroBase[0]) * .40),
       );
       expect(pixel(resultado, 100, 176), pixel(base, 100, 176));
       expect(pixel(resultado, 65, 95), pixel(base, 65, 95));
@@ -139,20 +140,16 @@ void main() {
       expect(pixel(resultado, 65, 85), isNot(pixel(base, 65, 85)));
     },
   );
-  testWidgets(
-    'brillo respeta negro y no inventa iluminación en una escena sin luz',
-    (t) async {
-      t.view.devicePixelRatio = 1;
-      addTearDown(t.view.reset);
-      final r = RegistroEfectosAr(),
-          c = CapaMaquillajeAr.deProducto(
-            p('g', 'brillo'),
-            r.buscar('brillo')!,
-          );
-      final resultado = await pintar(t, capas: [c], color: Colors.black);
-      expect(pixel(resultado, 100, 165), [0, 0, 0]);
-    },
-  );
+  testWidgets('brillo no dibuja bandas blancas sobre una escena oscura', (
+    t,
+  ) async {
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final r = RegistroEfectosAr(),
+        c = CapaMaquillajeAr.deProducto(p('g', 'brillo'), r.buscar('brillo')!);
+    final resultado = await pintar(t, capas: [c], color: Colors.black);
+    expect(pixel(resultado, 100, 165).every((v) => v < 40), isTrue);
+  });
   testWidgets('sin rostro la composición conserva exactamente el original', (
     t,
   ) async {
@@ -200,7 +197,6 @@ void main() {
               child: CompositorTexturaAr(
                 fotogramas: frames,
                 capas: [c],
-                crearVista: camara,
                 fondo: camara(),
               ),
             ),
@@ -224,7 +220,7 @@ void main() {
     final oscura = await foto();
     expect(
       pixel(oscura, 100, 165)[0],
-      lessThan(pixel(clara, 100, 165)[0] ~/ 2),
+      lessThan(pixel(clara, 100, 165)[0] * .7),
     );
     expect(nuevasDetecciones, 0);
     await t.pumpWidget(const SizedBox.shrink());

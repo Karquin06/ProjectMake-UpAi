@@ -37,6 +37,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
     _productos.addListener(_sincronizar);
     _armario.addListener(_sincronizar);
     colorimetria?.addListener(_sincronizar);
+    recomendaciones?.addListener(_sincronizar);
   }
   final ProductoProvider _productos;
   final ArmarioProvider _armario;
@@ -111,6 +112,17 @@ class MaquillajeArViewModel extends ChangeNotifier {
       _capas[_categoria]?.intensidad ??
       registro.buscar(_categoria)?.opacidad ??
       .4;
+  String? get compatibilidadSeleccion {
+    final p = seleccionado, perfilActual = perfil;
+    if (p == null || perfilActual == null) return null;
+    if (!CompositorLooksAr.compatible(p, perfilActual)) {
+      return AppStrings.arFueraPaleta;
+    }
+    return _idsRecomendados.contains(p.id)
+        ? AppStrings.arProductoRecomendado
+        : AppStrings.arProductoCompatible;
+  }
+
   bool get original => _original;
   bool get guia => _guia;
   CapturaAr? get ultimaCaptura => _ultimaCaptura;
@@ -118,25 +130,51 @@ class MaquillajeArViewModel extends ChangeNotifier {
     if (!_cerrado) notifyListeners();
   }
 
+  Future<void> _cargarCatalogo(bool forzar) async {
+    if (!_productos.cargando) {
+      await _productos.cargar(forzar: forzar);
+      return;
+    }
+    // Si otra pantalla inició la carga, esperar su resultado en lugar de
+    // consumir una lista vacía y perder el producto que abrió el simulador.
+    final listo = Completer<void>();
+    void completar() {
+      if (!_productos.cargando && !listo.isCompleted) listo.complete();
+    }
+
+    _productos.addListener(completar);
+    completar();
+    try {
+      await listo.future.timeout(const Duration(seconds: 16));
+    } finally {
+      _productos.removeListener(completar);
+    }
+  }
+
   Future<void> cargar({bool forzar = false}) async {
     if (_cargando || _cerrado) return;
     _cargando = true;
     _notificar();
     try {
-      if (colorimetria != null) {
-        await esperarPerfil(colorimetria!).timeout(const Duration(seconds: 22));
-      }
-      if (_cerrado) return;
-      await _productos.cargar(forzar: forzar);
-      if (_cerrado) return;
-      await cargarLooks(forzar: forzar);
+      // El producto elegido no depende de que la red termine de cargar looks.
+      await _cargarCatalogo(forzar);
       if (_cerrado) return;
       final id = _inicial;
       _inicial = null;
-      if (id != null) {
-        seleccionar(id);
-      } else if (recomendaciones == null && _capas.isEmpty) {
-        // Compatibilidad de uso aislado: nunca se generan looks sin proveedor.
+      if (id != null) seleccionar(id);
+      if (colorimetria != null) {
+        try {
+          await esperarPerfil(
+            colorimetria!,
+          ).timeout(const Duration(seconds: 22));
+        } catch (_) {
+          _errorLooks = AppStrings.arErrorLooks;
+        }
+      }
+      if (_cerrado) return;
+      await cargarLooks(forzar: forzar);
+      if (_cerrado) return;
+      if (recomendaciones == null && _capas.isEmpty) {
         _modo = ModoMaquillajeAr.libre;
       }
     } catch (_) {
@@ -166,6 +204,9 @@ class MaquillajeArViewModel extends ChangeNotifier {
     _notificar();
     final firma = _firmaActual;
     try {
+      // Asegurar el mismo perfil que acaba de publicar el escáner; el proxy
+      // de Flutter puede actualizarse después de completar esperarPerfil.
+      r.actualizarPerfil(p);
       final items = await r
           .obtener(tipo: TipoRecomendacion.maquillaje, forzar: forzar)
           .timeout(const Duration(seconds: 20));
@@ -199,6 +240,9 @@ class MaquillajeArViewModel extends ChangeNotifier {
         [for (final e in reales) CandidatoLookAr(e.producto!, e.puntaje)],
         p,
         registro,
+      );
+      debugPrint(
+        'AR recomendaciones estacion=${p.estacionColor.name} subtono=${p.subtono.name} candidatos=${items.length} catalogo=${actuales.length} compatibles=${reales.length} looks=${_looks.length}',
       );
     } catch (_) {
       if (!_cerrado && revision == _revision) {
@@ -307,6 +351,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
     final look = _looks.where((l) => l.id == id).firstOrNull;
     if (look == null) return;
     final mapa = <String, CapaMaquillajeAr>{};
+    var omitidos = 0;
     for (final p in look.productos) {
       final real = _productos.buscar(p.id);
       if (real == null ||
@@ -314,12 +359,16 @@ class MaquillajeArViewModel extends ChangeNotifier {
           !_idsRecomendados.contains(real.id) ||
           perfil == null ||
           !CompositorLooksAr.compatible(real, perfil!)) {
-        aviso = AppStrings.arSinLooks;
-        _notificar();
-        return;
+        omitidos++;
+        continue;
       }
       final d = registro.paraProducto(real)!;
       mapa[d.categoria] = CapaMaquillajeAr.deProducto(real, d);
+    }
+    if (mapa.isEmpty) {
+      aviso = AppStrings.arSinLooks;
+      _notificar();
+      return;
     }
     _capas
       ..clear()
@@ -328,7 +377,10 @@ class MaquillajeArViewModel extends ChangeNotifier {
     lookSeleccionado = id;
     _categoria = mapa.containsKey('labial') ? 'labial' : mapa.keys.first;
     _original = false;
-    aviso = null;
+    aviso = omitidos > 0 ? AppStrings.arLookParcial : null;
+    debugPrint(
+      'AR look aplicado capas=${mapa.length} categorias=${mapa.keys.join(",")} omitidos=$omitidos',
+    );
     _notificar();
   }
 
@@ -432,6 +484,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
     _productos.removeListener(_sincronizar);
     _armario.removeListener(_sincronizar);
     colorimetria?.removeListener(_sincronizar);
+    recomendaciones?.removeListener(_sincronizar);
     super.dispose();
   }
 }

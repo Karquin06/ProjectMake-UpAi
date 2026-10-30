@@ -3,13 +3,11 @@ import '../armario/widgets/boton_armario.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/extensions/context_extensions.dart';
 import '../../core/extensions/enum_labels.dart';
-import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/color_utils.dart';
 import '../../core/utils/snackbar_helper.dart';
-import '../../core/widgets/boton_primario.dart';
+import '../simulador_ar/widgets/boton_probar_ar.dart';
 import '../../core/widgets/etiqueta_estacion.dart';
 import 'widgets/detalle_recomendacion.dart';
 
@@ -94,13 +92,7 @@ class DetalleProductoView extends StatelessWidget {
       accion: (context, item) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (item.producto!.categoria == 'labial')
-            BotonPrimario(
-              texto: AppStrings.probarEnAr,
-              icono: Icons.camera_alt_outlined,
-              onPressed: () =>
-                  context.irA(AppRoutes.simuladorAr, argumentos: item.id),
-            ),
+          BotonProbarAr(producto: item.producto!),
           const SizedBox(height: 8),
           BotonArmario(elemento: ElementoArmario.producto(item.producto!)),
         ],

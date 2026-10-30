@@ -53,19 +53,30 @@ class SuavizadorFacialAr {
     _caja = caja;
     final size = d.tamanoOrientado;
     if (size.isEmpty) return d;
+    // El movimiento rígido ya medido por el SDK no debe sufrir un segundo
+    // retraso. Filtrar en el marco del rostro conserva ese desplazamiento y
+    // suaviza solamente las variaciones locales de contorno/expresión.
+    final ancla = caja != null && !caja.isEmpty ? caja.center : Offset.zero;
     Offset filtrar(String id, Offset p) {
       if (!p.dx.isFinite || !p.dy.isFinite) return p;
-      final q = Offset(p.dx / size.width, p.dy / size.height);
+      final q = Offset(
+        (p.dx - ancla.dx) / size.width,
+        (p.dy - ancla.dy) / size.height,
+      );
       final f = _filtros.putIfAbsent(id, () => _PuntoFiltrado());
       var r = f.aplicar(q, dt, corteMinimo, beta, corteDerivada);
       // Cota adicional para no mantener una máscara retrasada tras un gesto.
       final delta = r - q;
       if (delta.distance > .025) r = q + delta * (.025 / delta.distance);
-      return Offset(r.dx * size.width, r.dy * size.height);
+      return Offset(
+        r.dx * size.width + ancla.dx,
+        r.dy * size.height + ancla.dy,
+      );
     }
 
     return DeteccionFacialAr(
       tamanoImagen: d.tamanoImagen,
+      tamanoAnalisis: d.tamanoAnalisis,
       rotacion: d.rotacion,
       esFrontal: d.esFrontal,
       rostroDetectado: true,
@@ -73,12 +84,7 @@ class SuavizadorFacialAr {
       cantidadRostros: d.cantidadRostros,
       conversionMs: d.conversionMs,
       detectorMs: d.detectorMs,
-      cajaRostro: caja == null
-          ? null
-          : Rect.fromPoints(
-              filtrar('c0', caja.topLeft),
-              filtrar('c1', caja.bottomRight),
-            ),
+      cajaRostro: caja,
       contornosLabios: [
         for (var i = 0; i < d.contornosLabios.length; i++)
           [
