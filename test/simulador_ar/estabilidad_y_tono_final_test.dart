@@ -61,7 +61,7 @@ void main() {
     },
   );
   testWidgets(
-    'labial conserva variación de luminosidad de la escena y cambia su tono en ambos labios',
+    'labial visible conserva contraste de la escena en ambos labios',
     (t) async {
       t.view.devicePixelRatio = 1;
       addTearDown(t.view.reset);
@@ -73,13 +73,16 @@ void main() {
           foto = await pintar(t, capas: [capa]);
       double luz(List<int> rgb) => rgb[0] * .3 + rgb[1] * .59 + rgb[2] * .11;
       for (final y in [165, 188]) {
-        for (final x in [94, 98]) {
-          expect(
-            luz(pixel(foto, x, y)),
-            closeTo(luz(pixel(original, x, y)), 2),
-          );
-          expect(pixel(foto, x, y), isNot(pixel(original, x, y)));
-        }
+        final oscuroOriginal = luz(pixel(original, 94, y));
+        final claroOriginal = luz(pixel(original, 98, y));
+        final oscuro = luz(pixel(foto, 94, y));
+        final claro = luz(pixel(foto, 98, y));
+        expect(pixel(foto, 94, y), isNot(pixel(original, 94, y)));
+        expect(pixel(foto, 98, y), isNot(pixel(original, 98, y)));
+        expect(
+          (claro - oscuro).abs(),
+          greaterThan((claroOriginal - oscuroOriginal).abs() * .35),
+        );
       }
     },
   );

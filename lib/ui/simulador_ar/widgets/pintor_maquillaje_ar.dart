@@ -13,6 +13,7 @@ class PintorMaquillajeAr extends CustomPainter {
     required List<CapaMaquillajeAr> capas,
     this.original = false,
     this.mostrarGuia = false,
+    this.diagnosticoMascaras = false,
     this.alPintar,
     this.alAplicar,
     this.alCrearMascaras,
@@ -24,7 +25,7 @@ class PintorMaquillajeAr extends CustomPainter {
        super(repaint: repintados ?? fotogramas);
   final ValueListenable<DeteccionFacialAr?> fotogramas;
   final List<CapaMaquillajeAr> capas;
-  final bool original, mostrarGuia;
+  final bool original, mostrarGuia, diagnosticoMascaras;
   DeteccionFacialAr? _fuenteCache;
   Size? _tamanoCache;
   GeometriaMaquillajeAr? _geometriaCache;
@@ -71,23 +72,31 @@ class PintorMaquillajeAr extends CustomPainter {
           });
           if (!capa.efecto.disponible) continue;
           final estilo = EstiloMaquillajeAr.deCapa(capa);
-          final color = estilo.color, alpha = estilo.opacidad;
+          final color = diagnosticoMascaras
+                  ? const Color(0xffff00ff)
+                  : estilo.color,
+              alpha = diagnosticoMascaras ? 1.0 : estilo.opacidad;
           var capaDibujada = false;
           for (final mascara in mascaras) {
             final rect = mascara.camino.getBounds();
             if (rect.isEmpty || !rect.overlaps(Offset.zero & size)) continue;
-            // El destino es la cámara dentro del grupo común de composición.
-            // Color conserva luminosidad; softLight respeta luces y sombras.
+            // srcOver garantiza pigmento visible aun cuando el Canvas del
+            // CustomPainter no pueda leer la textura externa de la cámara.
             final pintura = Paint()
               ..isAntiAlias = true
               ..color = color.withValues(alpha: alpha)
-              ..blendMode = estilo.mezcla;
+              ..blendMode = diagnosticoMascaras
+                  ? BlendMode.srcOver
+                  : estilo.mezcla;
             final borde = (math.min(rect.width, rect.height) * .045).clamp(
               .35,
               1.8,
             );
-            pintura.maskFilter = MaskFilter.blur(BlurStyle.normal, borde);
-            if (mascara.centro != null &&
+            if (!diagnosticoMascaras) {
+              pintura.maskFilter = MaskFilter.blur(BlurStyle.normal, borde);
+            }
+            if (!diagnosticoMascaras &&
+                mascara.centro != null &&
                 mascara.desvanecido == DesvanecidoAr.radial) {
               final cs = math.cos(mascara.angulo),
                   sn = math.sin(mascara.angulo),
@@ -121,7 +130,8 @@ class PintorMaquillajeAr extends CustomPainter {
                   1,
                 ]),
               );
-            } else if (mascara.centro != null &&
+            } else if (!diagnosticoMascaras &&
+                mascara.centro != null &&
                 mascara.desvanecido == DesvanecidoAr.parpado) {
               final abajo =
                   mascara.vertical ??
@@ -227,5 +237,6 @@ class PintorMaquillajeAr extends CustomPainter {
       anterior.fotogramas != fotogramas ||
       !listEquals(anterior.capas, capas) ||
       anterior.original != original ||
-      anterior.mostrarGuia != mostrarGuia;
+      anterior.mostrarGuia != mostrarGuia ||
+      anterior.diagnosticoMascaras != diagnosticoMascaras;
 }

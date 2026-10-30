@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/models/deteccion_facial_ar.dart';
 import 'package:mackeupai/models/maquillaje_ar.dart';
 import 'package:mackeupai/ui/simulador_ar/widgets/compositor_textura_ar.dart';
+import 'package:mackeupai/ui/simulador_ar/widgets/pintor_maquillaje_ar.dart';
 import 'package:mackeupai/ui/simulador_ar/motor/estilo_maquillaje_ar.dart';
 import 'capas_y_looks_test.dart' show p;
 import 'motor_capas_test.dart' show cara;
@@ -87,6 +88,71 @@ Future<Uint8List> pintar(
 List<int> pixel(Uint8List b, int x, int y) =>
     b.sublist((y * 200 + x) * 4, (y * 200 + x) * 4 + 3);
 void main() {
+  test(
+    'diagnóstico pinta máscaras magenta sólidas sin afectar el exterior',
+    () async {
+      final registro = RegistroEfectosAr();
+      final frames = ValueNotifier<DeteccionFacialAr?>(cara());
+      addTearDown(frames.dispose);
+      final recorder = ui.PictureRecorder();
+      PintorMaquillajeAr(
+        frames,
+        diagnosticoMascaras: true,
+        capas: [
+          for (final tipo in ['labial', 'rubor', 'sombra'])
+            CapaMaquillajeAr.deProducto(p(tipo, tipo), registro.buscar(tipo)!),
+        ],
+      ).paint(Canvas(recorder), const Size(200, 240));
+      final imagen = await recorder.endRecording().toImage(200, 240);
+      final bytes = (await imagen.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      ))!.buffer.asUint8List();
+      imagen.dispose();
+      List<int> rgba(int x, int y) =>
+          bytes.sublist((y * 200 + x) * 4, (y * 200 + x) * 4 + 4);
+      expect(rgba(100, 165), [255, 0, 255, 255]);
+      expect(rgba(50, 115), [255, 0, 255, 255]);
+      expect(rgba(65, 85), [255, 0, 255, 255]);
+      expect(rgba(1, 1), [0, 0, 0, 0]);
+    },
+  );
+
+  test(
+    'cada máscara produce alfa visible sobre un Canvas transparente',
+    () async {
+      final registro = RegistroEfectosAr();
+      final frames = ValueNotifier<DeteccionFacialAr?>(cara());
+      addTearDown(frames.dispose);
+      final capas = [
+        for (final tipo in ['labial', 'rubor', 'sombra'])
+          CapaMaquillajeAr.deProducto(p(tipo, tipo), registro.buscar(tipo)!),
+      ];
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      var capasDibujadas = 0, mascarasDibujadas = 0;
+      PintorMaquillajeAr(
+        frames,
+        capas: capas,
+        alAplicar: (capas, mascaras) {
+          capasDibujadas = capas;
+          mascarasDibujadas = mascaras;
+        },
+      ).paint(canvas, const Size(200, 240));
+      final imagen = await recorder.endRecording().toImage(200, 240);
+      final bytes = (await imagen.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      ))!.buffer.asUint8List();
+      imagen.dispose();
+      int alfa(int x, int y) => bytes[(y * 200 + x) * 4 + 3];
+      expect(capasDibujadas, 3);
+      expect(mascarasDibujadas, greaterThanOrEqualTo(6));
+      expect(alfa(100, 165), greaterThan(0), reason: 'labial superior');
+      expect(alfa(50, 115), greaterThan(0), reason: 'rubor izquierdo');
+      expect(alfa(65, 85), greaterThan(0), reason: 'sombra izquierda');
+      expect(alfa(1, 1), 0, reason: 'fuera de las máscaras');
+    },
+  );
+
   testWidgets(
     'pigmento transparente conserva detalle del fondo en ambos labios',
     (t) async {

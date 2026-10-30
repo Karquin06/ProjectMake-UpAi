@@ -16,12 +16,20 @@ import 'capas_y_looks_test.dart' show p;
 
 class EstadoMaquillajePanel extends ChangeNotifier
     implements MaquillajeArViewModel {
-  bool _guia = false;
+  bool _guia = false, _mascaras = false;
   @override
   bool get guia => _guia;
   @override
   void mostrarGuia(bool valor) {
     _guia = valor;
+    notifyListeners();
+  }
+
+  @override
+  bool get mascarasDiagnostico => _mascaras;
+  @override
+  void mostrarMascarasDiagnostico(bool valor) {
+    _mascaras = valor;
     notifyListeners();
   }
 
@@ -188,6 +196,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(maquillaje.guia, isTrue);
+    await tester.ensureVisible(find.text(AppStrings.arDiagnosticoMascaras));
+    await tester.tap(
+      find.widgetWithText(SwitchListTile, AppStrings.arDiagnosticoMascaras),
+    );
+    await tester.pumpAndSettle();
+    expect(maquillaje.mascarasDiagnostico, isTrue);
     expect(tester.takeException(), isNull);
     await tester.ensureVisible(find.text(AppStrings.arCopiarDiagnostico));
     await tester.pump();

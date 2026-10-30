@@ -889,6 +889,8 @@ class AppStrings {
   static const arCopiarDiagnostico = 'Copiar informe';
   static const arDiagnosticoCopiado = 'Informe copiado';
   static const arDiagnosticoGuia = 'Mostrar puntos y contornos (temporal)';
+  static const arDiagnosticoMascaras =
+      'Mostrar máscaras magenta sólidas (temporal)';
   static const arDetectorAutomatico = 'Automático: prioriza respuesta';
   static const arDetectorContornos = 'Solo contornos (Face Detection)';
   static const arDetectorMalla = 'Solo malla (Face Mesh)';

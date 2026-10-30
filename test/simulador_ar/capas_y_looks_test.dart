@@ -147,6 +147,43 @@ void main() {
     expect(looks.single.parcial, isTrue);
     expect(looks.single.productos.single.id, 'unico');
   });
+  test(
+    'prioriza una combinación armónica sobre el emparejamiento por índice',
+    () {
+      final perfil = crearPerfilAr().copyWith(
+        estacionColor: EstacionColor.primavera,
+        subtono: Subtono.calido,
+        intensidad: Intensidad.media,
+      );
+      ProductoMaquillaje primavera(String id, String categoria, String hex) =>
+          p(id, categoria, estacion: EstacionColor.primavera, hex: hex);
+      final looks = const CompositorLooksAr().crear(
+        [
+          CandidatoLookAr(primavera('labial-coral', 'labial', '#FF6F61'), 90),
+          CandidatoLookAr(primavera('rubor-coral', 'rubor', '#FF7F50'), 90),
+          // Tiene más puntaje individual, pero rompe la armonía del conjunto.
+          CandidatoLookAr(
+            primavera('sombra-turquesa', 'sombra', '#30D5C8'),
+            96,
+          ),
+          CandidatoLookAr(
+            primavera('sombra-melocoton', 'sombra', '#FFB07C'),
+            88,
+          ),
+        ],
+        perfil,
+        RegistroEfectosAr(),
+      );
+      expect(
+        looks.first.productos.map((e) => e.id),
+        contains('sombra-melocoton'),
+      );
+      expect(
+        looks.first.productos.map((e) => e.id),
+        isNot(contains('sombra-turquesa')),
+      );
+    },
+  );
   test('el registro admite extensión y declara los efectos pendientes', () {
     final registro = RegistroEfectosAr(
       adicionales: [
@@ -192,6 +229,9 @@ void main() {
       expect(vm.looks, hasLength(1));
       vm.aplicarLook(vm.looks.single.id);
       expect(vm.capas, hasLength(3));
+      expect(vm.mascarasDiagnostico, isFalse);
+      vm.mostrarMascarasDiagnostico(true);
+      expect(vm.mascarasDiagnostico, isTrue);
       vm.enfocar('rubor');
       vm.ajustarIntensidad(.2);
       expect(
