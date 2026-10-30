@@ -28,6 +28,7 @@ class AppRoutes {
   static const String analisis = '/colorimetria/analisis';
   static const String resultado = '/colorimetria/resultado';
   static const String paleta = '/paleta';
+  static const String looks = '/paleta/looks';
 
   // ---------------------------------------------------------------------
   // Simulador AR y armario — Mauricio

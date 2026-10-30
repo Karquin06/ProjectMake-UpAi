@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../../models/paleta_model.dart';
+import '../../models/perfil_colorimetria_model.dart';
 import '../../providers/asistente_provider.dart';
 import '../../providers/colorimetria_provider.dart';
+import '../../providers/paleta_provider.dart';
+import '../../providers/sesion_provider.dart';
 import '../recomendaciones/esperar_perfil.dart';
 
 /// Pantalla del chat con el asistente de IA — Ana.
@@ -13,9 +17,20 @@ class AsistenteViewModel extends ChangeNotifier {
   final AsistenteProvider _asistente;
   final ColorimetriaProvider _colorimetria;
 
-  AsistenteViewModel(this._asistente, this._colorimetria) {
+  /// Nombre de la usuaria y colores de su paleta para la bienvenida.
+  /// Opcionales para poder probar el chat sin ellos.
+  final SesionProvider? _sesion;
+  final PaletaProvider? _paletas;
+
+  AsistenteViewModel(
+    this._asistente,
+    this._colorimetria, {
+    this._sesion,
+    this._paletas,
+  }) {
     _asistente.addListener(_notificar);
     _colorimetria.addListener(_notificar);
+    _paletas?.addListener(_notificar);
   }
 
   bool _desechado = false;
@@ -33,6 +48,18 @@ class AsistenteViewModel extends ChangeNotifier {
   bool get sinPerfil => _colorimetria.cargado && _colorimetria.perfil == null;
 
   int get largoMaximo => AsistenteProvider.largoMaximo;
+
+  /// Primer nombre de la usuaria para el saludo ("" si no se sabe).
+  String get nombre {
+    final completo = _sesion?.nombreVisible.trim() ?? '';
+    return completo.isEmpty ? '' : completo.split(RegExp(r'\s+')).first;
+  }
+
+  PerfilColorimetria? get perfil => _colorimetria.perfil;
+
+  /// Colores que el asistente recomienda en la bienvenida.
+  List<ColorPaleta> get coloresRecomendados =>
+      (_paletas?.paleta?.coloresRecomendados ?? const []).take(5).toList();
 
   /// Carga la colorimetría (contexto del chat) y la última conversación.
   Future<void> cargar() async {
@@ -82,6 +109,7 @@ class AsistenteViewModel extends ChangeNotifier {
     _desechado = true;
     _asistente.removeListener(_notificar);
     _colorimetria.removeListener(_notificar);
+    _paletas?.removeListener(_notificar);
     super.dispose();
   }
 }

@@ -3,7 +3,7 @@
     "short_name": "mackeupai",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F7F7F7",
+    "background_color": "#A22177",
     "theme_color": "#D6247A",
     "description": "A new Flutter project.",
     "orientation": "portrait-primary",

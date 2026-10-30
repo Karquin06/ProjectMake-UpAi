@@ -120,6 +120,7 @@ class HomeView extends StatelessWidget {
         top: 16,
         child: _TituloSeccion(
           AppStrings.seccionRecomendado,
+          icono: Icons.auto_awesome,
           accion: vm.recomendaciones.isEmpty
               ? null
               : () => context.irA(AppRoutes.recomendaciones),
@@ -236,14 +237,19 @@ class _EncabezadoHome extends StatelessWidget {
 
 class _TituloSeccion extends StatelessWidget {
   final String texto;
+  final IconData? icono;
   final VoidCallback? accion;
 
-  const _TituloSeccion(this.texto, {this.accion});
+  const _TituloSeccion(this.texto, {this.icono, this.accion});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
+        if (icono != null) ...[
+          Icon(icono, color: AppColors.fucsia, size: 22),
+          const SizedBox(width: 8),
+        ],
         Expanded(
           child: Text(
             texto,
@@ -254,7 +260,14 @@ class _TituloSeccion extends StatelessWidget {
           TextButton(
             onPressed: accion,
             style: TextButton.styleFrom(foregroundColor: AppColors.fucsia),
-            child: const Text(AppStrings.verTodo),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(AppStrings.verTodo),
+                SizedBox(width: 2),
+                Icon(Icons.chevron_right, size: 18),
+              ],
+            ),
           ),
       ],
     );

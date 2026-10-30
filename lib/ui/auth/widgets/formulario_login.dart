@@ -30,6 +30,7 @@ class FormularioLogin extends StatelessWidget {
             controller: correoController,
             tipoTeclado: TextInputType.emailAddress,
             icono: Icons.mail_outline,
+            iconoEnEtiqueta: true,
             accionTeclado: TextInputAction.next,
             validator: Validadores.correo,
           ),
@@ -37,6 +38,8 @@ class FormularioLogin extends StatelessWidget {
           CampoContrasena(
             etiqueta: AppStrings.contrasena,
             controller: contrasenaController,
+            hint: AppStrings.ingresaTuContrasena,
+            iconoEnEtiqueta: true,
             accionTeclado: TextInputAction.done,
             validator: Validadores.contrasena,
           ),

@@ -11,6 +11,12 @@ class AppStrings {
       'Descubrimos tu colorimetría personal y te ofrecemos '
       'recomendaciones únicas de maquillaje, ropa y accesorios.';
 
+  static const String onboardingChatPregunta = '¿Qué labial me queda mejor?';
+  static const String onboardingChatRespuesta =
+      'Con tu paleta de Otoño, los tonos terracota y canela te iluminan.';
+  static const String onboardingChatEtiqueta = 'Asistente IA';
+  static const String arCorto = 'AR';
+
   static const String onboardingTitulo2 = 'Simula antes de comprar';
   static const String onboardingDescripcion2 =
       'Prueba tu maquillaje con realidad aumentada y evita compras '
@@ -32,11 +38,11 @@ class AppStrings {
   static const String iniciaSesionParaContinuar =
       'Inicia sesión para continuar';
   static const String continuarConGoogle = 'Continuar con Google';
-  static const String continuarConApple = 'Continuar con Apple';
   static const String correoElectronico = 'CORREO ELECTRÓNICO';
   static const String contrasena = 'CONTRASEÑA';
   static const String olvidasteContrasena = '¿Olvidaste tu contraseña?';
   static const String botonIniciarSesion = 'Iniciar sesión';
+  static const String ingresaTuContrasena = 'Ingresa tu contraseña';
   static const String noTienesCuenta = '¿No tienes una cuenta? ';
   static const String registrate = 'Regístrate';
 
@@ -52,8 +58,6 @@ class AppStrings {
   static const String errorConsentimientoGoogle =
       'Para usar Make Up AI debes aceptar el aviso de privacidad.';
   static const String recordarme = 'Recordarme';
-  static const String appleProximamente =
-      'El inicio de sesión con Apple estará disponible próximamente.';
 
   // Aviso de privacidad
   // BORRADOR ACADÉMICO: revisar en equipo antes de publicar. Si el texto
@@ -157,16 +161,23 @@ class AppStrings {
 
   // Perfil
   static const String miPerfil = 'Mi perfil';
+  static const String misDatos = 'Mis datos';
+  static const String datoNombre = 'Nombre';
+  static const String datoCorreo = 'Correo electrónico';
+  static const String datoMiembroDesde = 'Miembro desde';
+  static const String datoTipoCuenta = 'Tipo de cuenta';
+  static const String cuentaAdministradora = 'Administradora';
+  static const String cuentaUsuaria = 'Usuaria';
+  static const String miColorimetria = 'Mi colorimetría';
+  static const String colorimetriaActiva = 'Activa';
+  static const String verDetalles = 'Ver detalles';
+  static const String perfilSinColorimetria =
+      'Aún no tienes tu análisis. Descubre los colores que más te favorecen.';
   static const String editarPerfil = 'Editar perfil';
-  static const String editarPerfilSubtitulo = 'Cambia tu nombre y tu foto';
-  static const String avisoPrivacidadSubtitulo = 'Cómo cuidamos tus datos';
-  static const String cerrarSesionSubtitulo = 'Sal de tu cuenta en este equipo';
   static const String cerrarSesionTitulo = '¿Cerrar sesión?';
   static const String cerrarSesionMensaje =
       'Tendrás que volver a iniciar sesión para usar Make Up AI.';
   static const String eliminarCuenta = 'Eliminar cuenta';
-  static const String eliminarCuentaSubtitulo =
-      'Borra tu cuenta y todos tus datos';
   static const String eliminarCuentaTitulo = '¿Eliminar tu cuenta?';
   static const String eliminarCuentaMensaje =
       'Se borrarán tu perfil, tu colorimetría, tus recomendaciones y tus '
@@ -178,11 +189,7 @@ class AppStrings {
       'Tu cuenta fue eliminada. ¡Gracias por usar Make Up AI!';
   static const String errorContrasenaIncorrecta =
       'La contraseña no es correcta.';
-  static const String seccionCuenta = 'CUENTA';
-  static const String seccionPrivacidad = 'PRIVACIDAD Y SESIÓN';
   static const String seccionAdministracion = 'ADMINISTRACIÓN';
-  static const String catalogoAdminSubtitulo =
-      'Agrega y edita productos de maquillaje y prendas';
 
   // Editar perfil
   static const String guardarCambios = 'Guardar cambios';
@@ -524,6 +531,39 @@ class AppStrings {
   static const String errorSinPerfilColorimetria =
       'Primero haz tu análisis de colorimetría.';
 
+  // Looks por colorimetría
+  static const String looksTitulo = 'Looks para ti';
+  static const String looksAccion = 'Looks';
+  static const String looksSinAnalisisMensaje =
+      'Haz tu análisis de colorimetría para armar looks con los colores '
+      'que te favorecen.';
+  static const String looksVaciosTitulo = 'Sin looks por ahora';
+  static const String looksVaciosMensaje =
+      'No hay prendas suficientes de tu estación para esta ocasión. Prueba '
+      'con otra.';
+  static const String looksRopa = 'Ropa';
+  static const String looksMaquillaje = 'Maquillaje';
+  static const String looksPorQue = 'Por qué combina';
+  static String looksCompatibilidad(int puntaje) => '$puntaje% de armonía';
+  static const String armoniaMonocromatico = 'Monocromático';
+  static const String armoniaAnalogo = 'Tonos vecinos';
+  static const String armoniaNeutroAcento = 'Neutros + acento';
+  static const String armoniaComplementario = 'Complementario';
+  static const String armoniaNeutros = 'Básicos';
+  static const String armoniaMonocromaticoDetalle =
+      'Varios tonos de un mismo color: alarga la figura y se ve elegante.';
+  static const String armoniaAnalogoDetalle =
+      'Colores vecinos del círculo cromático: combinan sin esfuerzo.';
+  static const String armoniaNeutroAcentoDetalle =
+      'Básicos de tu paleta con un color protagonista cerca del rostro.';
+  static const String armoniaComplementarioDetalle =
+      'Colores opuestos en versión de tu estación: contraste con equilibrio.';
+  static const String armoniaNeutrosDetalle =
+      'Solo básicos de tu paleta: fácil de combinar y nunca falla.';
+  static const String looksMaquillajeDetalle =
+      'Labial y rubor de la misma familia; la sombra acompaña el color '
+      'protagonista del outfit.';
+
   static const String subtonoNeutroDetalle =
       'Tu piel combina reflejos cálidos y fríos. Puedes usar colores de '
       'ambas familias, sobre todo en sus versiones intermedias.';
@@ -738,12 +778,48 @@ class AppStrings {
 
   // Asistente de IA — Ana
   static const String asistenteTitulo = 'Asistente';
+  static const String asistenteIaTitulo = 'Asistente IA';
+  static const String asistenteEstado = 'Tu asesora de belleza';
+  static String asistenteHola(String nombre) =>
+      nombre.isEmpty ? '¡Hola!' : '¡Hola, $nombre!';
+  static const String asistenteIntro =
+      'Estoy aquí para ayudarte a resaltar lo mejor de ti. ¿Qué te gustaría '
+      'explorar hoy?';
+  static const String exploraConIa = 'Explora con IA';
+  static const String preguntasRapidas = 'Preguntas rápidas';
+  static const String exploraMaquillaje = 'Maquillaje';
+  static const String exploraMaquillajeDetalle =
+      'Encuentra los tonos y estilos ideales para ti.';
+  static const String exploraMaquillajePregunta =
+      '¿Qué tonos de maquillaje me favorecen según mi colorimetría?';
+  static const String exploraOutfits = 'Outfits';
+  static const String exploraOutfitsDetalle =
+      'Combina tu estilo con tu colorimetría.';
+  static const String exploraOutfitsPregunta =
+      '¿Cómo combino mi ropa con mi colorimetría?';
+  static const String exploraCuidado = 'Cuidado personal';
+  static const String exploraCuidadoDetalle =
+      'Tips para tu piel, cabello y bienestar.';
+  static const String exploraCuidadoPregunta =
+      'Dame tips de cuidado para mi piel y mi cabello.';
+  static const String exploraProductos = 'Productos';
+  static const String exploraProductosDetalle =
+      'Recomendaciones personalizadas.';
+  static const String exploraProductosPregunta =
+      '¿Qué productos de maquillaje me recomiendas?';
+  static const String asesoraRecomienda = 'Tu asesora te recomienda';
+  static String segunTuColorimetria(String estacion) =>
+      'Según tu colorimetría $estacion';
+  static const String consejoTonosCalido =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono cálido.';
+  static const String consejoTonosFrio =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono frío.';
+  static const String consejoTonosNeutro =
+      'Estos tonos realzan tu mirada, iluminan tu rostro y armonizan con tu '
+      'subtono neutro.';
   static const String nuevaConversacion = 'Nueva conversación';
-  static const String asistenteBienvenidaTitulo =
-      '¡Hola! Soy tu asesora de imagen';
-  static const String asistenteBienvenidaMensaje =
-      'Pregúntame qué colores, prendas o maquillaje te favorecen según tu '
-      'colorimetría.';
   static const String asistenteSinPerfil =
       'Aún no tienes análisis de colorimetría: mis consejos serán generales.';
   static const String hacerAnalisis = 'Hacer análisis';

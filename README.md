@@ -258,9 +258,9 @@ flowchart TD
     C --> D["Piel de mejillas y frente en CIELAB<br/>mediana sin brillos ni sombras"]
     D --> E["Tono h* · ITA · Croma C* · Contraste ΔL*"]
     E --> F{"Subtono"}
-    F -- "h* menor que 52°" --> G["Frío: Invierno o Verano"]
-    F -- "h* mayor que 58°" --> H["Cálido: Primavera u Otoño"]
-    F -- "entre 52° y 58°" --> I["Neutro: deciden contraste,<br/>claridad y 55°"]
+    F -- "h* menor que 57°" --> G["Frío: Invierno o Verano"]
+    F -- "h* mayor que 65°" --> H["Cálido: Primavera u Otoño"]
+    F -- "entre 57° y 65°" --> I["Neutro: deciden contraste,<br/>claridad y 61°"]
     G --> J["Estación + segunda opción + confianza"]
     H --> J
     I --> J

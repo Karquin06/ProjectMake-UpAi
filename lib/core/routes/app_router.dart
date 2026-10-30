@@ -18,6 +18,7 @@ import '../../ui/auth/verificar_correo_view.dart';
 import '../../ui/colorimetria/analisis_view.dart';
 import '../../ui/colorimetria/captura_selfie_view.dart';
 import '../../ui/colorimetria/colorimetria_view.dart';
+import '../../ui/colorimetria/looks_view.dart';
 import '../../ui/colorimetria/paleta_view.dart';
 import '../../ui/colorimetria/resultado_view.dart';
 import '../../ui/home/main_navigation_view.dart';
@@ -76,6 +77,7 @@ class AppRouter {
     AppRoutes.analisis: _Destino.autenticada(() => const AnalisisView()),
     AppRoutes.resultado: _Destino.autenticada(() => const ResultadoView()),
     AppRoutes.paleta: _Destino.autenticada(() => const PaletaView()),
+    AppRoutes.looks: _Destino.autenticada(() => const LooksView()),
 
     // -------------------------------------------------------------------
     // Simulador AR y armario — Mauricio
@@ -124,11 +126,16 @@ class AppRouter {
     return destino?.constructor() ?? _enConstruccion(ruta, '-');
   }
 
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+  /// [duracion]: la del desvanecido (el splash usa uno más largo).
+  static Route<dynamic> onGenerateRoute(
+    RouteSettings settings, {
+    Duration duracion = const Duration(milliseconds: 250),
+  }) {
     final destino = _destinos[settings.name];
     if (destino == null) {
       return _transicion(
         settings,
+        duracion,
         _enConstruccion(
           settings.name ?? '',
           '-',
@@ -139,6 +146,7 @@ class AppRouter {
     final pagina = destino.constructor();
     return _transicion(
       settings,
+      duracion,
       destino.nivel == NivelAcceso.publica
           ? pagina
           : GuardiaRuta(nivel: destino.nivel, child: pagina),
@@ -162,14 +170,21 @@ class AppRouter {
 
   /// Transición de desvanecido. Pasa [settings] para que las vistas
   /// puedan leer los argumentos de la ruta.
-  static PageRoute<dynamic> _transicion(RouteSettings settings, Widget child) {
+  static PageRoute<dynamic> _transicion(
+    RouteSettings settings,
+    Duration duracion,
+    Widget child,
+  ) {
     return PageRouteBuilder(
       settings: settings,
       pageBuilder: (_, _, _) => child,
       transitionsBuilder: (_, animation, _, child) {
-        return FadeTransition(opacity: animation, child: child);
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+          child: child,
+        );
       },
-      transitionDuration: const Duration(milliseconds: 250),
+      transitionDuration: duracion,
     );
   }
 }

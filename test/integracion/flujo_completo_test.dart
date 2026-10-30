@@ -253,6 +253,12 @@ void main() {
     }
 
     Future<void> tocar(Finder f) async {
+      // Un aviso (SnackBar) abierto puede tapar lo que está abajo.
+      final avisos = find.byType(SnackBar);
+      if (avisos.evaluate().isNotEmpty) {
+        ScaffoldMessenger.of(tester.element(avisos.first)).clearSnackBars();
+        await tester.pumpAndSettle();
+      }
       await tester.ensureVisible(f);
       await tester.pumpAndSettle();
       await tester.tap(f);

@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
+import '../../core/constants/app_assets.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
+import '../../core/routes/app_router.dart';
 import '../../core/routes/app_routes.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_gradients.dart';
@@ -10,8 +13,10 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/snackbar_helper.dart';
 import '../../core/widgets/boton_primario.dart';
 import '../../core/widgets/gradiente_fondo.dart';
+import '../../core/widgets/logo_app.dart';
 import '../../providers/sesion_provider.dart';
 import 'splash_view_model.dart';
+import 'widgets/ilustracion_onboarding.dart';
 import 'widgets/logo_animado.dart';
 
 /// Anima el logo (fade y escala) y, cuando la animación termina, redirige
@@ -27,7 +32,10 @@ class SplashView extends StatefulWidget {
 class _SplashViewState extends State<SplashView>
     with SingleTickerProviderStateMixin {
   /// Tiempo mínimo que se ve el splash: lo que dura la animación.
-  static const Duration _duracion = Duration(milliseconds: 2800);
+  static const Duration _duracion = Duration(milliseconds: 6000);
+
+  /// Fundido del splash a la siguiente pantalla.
+  static const Duration _salida = Duration(milliseconds: 1200);
 
   final SplashViewModel _vm = SplashViewModel();
   late final AnimationController _controlador;
@@ -41,11 +49,44 @@ class _SplashViewState extends State<SplashView>
     _controlador.addStatusListener((estado) {
       if (estado == AnimationStatus.completed) {
         _tiempoCumplido = true;
+        // Terminada la animación, se espera a Firebase como mucho este tiempo.
+        _limiteSesion = Timer(
+          AppConstants.esperaMaximaSesion,
+          _alAgotarseElTiempo,
+        );
         _intentarNavegar();
       }
     });
+  }
+
+  bool _iniciado = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_iniciado) return;
+    _iniciado = true;
+    _iniciarAnimacion();
+  }
+
+  /// Carga las imágenes del splash, quita el arranque nativo y empieza la
+  /// animación: el primer cuadro visible es idéntico al arranque nativo.
+  /// Si las imágenes tardan, arranca igual al segundo.
+  Future<void> _iniciarAnimacion() async {
+    try {
+      await Future.any([
+        Future.wait([
+          precacheImage(const AssetImage(AppAssets.splash), context),
+          precacheImage(const AssetImage(AppAssets.logoArranque), context),
+        ]),
+        Future<void>.delayed(const Duration(seconds: 1)),
+      ]);
+    } catch (_) {
+      // Si una imagen falla, el splash igual debe avanzar.
+    }
+    FlutterNativeSplash.remove();
+    if (!mounted) return;
     _controlador.forward();
-    _limiteSesion = Timer(AppConstants.esperaMaximaSesion, _alAgotarseElTiempo);
   }
 
   @override
@@ -74,7 +115,12 @@ class _SplashViewState extends State<SplashView>
       _limiteSesion?.cancel();
       final error = _vm.mensajeError;
       if (error != null) SnackbarHelper.error(context, error);
-      Navigator.of(context).pushReplacementNamed(destino);
+      Navigator.of(context).pushReplacement(
+        AppRouter.onGenerateRoute(
+          RouteSettings(name: destino),
+          duracion: _salida,
+        ),
+      );
     } else {
       setState(() {});
     }
@@ -98,8 +144,8 @@ class _SplashViewState extends State<SplashView>
   }
 }
 
-/// Splash puro: el logo animado (ver [LogoAnimado]) centrado sobre el
-/// degradado de marca.
+/// Splash puro: la imagen de marca a pantalla completa, animada (ver
+/// [LogoAnimado]).
 class _SplashLogo extends StatelessWidget {
   final Animation<double> animacion;
 
@@ -108,10 +154,8 @@ class _SplashLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GradienteFondo(
-        gradient: AppGradients.splash,
-        child: Center(child: LogoAnimado(animacion: animacion)),
-      ),
+      backgroundColor: LogoAnimado.fondo,
+      body: LogoAnimado(animacion: animacion),
     );
   }
 }
@@ -125,14 +169,17 @@ class _OnboardingView extends StatelessWidget {
     OnboardingPagina(
       titulo: AppStrings.onboardingTitulo1,
       descripcion: AppStrings.onboardingDescripcion1,
+      ilustracion: IlustracionOnboarding.colorimetria,
     ),
     OnboardingPagina(
       titulo: AppStrings.onboardingTitulo2,
       descripcion: AppStrings.onboardingDescripcion2,
+      ilustracion: IlustracionOnboarding.simulador,
     ),
     OnboardingPagina(
       titulo: AppStrings.onboardingTitulo3,
       descripcion: AppStrings.onboardingDescripcion3,
+      ilustracion: IlustracionOnboarding.asistente,
     ),
   ];
 
@@ -149,19 +196,7 @@ class _OnboardingView extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 24),
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.marca,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ),
+                const LogoRostro(alto: 84),
                 const SizedBox(height: 12),
                 RichText(
                   text: TextSpan(
@@ -238,25 +273,10 @@ class _PaginaOnboarding extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: 220,
-          height: 220,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.superficie, width: 6),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.violeta.withValues(alpha: 0.15),
-                blurRadius: 24,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.face_retouching_natural,
-            size: 96,
-            color: AppColors.fucsia,
+        // Se encoge en pantallas bajas para que el texto siempre quepa.
+        Flexible(
+          child: FittedBox(
+            child: IlustracionOnboardingView(tipo: pagina.ilustracion),
           ),
         ),
         const SizedBox(height: 28),

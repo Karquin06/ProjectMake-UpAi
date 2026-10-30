@@ -25,8 +25,9 @@ Future<List<RecomendacionDestacada>> cargarDestacadasHome(
     if (perfil == null) return const [];
     recomendaciones.actualizarPerfil(perfil);
 
-    final maquillaje =
-        await recomendaciones.obtener(tipo: TipoRecomendacion.maquillaje);
+    final maquillaje = await recomendaciones.obtener(
+      tipo: TipoRecomendacion.maquillaje,
+    );
     final ropa = await recomendaciones.obtener(tipo: TipoRecomendacion.outfit);
     final elegidas = <RecomendacionItem>[];
     for (var i = 0; i < porTipo; i++) {
@@ -49,5 +50,7 @@ RecomendacionDestacada destacadaDe(RecomendacionItem item) {
     tipo: item.tipo,
     productoId: item.esPrenda ? null : item.id,
     prendaId: item.esPrenda ? item.id : null,
+    imagenUrl: item.imagenUrl,
+    colorHex: item.colorHex,
   );
 }

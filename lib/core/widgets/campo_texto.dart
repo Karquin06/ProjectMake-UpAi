@@ -16,6 +16,9 @@ class CampoTexto extends StatelessWidget {
   final bool habilitado;
   final TextCapitalization capitalizacion;
 
+  /// Muestra [icono] junto a la etiqueta en vez de dentro del campo.
+  final bool iconoEnEtiqueta;
+
   const CampoTexto({
     super.key,
     required this.etiqueta,
@@ -28,6 +31,7 @@ class CampoTexto extends StatelessWidget {
     this.accionTeclado,
     this.habilitado = true,
     this.capitalizacion = TextCapitalization.none,
+    this.iconoEnEtiqueta = false,
   });
 
   @override
@@ -35,7 +39,7 @@ class CampoTexto extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(etiqueta, style: AppTextStyles.etiquetaCampo),
+        EtiquetaCampo(etiqueta, icono: iconoEnEtiqueta ? icono : null),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -47,11 +51,32 @@ class CampoTexto extends StatelessWidget {
           textCapitalization: capitalizacion,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: icono == null
+            prefixIcon: icono == null || iconoEnEtiqueta
                 ? null
                 : Icon(icono, color: AppColors.textoSecundario, size: 20),
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// Etiqueta en mayúsculas sobre un campo, con icono opcional a la izquierda.
+class EtiquetaCampo extends StatelessWidget {
+  final String texto;
+  final IconData? icono;
+
+  const EtiquetaCampo(this.texto, {super.key, this.icono});
+
+  @override
+  Widget build(BuildContext context) {
+    final etiqueta = Text(texto, style: AppTextStyles.etiquetaCampo);
+    if (icono == null) return etiqueta;
+    return Row(
+      children: [
+        Icon(icono, color: AppColors.fucsia, size: 22),
+        const SizedBox(width: 12),
+        Flexible(child: etiqueta),
       ],
     );
   }

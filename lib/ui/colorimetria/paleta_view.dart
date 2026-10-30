@@ -44,6 +44,17 @@ class PaletaView extends StatelessWidget {
               ),
               backgroundColor: Colors.transparent,
               elevation: 0,
+              actions: [
+                if (vm.estado == EstadoPaleta.conPaleta)
+                  TextButton.icon(
+                    onPressed: () => context.irA(AppRoutes.looks),
+                    icon: const Icon(Icons.auto_awesome),
+                    label: const Text(AppStrings.looksAccion),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.fucsia,
+                    ),
+                  ),
+              ],
               bottom: vm.estado == EstadoPaleta.conPaleta
                   ? const TabBar(
                       labelColor: AppColors.fucsia,
@@ -113,8 +124,10 @@ class PaletaView extends StatelessWidget {
                   : TarjetaBase(
                       child: Row(
                         children: [
-                          const Icon(Icons.face_retouching_natural,
-                              color: AppColors.fucsia),
+                          const Icon(
+                            Icons.face_retouching_natural,
+                            color: AppColors.fucsia,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -126,9 +139,18 @@ class PaletaView extends StatelessWidget {
                       ),
                     ),
               secciones: [
-                SeccionColores(AppStrings.seccionLabiales, vm.maquillaje.labiales),
-                SeccionColores(AppStrings.seccionRubores, vm.maquillaje.rubores),
-                SeccionColores(AppStrings.seccionSombras, vm.maquillaje.sombras),
+                SeccionColores(
+                  AppStrings.seccionLabiales,
+                  vm.maquillaje.labiales,
+                ),
+                SeccionColores(
+                  AppStrings.seccionRubores,
+                  vm.maquillaje.rubores,
+                ),
+                SeccionColores(
+                  AppStrings.seccionSombras,
+                  vm.maquillaje.sombras,
+                ),
               ],
             ),
             CuadriculaPaleta(

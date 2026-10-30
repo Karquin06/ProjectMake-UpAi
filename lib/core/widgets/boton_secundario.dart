@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
-/// Botón secundario de fondo blanco con borde e icono a la izquierda.
-/// Se usa para "Continuar con Google" / "Continuar con Apple".
+/// Botón secundario blanco con sombra suave, icono a la izquierda y flecha
+/// a la derecha. Se usa para "Continuar con Google" / "Continuar con Apple".
 class BotonSecundario extends StatelessWidget {
   final String texto;
   final Widget icono;
@@ -18,32 +18,53 @@ class BotonSecundario extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: AppColors.superficie,
-          side: const BorderSide(color: AppColors.borde),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            icono,
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(
-                texto,
-                style: AppTextStyles.botonSecundario,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+    final radio = BorderRadius.circular(28);
+    return Opacity(
+      opacity: onPressed == null ? 0.6 : 1,
+      child: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          color: AppColors.superficie,
+          borderRadius: radio,
+          border: Border.all(color: AppColors.borde),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.violeta.withValues(alpha: 0.08),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: radio,
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: Row(
+                children: [
+                  SizedBox(width: 28, child: Center(child: icono)),
+                  const SizedBox(width: 18),
+                  Expanded(
+                    child: Text(
+                      texto,
+                      style: AppTextStyles.botonSecundario.copyWith(
+                        color: AppColors.violetaOscuro,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.violetaOscuro,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
