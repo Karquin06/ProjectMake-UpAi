@@ -105,16 +105,16 @@ void main() {
       );
     }
 
-    test('subtono: frío < 52°, neutro 52–58°, cálido > 58°', () {
-      expect(clasificar(medidas(65, 50, 16)).subtono, Subtono.frio);
-      expect(clasificar(medidas(65, 55, 16)).subtono, Subtono.neutro);
-      expect(clasificar(medidas(65, 60, 16)).subtono, Subtono.calido);
+    test('subtono: frío < 57°, neutro 57–65°, cálido > 65° (centro 61°)', () {
+      expect(clasificar(medidas(65, 52, 16)).subtono, Subtono.frio);
+      expect(clasificar(medidas(65, 61, 16)).subtono, Subtono.neutro);
+      expect(clasificar(medidas(65, 70, 16)).subtono, Subtono.calido);
     });
 
-    test('piel clara por ITA ≥ 41°: primavera clara, otoño más profunda', () {
-      // b* ≈ 16,3: ITA 44,5° con L* 66 y 31,5° con L* 60.
-      expect(clasificar(medidas(66, 65, 18)).estacion, EstacionColor.primavera);
-      expect(clasificar(medidas(60, 65, 18)).estacion, EstacionColor.otono);
+    test('piel clara por ITA ≥ 34°: primavera clara, otoño más profunda', () {
+      // b* ≈ 16,9: ITA 43° con L* 66 y 31° con L* 60.
+      expect(clasificar(medidas(66, 70, 18)).estacion, EstacionColor.primavera);
+      expect(clasificar(medidas(60, 70, 18)).estacion, EstacionColor.otono);
     });
 
     test('intensidad con croma real de mejilla (~15): media, no suave', () {
@@ -124,8 +124,8 @@ void main() {
     });
 
     test('cerca de un límite: segunda estación y menos confianza', () {
-      // Neutra clara justo sobre 55°: primavera, pero muy cerca de verano.
-      final limite = clasificar(medidas(70, 55.5, 16, oscurosL: 50));
+      // Neutra clara justo sobre 61°: primavera, pero muy cerca de verano.
+      final limite = clasificar(medidas(70, 61.5, 16, oscurosL: 50));
       expect(limite.estacion, EstacionColor.primavera);
       expect(limite.estacionAlternativa, EstacionColor.verano);
 
@@ -143,11 +143,11 @@ void main() {
     });
 
     test('la esclera corrige una luz amarilla', () {
-      // Piel rosada y ojos blancos bajo una bombilla amarilla (R×1,1, B×0,8).
+      // Piel rosada y ojos blancos bajo una bombilla amarilla (R×1,1, B×0,7).
       Rgb amarilla(Rgb c) => (
             math.min(255, (c.$1 * 1.1).round()),
             c.$2,
-            (c.$3 * 0.8).round(),
+            (c.$3 * 0.7).round(),
           );
       const ojoIzq = Elipse(45, 55, 7, 3), ojoDer = Elipse(75, 55, 7, 3);
       final base = _imagen(amarilla((200, 160, 150)), (20, 20, 20));

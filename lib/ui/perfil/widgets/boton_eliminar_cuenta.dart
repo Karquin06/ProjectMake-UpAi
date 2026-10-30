@@ -23,7 +23,7 @@ class BotonEliminarCuenta extends StatelessWidget {
     return OpcionPerfil(
       icono: Icons.delete_outline,
       titulo: AppStrings.eliminarCuenta,
-      subtitulo: AppStrings.eliminarCuentaSubtitulo,
+
       destructiva: true,
       cargando: vm.eliminandoCuenta,
       onTap: () => _eliminar(context),

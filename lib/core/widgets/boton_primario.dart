@@ -9,6 +9,9 @@ class BotonPrimario extends StatelessWidget {
   final String texto;
   final VoidCallback? onPressed;
   final IconData? icono;
+
+  /// Icono opcional antes del texto (p. ej. una persona en "Iniciar sesión").
+  final IconData? iconoInicial;
   final bool cargando;
 
   const BotonPrimario({
@@ -16,6 +19,7 @@ class BotonPrimario extends StatelessWidget {
     required this.texto,
     required this.onPressed,
     this.icono,
+    this.iconoInicial,
     this.cargando = false,
   });
 
@@ -50,6 +54,10 @@ class BotonPrimario extends StatelessWidget {
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if (iconoInicial != null) ...[
+                            Icon(iconoInicial, color: Colors.white, size: 22),
+                            const SizedBox(width: 12),
+                          ],
                           Flexible(
                             child: Text(
                               texto,

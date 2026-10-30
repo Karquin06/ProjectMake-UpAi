@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/errors/firebase_error_mapper.dart';
+import '../../models/perfil_colorimetria_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/colorimetria_provider.dart';
 import '../../providers/notificaciones_provider.dart';
 import '../../providers/sesion_provider.dart';
 import '../../providers/usuaria_provider.dart';
@@ -12,6 +14,10 @@ class PerfilViewModel extends ChangeNotifier {
   final NotificacionesProvider _notificaciones;
   final AuthProvider _auth;
   final UsuariaProvider _usuarias;
+
+  /// Colorimetría de la usuaria (tarjeta "Mi colorimetría"). Opcional para
+  /// poder probar el perfil sin ella.
+  final ColorimetriaProvider? _colorimetria;
   SesionProvider? _sesion;
   bool _desechado = false;
   bool _cerrandoSesion = false;
@@ -22,11 +28,39 @@ class PerfilViewModel extends ChangeNotifier {
     required this._notificaciones,
     required this._auth,
     required this._usuarias,
-  });
+    this._colorimetria,
+  }) {
+    _colorimetria?.addListener(_notificar);
+  }
 
   String get nombre => _sesion?.nombreVisible ?? '';
   String get correo => _sesion?.correo ?? '';
   String? get fotoUrl => _sesion?.fotoUrl;
+
+  /// Resultado del análisis, o `null` si aún no lo ha hecho.
+  PerfilColorimetria? get perfilColorimetria => _colorimetria?.perfil;
+
+  /// Mes y año de registro ("octubre de 2026"), o `null` si no se sabe.
+  String? get miembroDesde {
+    final fecha = _sesion?.usuaria?.fechaRegistro;
+    if (fecha == null) return null;
+    return '${_meses[fecha.month - 1]} de ${fecha.year}';
+  }
+
+  static const _meses = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+  ];
 
   /// `true` solo para la cuenta administradora (muestra el catálogo).
   bool get esAdmin => _sesion?.esAdmin ?? false;
@@ -120,6 +154,7 @@ class PerfilViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _desechado = true;
+    _colorimetria?.removeListener(_notificar);
     super.dispose();
   }
 }

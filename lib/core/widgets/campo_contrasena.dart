@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_strings.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import 'campo_texto.dart';
 
 /// Campo de contraseña con etiqueta superior y botón para mostrar/ocultar.
 class CampoContrasena extends StatefulWidget {
@@ -10,6 +10,10 @@ class CampoContrasena extends StatefulWidget {
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
   final TextInputAction? accionTeclado;
+  final String hint;
+
+  /// Muestra el candado junto a la etiqueta en vez de dentro del campo.
+  final bool iconoEnEtiqueta;
 
   const CampoContrasena({
     super.key,
@@ -18,6 +22,8 @@ class CampoContrasena extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.accionTeclado,
+    this.hint = '••••••••',
+    this.iconoEnEtiqueta = false,
   });
 
   @override
@@ -32,7 +38,10 @@ class _CampoContrasenaState extends State<CampoContrasena> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.etiqueta, style: AppTextStyles.etiquetaCampo),
+        EtiquetaCampo(
+          widget.etiqueta,
+          icono: widget.iconoEnEtiqueta ? Icons.lock_outline : null,
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: widget.controller,
@@ -43,12 +52,14 @@ class _CampoContrasenaState extends State<CampoContrasena> {
           enableSuggestions: false,
           autocorrect: false,
           decoration: InputDecoration(
-            hintText: '••••••••',
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: AppColors.textoSecundario,
-              size: 20,
-            ),
+            hintText: widget.hint,
+            prefixIcon: widget.iconoEnEtiqueta
+                ? null
+                : const Icon(
+                    Icons.lock_outline,
+                    color: AppColors.textoSecundario,
+                    size: 20,
+                  ),
             suffixIcon: IconButton(
               icon: Icon(
                 _visible ? Icons.visibility_off : Icons.visibility,

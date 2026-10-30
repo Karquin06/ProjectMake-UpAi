@@ -48,16 +48,23 @@ class _CampoMensajeState extends State<CampoMensaje> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-      decoration: const BoxDecoration(
-        color: AppColors.superficie,
-        border: Border(top: BorderSide(color: AppColors.borde)),
-      ),
-      child: SafeArea(
-        top: false,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 4),
+        decoration: BoxDecoration(
+          color: AppColors.superficie,
+          borderRadius: BorderRadius.circular(26),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.violeta.withValues(alpha: 0.1),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: TextField(
@@ -74,20 +81,27 @@ class _CampoMensajeState extends State<CampoMensaje> {
                   fillColor: AppColors.fondoClaro,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
+                    horizontal: 18,
+                    vertical: 14,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: const BorderSide(color: AppColors.fucsia),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 4),
-            Padding(
-              // Alinea el botón con el campo (el contador ocupa abajo).
-              padding: const EdgeInsets.only(bottom: 22),
+            const SizedBox(width: 8),
+            SizedBox.square(
+              dimension: 50,
               child: IconButton.filled(
                 tooltip: AppStrings.enviar,
                 onPressed: _puedeEnviar ? _enviar : null,

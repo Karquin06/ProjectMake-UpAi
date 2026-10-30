@@ -4,12 +4,20 @@ import '../../core/constants/app_strings.dart';
 import '../../core/routes/app_routes.dart';
 import '../../providers/sesion_provider.dart';
 
+/// Qué muestra cada página del onboarding.
+enum IlustracionOnboarding { colorimetria, simulador, asistente }
+
 /// Modelo simple para una página del onboarding.
 class OnboardingPagina {
   final String titulo;
   final String descripcion;
+  final IlustracionOnboarding ilustracion;
 
-  const OnboardingPagina({required this.titulo, required this.descripcion});
+  const OnboardingPagina({
+    required this.titulo,
+    required this.descripcion,
+    required this.ilustracion,
+  });
 }
 
 /// Controla el estado del splash (adónde ir al abrir la app) y del

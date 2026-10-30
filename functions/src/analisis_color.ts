@@ -9,8 +9,8 @@
  *    mediana.
  * 3. Color de la piel en CIELAB:
  *    - ángulo de tono (h = atan2(b*, a*)) → subtono (límite rojo/amarillo
- *      en 55°, franja neutra de ±3°),
- *    - ángulo ITA = atan((L* − 50) / b*) → piel clara (≥ 41°, Chardon),
+ *      centrado en 61°, la mejilla promedio; franja neutra de ±4°),
+ *    - ángulo ITA = atan((L* − 50) / b*) → piel clara (≥ 34°),
  *    - croma (C = √(a*² + b*²)) → intensidad,
  *    - luminosidad L* comparada con los rasgos oscuros (cejas, ojos,
  *      cabello: percentil 10 de L* en un óvalo ampliado) → contraste.
@@ -54,10 +54,11 @@ export const OVALO = { cx: 0.5, cy: 0.45, rx: 0.32, ry: 0.38 };
 export const UMBRALES = {
   lumaMinima: 60, // brillo medio 0-255
   proporcionPielMinima: 0.2,
-  tonoFrioMaximo: 52, // grados; frío por debajo
-  tonoCalidoMinimo: 58, // cálido por encima
-  tonoRojoAmarillo: 55, // inclina a los neutros
-  itaClara: 41, // grados; "muy clara" y "clara"
+  // Centrados en la piel real (mejilla promedio publicada: 61°).
+  tonoFrioMaximo: 57, // grados; frío por debajo
+  tonoCalidoMinimo: 65, // cálido por encima
+  tonoRojoAmarillo: 61, // centro: inclina a los neutros
+  itaClara: 34, // grados; mitad de "intermedia" (Chardon)
   contrasteAlto: 45, // diferencia de L*
   contrasteMedio: 28,
   cromaBrillante: 20,

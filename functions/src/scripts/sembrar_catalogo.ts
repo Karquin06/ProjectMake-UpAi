@@ -81,6 +81,9 @@ async function main() {
     if (conservarFotoPropia(actual)) {
       imagen = { imagenURL: actual!.imagenURL, imagenRuta: actual!.imagenRuta };
       fotosPropias++;
+    } else if (item.foto === undefined) {
+      // Sin foto de ejemplo: la app muestra el color del ítem.
+      imagen = {};
     } else {
       try {
         imagen = await guardarFoto(item.carpeta, item.id, item.foto);

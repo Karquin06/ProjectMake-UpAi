@@ -8,9 +8,16 @@ class AppAssets {
 
   static const String _imagenes = 'assets/images';
 
-  /// Logo completo de Make Up AI (JPEG 1254x1254, fondo #F7F7F7 sin
-  /// transparencia: mostrarlo siempre dentro de una tarjeta, ver splash).
-  static const String logo = '$_imagenes/logo_proyecto.jpeg';
+  /// Pantalla de carga: logo sobre el degradado morado (JPEG 1126x2000).
+  /// Antes se ve el arranque nativo (assets/icon/arranque.png).
+  static const String splash = '$_imagenes/splash.jpg';
+
+  /// Logo con brillo del arranque nativo de Android 12+ (mismo recorte que
+  /// assets/icon/splash_rostro.png): el splash empieza con él.
+  static const String logoArranque = '$_imagenes/logo_arranque.png';
+
+  /// Rostro del logo sin fondo (PNG transparente), para el login.
+  static const String logoRostro = '$_imagenes/logo_rostro.png';
 
   /// Ilustraciones del onboarding (pendientes).
   static const String onboarding1 = '$_imagenes/onboarding_1.png';

@@ -159,6 +159,7 @@ void main() {
       AppRoutes.analisis,
       AppRoutes.resultado,
       AppRoutes.paleta,
+      AppRoutes.looks,
       AppRoutes.simuladorAr,
       AppRoutes.armario,
       AppRoutes.recomendaciones,

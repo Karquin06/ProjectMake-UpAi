@@ -39,8 +39,9 @@ describe("catálogo de prueba", () => {
 
   it("ids únicos y datos válidos", () => {
     assert.equal(new Set(todos.map((i) => i.id)).size, todos.length);
-    // Cada ítem tiene su propia foto real.
-    assert.equal(new Set(todos.map((i) => i.foto)).size, todos.length);
+    // Cada ítem con foto tiene la suya (los de colores ampliados no llevan).
+    const fotos = todos.map((i) => i.foto).filter((f) => f !== undefined);
+    assert.equal(new Set(fotos).size, fotos.length);
     for (const i of todos) {
       assert.match(i.colorHex, HEX, i.id);
       assert.ok(i.nombre.trim().length > 0, i.id);
@@ -109,7 +110,11 @@ describe("catálogo de prueba", () => {
       assert.deepEqual(Object.keys(doc).sort(), [...camposPrenda].sort(), p.id);
       assert.ok(Object.values(doc).every((v) => v !== null && v !== undefined));
       assert.equal(typeof doc.precio, "number");
-      assert.match(String(doc.imagenURL), /^https:\/\/images\.pexels\.com\/photos\/\d+\//);
+      if (p.foto === undefined) {
+        assert.equal(doc.imagenURL, "");
+      } else {
+        assert.match(String(doc.imagenURL), /^https:\/\/images\.pexels\.com\/photos\/\d+\//);
+      }
     }
     for (const p of PRODUCTOS) {
       const doc = documentoProducto(p);
