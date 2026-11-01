@@ -253,6 +253,7 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                             capas: maquillaje.capas,
                             original: maquillaje.original,
                             mostrarGuia: maquillaje.guia,
+                            diagnosticoMascaras: maquillaje.mascarasDiagnostico,
                             alPintar: vm.registrarPintado,
                             alCrearMascaras: vm.registrarMascaras,
                             alAplicar: vm.registrarCapasDibujadas,

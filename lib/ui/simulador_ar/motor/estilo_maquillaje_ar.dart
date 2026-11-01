@@ -56,14 +56,10 @@ class EstiloMaquillajeAr {
       color,
       cobertura.toDouble().clamp(0.0, .72),
       acabado,
-      switch (capa.efecto.familia) {
-        FamiliaEfectoAr.rostro => BlendMode.softLight,
-        FamiliaEfectoAr.mejillas => BlendMode.color,
-        FamiliaEfectoAr.labios =>
-          brillo ? BlendMode.softLight : BlendMode.color,
-        FamiliaEfectoAr.parpados => BlendMode.color,
-        _ => BlendMode.multiply,
-      },
+      // CameraPreview entrega la cámara como una textura externa y este
+      // pintor vive en otra superficie transparente del Stack. Los modos que
+      // necesitan leer el destino pueden volver invisible el pigmento.
+      BlendMode.srcOver,
     );
   }
 }

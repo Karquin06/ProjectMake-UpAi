@@ -14,6 +14,7 @@ class CompositorTexturaAr extends StatefulWidget {
     required this.capas,
     this.original = false,
     this.mostrarGuia = false,
+    this.diagnosticoMascaras = false,
     this.alPintar,
     this.alAplicar,
     this.alCrearMascaras,
@@ -24,7 +25,7 @@ class CompositorTexturaAr extends StatefulWidget {
   final List<CapaMaquillajeAr> capas;
   final Widget? fondo;
   final DeteccionFacialAr? Function()? geometriaActual;
-  final bool original, mostrarGuia;
+  final bool original, mostrarGuia, diagnosticoMascaras;
   final void Function(int)? alPintar, alCrearMascaras;
   final void Function(int, int)? alAplicar;
 
@@ -91,6 +92,7 @@ class _CompositorTexturaArState extends State<CompositorTexturaAr>
       capas: widget.capas,
       original: widget.original,
       mostrarGuia: widget.mostrarGuia,
+      diagnosticoMascaras: widget.diagnosticoMascaras,
       alPintar: widget.alPintar,
       alCrearMascaras: widget.alCrearMascaras,
       alAplicar: widget.alAplicar,
@@ -101,35 +103,12 @@ class _CompositorTexturaArState extends State<CompositorTexturaAr>
   );
 }
 
-/// Un solo grupo GPU para la cámara y sus capas. La matriz identidad no cambia
-/// la imagen; delimita el destino de las mezclas sin duplicar texturas ni leer RGB.
+/// Contenedor semántico del único preview y su capa AR. No fuerza un filtro
+/// fuera de pantalla: la cámara Android es una textura externa y el efecto
+/// debe permanecer como una superposición transparente encima de ella.
 class GrupoComposicionAr extends StatelessWidget {
   const GrupoComposicionAr({super.key, required this.child});
   final Widget child;
   @override
-  Widget build(BuildContext context) => ColorFiltered(
-    colorFilter: const ColorFilter.matrix([
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      0,
-    ]),
-    child: child,
-  );
+  Widget build(BuildContext context) => child;
 }
