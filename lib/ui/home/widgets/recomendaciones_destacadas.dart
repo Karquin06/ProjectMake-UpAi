@@ -15,15 +15,31 @@ class RecomendacionesDestacadas extends StatelessWidget {
   final ValueChanged<RecomendacionDestacada> onSeleccionar;
   final VoidCallback onHacerAnalisis;
 
+  /// Mientras llegan, muestra tarjetas de espera en vez del estado vacío.
+  final bool cargando;
+
   const RecomendacionesDestacadas({
     super.key,
     required this.recomendaciones,
     required this.onSeleccionar,
     required this.onHacerAnalisis,
+    this.cargando = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (recomendaciones.isEmpty && cargando) {
+      return SizedBox(
+        height: _TarjetaDestacada.lado,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 3,
+          separatorBuilder: (_, _) => const SizedBox(width: 12),
+          itemBuilder: (_, _) => const _TarjetaEspera(),
+        ),
+      );
+    }
     if (recomendaciones.isEmpty) {
       return TarjetaBase(
         child: Row(
@@ -207,6 +223,41 @@ class _Categoria extends StatelessWidget {
         color: Colors.white,
         fontSize: 10.5,
         fontWeight: FontWeight.w600,
+      ),
+    ),
+  );
+}
+
+/// Tarjeta vacía que late suavemente mientras cargan las recomendaciones.
+class _TarjetaEspera extends StatefulWidget {
+  const _TarjetaEspera();
+
+  @override
+  State<_TarjetaEspera> createState() => _TarjetaEsperaState();
+}
+
+class _TarjetaEsperaState extends State<_TarjetaEspera>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animacion = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 900),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _animacion.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: Tween(begin: 0.45, end: 1.0).animate(_animacion),
+    child: Container(
+      width: _TarjetaDestacada.lado,
+      height: _TarjetaDestacada.lado,
+      decoration: BoxDecoration(
+        color: AppColors.fondoRosaSuave,
+        borderRadius: BorderRadius.circular(20),
       ),
     ),
   );

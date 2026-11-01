@@ -25,10 +25,11 @@ Future<List<RecomendacionDestacada>> cargarDestacadasHome(
     if (perfil == null) return const [];
     recomendaciones.actualizarPerfil(perfil);
 
-    final maquillaje = await recomendaciones.obtener(
-      tipo: TipoRecomendacion.maquillaje,
-    );
-    final ropa = await recomendaciones.obtener(tipo: TipoRecomendacion.outfit);
+    // En paralelo: cada una llama a la Cloud Function.
+    final (maquillaje, ropa) = await (
+      recomendaciones.obtener(tipo: TipoRecomendacion.maquillaje),
+      recomendaciones.obtener(tipo: TipoRecomendacion.outfit),
+    ).wait;
     final elegidas = <RecomendacionItem>[];
     for (var i = 0; i < porTipo; i++) {
       if (i < maquillaje.length) elegidas.add(maquillaje[i]);
