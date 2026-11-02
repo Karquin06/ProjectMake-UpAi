@@ -249,6 +249,7 @@ class _CamaraSimuladorState extends State<_CamaraSimulador>
                         child: IgnorePointer(
                           child: CompositorTexturaAr(
                             fotogramas: vm.fotogramas,
+                            tonos: vm.tonos,
                             geometriaActual: vm.geometriaParaPintar,
                             capas: maquillaje.capas,
                             original: maquillaje.original,

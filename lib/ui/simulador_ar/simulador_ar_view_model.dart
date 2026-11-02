@@ -2,6 +2,7 @@ import '../../models/rendimiento_ar.dart';
 import '../../data/services/seguimiento_predictivo_ar.dart';
 import '../../data/services/suavizador_facial_ar.dart';
 import '../../data/services/malla_facial_ar_service.dart';
+import '../../data/services/tonos_rostro_ar.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:math' as math;
@@ -26,6 +27,10 @@ enum EstadoSimuladorAr {
 
 /// Estado local de la pantalla. Serializa acceso al hardware y su liberación.
 class SimuladorArViewModel extends ChangeNotifier {
+  /// Antigüedad máxima de una detección para usarla. Con el look completo
+  /// el cel puede tardar más; descartar antes hace parpadear el maquillaje.
+  static const antiguedadAceptableUs = 400000;
+
   SimuladorArViewModel(
     this._permisos, {
     Future<List<CameraDescription>> Function()? listarCamaras,
@@ -35,8 +40,10 @@ class SimuladorArViewModel extends ChangeNotifier {
     this.relojMicrosegundos,
   }) : _listarCamaras = listarCamaras ?? availableCameras,
        _crearControlador = crearControlador ?? _crearCamara,
-       _detector =
-           detector ?? DetectorFacialAdaptativoAr(preferirContornos: true);
+       // Primero la malla de 468 puntos: sigue mejor la forma de los labios
+       // y ubica el pómulo. Si es lenta o no entrega labios, el detector
+       // adaptativo pasa solo a Face Detection (contornos).
+       _detector = detector ?? DetectorFacialAdaptativoAr();
 
   /// Web permite ver la webcam; ML Kit procesa imágenes solo en Android.
   final bool soloVistaPrevia;
@@ -75,6 +82,11 @@ class SimuladorArViewModel extends ChangeNotifier {
   ModoDetectorAr get modoDetector =>
       _adaptativo?.modo ?? ModoDetectorAr.automatico;
   final _fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
+
+  /// Color real de piel y labios del fotograma (ver [TonosRostroAr]).
+  final _tonos = ValueNotifier<TonosRostroAr?>(null);
+  ValueListenable<TonosRostroAr?> get tonos => _tonos;
+  int _ultimoRegistroTonosUs = -10000000;
   ValueListenable<DeteccionFacialAr?> get fotogramas => _fotogramas;
   Future<void>? _procesamiento;
   int _inicioSesionUs = 0, _inicioVentanaUs = 0;
@@ -402,6 +414,30 @@ class SimuladorArViewModel extends ChangeNotifier {
     if (!_cerrado) notifyListeners();
   }
 
+  /// Lee del fotograma el color de piel y labios para mezclar el maquillaje
+  /// con ellos. Si falla, el maquillaje se pinta como antes.
+  void _medirTonos(CameraImage imagen, DeteccionFacialAr deteccion) {
+    try {
+      final medidos = medirTonosAr(imagen.width, imagen.height, [
+        for (final p in imagen.planes)
+          PlanoImagenAr(p.bytes, p.bytesPerRow, p.bytesPerPixel ?? 1),
+      ], deteccion);
+      if (medidos == null) return;
+      _tonos.value = medidos.suavizar(_tonos.value);
+      if (_ahoraUs - _ultimoRegistroTonosUs > 2000000) {
+        _ultimoRegistroTonosUs = _ahoraUs;
+        String hex(Color c) =>
+            '#${c.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
+        debugPrint(
+          'AR tonos: piel=${hex(_tonos.value!.piel)} '
+          'labios=${hex(_tonos.value!.labios)}',
+        );
+      }
+    } catch (e) {
+      debugPrint('AR tonos: no se pudieron medir: $e');
+    }
+  }
+
   /// Descarta entradas mientras el detector está ocupado. No hay cola ni una
   /// imagen pendiente retenida: el siguiente análisis recibe un fotograma nuevo.
   void procesarFotograma(CameraImage imagen, CameraController camara) {
@@ -463,7 +499,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       }
       // No publicar geometría ya obsoleta aunque la inferencia haya sido válida.
       // El arranque lento del SDK se cuenta y el siguiente frame reciente reintenta.
-      if (duracionUs > SeguimientoPredictivoAr.antiguedadMaximaUs) {
+      if (duracionUs > antiguedadAceptableUs) {
         _obsoletos++;
         // Un resultado rechazado no borra una capa aún vigente: su plazo
         // existente continúa y no se prolonga con esta respuesta vieja.
@@ -489,8 +525,11 @@ class SimuladorArViewModel extends ChangeNotifier {
       final intervalo = _ultimaEntradaRostroUs == null
           ? math.max(100000, duracionUs + 33000)
           : (recibidoUs - _ultimaEntradaRostroUs!).clamp(33000, 250000);
-      final esperaUs = (intervalo * 1.5 + 50000).round().clamp(200000, 350000);
-      final caducaUs = math.min(recibidoUs + 450000, _ahoraUs + esperaUs);
+      // Se conserva la última geometría válida un poco más: con el look
+      // completo una detección puede tardar y, si las capas se borran, el
+      // maquillaje parpadea.
+      final esperaUs = (intervalo * 2 + 100000).round().clamp(350000, 600000);
+      final caducaUs = math.min(recibidoUs + 800000, _ahoraUs + esperaUs);
       if (crudo.rostroDetectado) _ultimaEntradaRostroUs = recibidoUs;
       final relojSuavizado = Stopwatch()..start();
       final resultado = _suavizador.aplicar(crudo, recibidoUs);
@@ -507,7 +546,7 @@ class SimuladorArViewModel extends ChangeNotifier {
       _seguimientoLento = duracionUs > 200000;
       if (resultado.rostroDetectado) {
         _utilizados++;
-        final caducidadMs = ((caducaUs - _ahoraUs) / 1000).ceil().clamp(1, 450);
+        final caducidadMs = ((caducaUs - _ahoraUs) / 1000).ceil().clamp(1, 800);
         _caducidad = Timer(Duration(milliseconds: caducidadMs), () {
           if (!_cerrado &&
               generacion == _generacion &&
@@ -535,6 +574,7 @@ class SimuladorArViewModel extends ChangeNotifier {
         );
       }
       _fotogramas.value = resultado;
+      _medirTonos(imagen, crudo);
       _deteccionFallida = false;
       _esperandoPrimerFotograma = false;
       if (cambioEstado) notifyListeners();
@@ -661,6 +701,7 @@ class SimuladorArViewModel extends ChangeNotifier {
     unawaited(
       cerrar().whenComplete(() {
         _fotogramas.dispose();
+        _tonos.dispose();
         _rendimiento.dispose();
       }),
     );

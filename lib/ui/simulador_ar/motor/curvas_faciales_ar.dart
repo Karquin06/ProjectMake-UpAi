@@ -85,3 +85,35 @@ Path franjaEntreCurvasAr(List<Offset> a, List<Offset> b) {
   borde(vuelta);
   return path..close();
 }
+
+/// [n] puntos repartidos a igual distancia a lo largo de [p], en el mismo
+/// sentido que [referencia] (el SDK puede entregar los contornos al revés y
+/// con distinta cantidad de puntos).
+List<Offset> remuestrearAr(List<Offset> p, int n, {List<Offset>? referencia}) {
+  if (p.length < 2 || n < 2) return List.of(p);
+  var puntos = p;
+  if (referencia != null &&
+      referencia.length >= 2 &&
+      (p.first - referencia.first).distanceSquared >
+          (p.last - referencia.first).distanceSquared) {
+    puntos = p.reversed.toList();
+  }
+  final acumulado = <double>[0];
+  for (var i = 1; i < puntos.length; i++) {
+    acumulado.add(acumulado.last + (puntos[i] - puntos[i - 1]).distance);
+  }
+  final total = acumulado.last;
+  if (total == 0) return List.filled(n, puntos.first);
+  final salida = <Offset>[];
+  var j = 1;
+  for (var k = 0; k < n; k++) {
+    final objetivo = total * k / (n - 1);
+    while (j < puntos.length - 1 && acumulado[j] < objetivo) {
+      j++;
+    }
+    final tramo = acumulado[j] - acumulado[j - 1];
+    final t = tramo == 0 ? 0.0 : (objetivo - acumulado[j - 1]) / tramo;
+    salida.add(Offset.lerp(puntos[j - 1], puntos[j], t.clamp(0.0, 1.0))!);
+  }
+  return salida;
+}

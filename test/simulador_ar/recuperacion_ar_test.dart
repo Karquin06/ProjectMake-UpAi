@@ -84,7 +84,7 @@ void main() {
       expect(capasDibujadas, 3);
       expect(mascarasDibujadas, 6);
       expect(blanco(100, 165), isFalse);
-      expect(blanco(59, 120), isFalse);
+      expect(blanco(47, 130), isFalse);
       expect(blanco(65, 84), isFalse);
       expect(blanco(100, 176), isTrue);
       expect(blanco(65, 95), isTrue);

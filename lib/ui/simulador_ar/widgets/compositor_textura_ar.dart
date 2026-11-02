@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../../data/services/tonos_rostro_ar.dart';
 import '../../../models/deteccion_facial_ar.dart';
 import '../../../models/maquillaje_ar.dart';
 import 'pintor_maquillaje_ar.dart';
@@ -20,8 +21,12 @@ class CompositorTexturaAr extends StatefulWidget {
     this.alCrearMascaras,
     this.fondo,
     this.geometriaActual,
+    this.tonos,
   });
   final ValueListenable<DeteccionFacialAr?> fotogramas;
+
+  /// Color real de piel y labios para mezclar el maquillaje (opcional).
+  final ValueListenable<TonosRostroAr?>? tonos;
   final List<CapaMaquillajeAr> capas;
   final Widget? fondo;
   final DeteccionFacialAr? Function()? geometriaActual;
@@ -97,6 +102,7 @@ class _CompositorTexturaArState extends State<CompositorTexturaAr>
       alCrearMascaras: widget.alCrearMascaras,
       alAplicar: widget.alAplicar,
       geometriaActual: widget.geometriaActual,
+      tonos: widget.tonos,
       repintados: Listenable.merge([widget.fotogramas, _pulso]),
     ),
     child: widget.fondo ?? const SizedBox.expand(),

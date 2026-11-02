@@ -111,7 +111,7 @@ void main() {
       List<int> rgba(int x, int y) =>
           bytes.sublist((y * 200 + x) * 4, (y * 200 + x) * 4 + 4);
       expect(rgba(100, 165), [255, 0, 255, 255]);
-      expect(rgba(50, 115), [255, 0, 255, 255]);
+      expect(rgba(47, 130), [255, 0, 255, 255]);
       expect(rgba(65, 85), [255, 0, 255, 255]);
       expect(rgba(1, 1), [0, 0, 0, 0]);
     },
@@ -147,7 +147,7 @@ void main() {
       expect(capasDibujadas, 3);
       expect(mascarasDibujadas, greaterThanOrEqualTo(6));
       expect(alfa(100, 165), greaterThan(0), reason: 'labial superior');
-      expect(alfa(50, 115), greaterThan(0), reason: 'rubor izquierdo');
+      expect(alfa(47, 130), greaterThan(0), reason: 'rubor izquierdo');
       expect(alfa(65, 85), greaterThan(0), reason: 'sombra izquierda');
       expect(alfa(1, 1), 0, reason: 'fuera de las máscaras');
     },
@@ -202,7 +202,7 @@ void main() {
         );
       }
       expect(pixel(resultado, 100, 165), isNot(pixel(base, 100, 165)));
-      expect(pixel(resultado, 50, 115), isNot(pixel(base, 50, 115)));
+      expect(pixel(resultado, 47, 130), isNot(pixel(base, 47, 130)));
       expect(pixel(resultado, 65, 85), isNot(pixel(base, 65, 85)));
     },
   );
