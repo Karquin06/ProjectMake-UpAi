@@ -41,29 +41,31 @@ class EstiloMaquillajeAr {
     // Calibraciones visuales independientes: cobertura uniforme sutil para
     // base; pigmento más denso en labios/párpados y difusión progresiva en rubor.
     // Son aproximaciones ajustables, no parámetros ópticos medidos del producto.
+    // Se pinta encima de la cámara (srcOver): con mucha opacidad tapa la
+    // textura de la piel y de los labios y se ve como una calcomanía. Estos
+    // máximos dejan ver la textura, como el maquillaje real.
     final cobertura = switch (capa.efecto.familia) {
-      FamiliaEfectoAr.rostro => intensidad * .24,
-      FamiliaEfectoAr.mejillas => intensidad * (2 - intensidad) * .65,
+      FamiliaEfectoAr.rostro => intensidad * .2,
+      FamiliaEfectoAr.mejillas => intensidad * (2 - intensidad) * .22,
+      // La sombra conserva su calibración original (más pigmentada).
       FamiliaEfectoAr.parpados => math.sqrt(intensidad) * .78,
       FamiliaEfectoAr.labios =>
         brillo
-            ? intensidad * .45
+            ? intensidad * .3
+            // Más pigmento que rubor y base: con poco, un rojo sobre labios
+            // oscuros se ve rosado y lavado en vez del tono del producto.
             : math.pow(intensidad, .85) *
-                  (acabado == AcabadoVisualAr.mate ? .9 : .78),
-      _ => intensidad * .5,
+                  (acabado == AcabadoVisualAr.mate ? .58 : .52),
+      _ => intensidad * .4,
     };
     return EstiloMaquillajeAr(
       color,
-      cobertura.toDouble().clamp(0.0, .72),
+      cobertura.toDouble().clamp(0.0, .8),
       acabado,
-      switch (capa.efecto.familia) {
-        FamiliaEfectoAr.rostro => BlendMode.softLight,
-        FamiliaEfectoAr.mejillas => BlendMode.color,
-        FamiliaEfectoAr.labios =>
-          brillo ? BlendMode.softLight : BlendMode.color,
-        FamiliaEfectoAr.parpados => BlendMode.color,
-        _ => BlendMode.multiply,
-      },
+      // CameraPreview entrega la cámara como una textura externa y este
+      // pintor vive en otra superficie transparente del Stack. Los modos que
+      // necesitan leer el destino pueden volver invisible el pigmento.
+      BlendMode.srcOver,
     );
   }
 }

@@ -62,17 +62,24 @@ class HomeViewModel extends ChangeNotifier {
 
   /// Las pruebas inyectan sus propias fuentes; si falta una, esa sección
   /// de Home queda vacía.
+  ///
+  /// [cargaMinima]: tiempo mínimo que se ve el logo de carga la primera vez
+  /// (aunque los datos lleguen antes), para que se aprecie.
   HomeViewModel({
     CargarPerfil? cargarPerfil,
     CargarPaleta? cargarPaleta,
     CargarRecomendaciones? cargarRecomendaciones,
+    this.cargaMinima = Duration.zero,
   }) : _cargarPerfil = cargarPerfil ?? ((_) async => null),
        _cargarPaleta = cargarPaleta ?? ((_) async => const []),
        _cargarRecomendaciones =
            cargarRecomendaciones ?? ((_) async => const []);
 
+  final Duration cargaMinima;
+
   String? _uid;
   bool _desechado = false;
+  bool _primeraCarga = true;
   bool _recargaPendiente = false;
 
   /// Estación y fecha del último perfil de colorimetría visto; `null` hasta
@@ -80,6 +87,7 @@ class HomeViewModel extends ChangeNotifier {
   (EstacionColor?, DateTime?)? _huellaPerfil;
   String _nombre = '';
   bool _cargando = false;
+  bool _cargandoRecomendaciones = false;
   String? _error;
   PerfilColorimetria? _perfil;
   List<ColorPaleta> _paleta = const [];
@@ -88,6 +96,10 @@ class HomeViewModel extends ChangeNotifier {
   /// Primer nombre para el saludo (vacío si aún no se conoce).
   String get nombre => _nombre;
   bool get cargando => _cargando;
+
+  /// Las recomendaciones llegan después del resto (Cloud Function): Home ya
+  /// se muestra y su sección enseña tarjetas de espera.
+  bool get cargandoRecomendaciones => _cargandoRecomendaciones;
   String? get error => _error;
   PerfilColorimetria? get perfil => _perfil;
   bool get tieneColorimetria => _perfil?.estacionColor != null;
@@ -152,19 +164,32 @@ class HomeViewModel extends ChangeNotifier {
     _cargando = true;
     _error = null;
     notifyListeners();
+    // Las recomendaciones empiezan ya, pero no frenan el resto de Home.
+    final recomendaciones = _cargarRecomendaciones(uid);
+    final espera = _primeraCarga
+        ? Future<void>.delayed(cargaMinima)
+        : Future<void>.value();
+    _primeraCarga = false;
     try {
       final resultados = await Future.wait([
         _cargarPerfil(uid),
         _cargarPaleta(uid),
-        _cargarRecomendaciones(uid),
+        espera,
       ]);
       _perfil = resultados[0] as PerfilColorimetria?;
       _paleta = resultados[1] as List<ColorPaleta>;
-      _recomendaciones = resultados[2] as List<RecomendacionDestacada>;
     } catch (e) {
       _error = FirebaseErrorMapper.mensaje(e);
     }
     _cargando = false;
+    _cargandoRecomendaciones = true;
+    _notificar();
+    try {
+      _recomendaciones = await recomendaciones;
+    } catch (_) {
+      // Sin recomendaciones Home sigue funcionando (sección vacía).
+    }
+    _cargandoRecomendaciones = false;
     _notificar();
     if (_recargaPendiente && !_desechado) {
       _recargaPendiente = false;
