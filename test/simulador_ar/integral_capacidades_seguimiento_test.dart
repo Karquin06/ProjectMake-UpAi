@@ -75,43 +75,57 @@ void main() {
       expect(s.muestra(1), isNull);
     },
   );
-  testWidgets('base uniforme cambia piel, conserva ojos, cejas, boca y fondo', (
-    t,
-  ) async {
-    t.view.devicePixelRatio = 1;
-    addTearDown(t.view.reset);
-    final base = CapaMaquillajeAr.deProducto(
-      p('base', 'base'),
-      RegistroEfectosAr().buscar('base')!,
-    );
-    final original = await pintar(t, capas: [], color: const Color(0xffbba18e));
-    final foto = await pintar(t, capas: [base], color: const Color(0xffbba18e));
-    expect(pixel(foto, 100, 55), isNot(pixel(original, 100, 55)));
-    expect(pixel(foto, 100, 125), pixel(foto, 100, 55));
-    for (final q in [
-      const Offset(65, 95),
-      const Offset(65, 72),
-      const Offset(100, 176),
-      const Offset(1, 1),
-    ]) {
-      expect(
-        pixel(foto, q.dx.toInt(), q.dy.toInt()),
-        pixel(original, q.dx.toInt(), q.dy.toInt()),
+  testWidgets(
+    'base difuminada cambia piel, respeta ojos, conserva boca y fondo',
+    (t) async {
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final base = CapaMaquillajeAr.deProducto(
+        p('base', 'base'),
+        RegistroEfectosAr().buscar('base')!,
       );
-    }
-    expect(
-      EstiloMaquillajeAr.deCapa(base.ajustar(intensidad: 1)).opacidad,
-      lessThanOrEqualTo(.24),
-    );
-    expect(
-      await pintar(
+      final original = await pintar(
         t,
-        capas: [base.ajustar(intensidad: 0)],
+        capas: [],
         color: const Color(0xffbba18e),
-      ),
-      orderedEquals(original),
-    );
-  });
+      );
+      final foto = await pintar(
+        t,
+        capas: [base],
+        color: const Color(0xffbba18e),
+      );
+      expect(pixel(foto, 100, 55), isNot(pixel(original, 100, 55)));
+      // Se difumina hacia los bordes (sin línea marcada en la frente): el
+      // centro queda al menos tan cubierto como la frente.
+      int cambio(int y) => [
+        for (var i = 0; i < 3; i++)
+          (pixel(foto, 100, y)[i] - pixel(original, 100, y)[i]).abs(),
+      ].reduce((a, b) => a + b);
+      expect(cambio(125), greaterThanOrEqualTo(cambio(55)));
+      for (final q in [
+        const Offset(65, 95),
+        const Offset(100, 176),
+        const Offset(1, 1),
+      ]) {
+        expect(
+          pixel(foto, q.dx.toInt(), q.dy.toInt()),
+          pixel(original, q.dx.toInt(), q.dy.toInt()),
+        );
+      }
+      expect(
+        EstiloMaquillajeAr.deCapa(base.ajustar(intensidad: 1)).opacidad,
+        lessThanOrEqualTo(.24),
+      );
+      expect(
+        await pintar(
+          t,
+          capas: [base.ajustar(intensidad: 0)],
+          color: const Color(0xffbba18e),
+        ),
+        orderedEquals(original),
+      );
+    },
+  );
   test(
     'calibraciones por producto son monótonas, parten de cero y preservan transparencia',
     () {

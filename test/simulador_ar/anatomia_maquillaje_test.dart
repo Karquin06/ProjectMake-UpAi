@@ -42,7 +42,7 @@ void main() {
     },
   );
   test(
-    'rubor se extiende a pómulo exterior y la inclinación sigue al rostro',
+    'rubor redondo en el pómulo exterior y la inclinación sigue al rostro',
     () {
       final base = cara();
       Offset rotar(Offset p) {
@@ -77,7 +77,10 @@ void main() {
             const Size(200, 240),
           ).crear(FamiliaEfectoAr.mejillas);
       expect(m.first.centro!.dx, lessThan(55));
-      expect(m.first.radioX, greaterThan(m.first.radioY * 2));
+      // Mancha casi redonda en la manzana del pómulo, no una franja bajo
+      // el ojo (ojos en y = 95, a 70 px uno del otro).
+      expect(m.first.radioX, lessThan(m.first.radioY * 1.6));
+      expect(m.first.centro!.dy, greaterThan(95 + 70 * .4));
       expect(
         (girado.first.centro! - rotar(m.first.centro!)).distance,
         lessThan(.01),

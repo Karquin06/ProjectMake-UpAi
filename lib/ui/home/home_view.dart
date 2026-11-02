@@ -42,6 +42,7 @@ class HomeView extends StatelessWidget {
         cargarPerfil: (_) => cargarPerfilHome(c),
         cargarPaleta: (_) => cargarPaletaHome(c),
         cargarRecomendaciones: (_) => cargarDestacadasHome(c),
+        cargaMinima: const Duration(seconds: 3),
       ),
       update: (_, sesion, colorimetria, vm) => vm!
         ..actualizarSesion(sesion)
@@ -131,6 +132,7 @@ class HomeView extends StatelessWidget {
         bottom: 32,
         child: RecomendacionesDestacadas(
           recomendaciones: vm.recomendaciones,
+          cargando: vm.cargandoRecomendaciones,
           onSeleccionar: (r) => _abrirRecomendacion(context, r),
           onHacerAnalisis: () => onIrAPestana(pestanaColorimetria),
         ),

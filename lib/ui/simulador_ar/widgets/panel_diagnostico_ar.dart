@@ -113,6 +113,15 @@ class PanelDiagnosticoAr extends StatelessWidget {
                 value: maquillaje.guia,
                 onChanged: maquillaje.mostrarGuia,
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text(AppStrings.arDiagnosticoMascaras),
+                subtitle: const Text(
+                  'Aísla geometría y recortes; no representa el acabado final.',
+                ),
+                value: maquillaje.mascarasDiagnostico,
+                onChanged: maquillaje.mostrarMascarasDiagnostico,
+              ),
               ValueListenableBuilder(
                 valueListenable: camara.rendimiento,
                 builder: (context, r, _) => Column(

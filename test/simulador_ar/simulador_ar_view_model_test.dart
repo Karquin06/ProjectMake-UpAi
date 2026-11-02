@@ -515,7 +515,7 @@ void main() {
     },
   );
   test(
-    'una respuesta obsoleta de 300 ms se descarta y la siguiente reciente se utiliza',
+    'una respuesta obsoleta de más de 400 ms se descarta y la siguiente reciente se utiliza',
     () async {
       var ahora = 0;
       final detector = DetectorFalso()
@@ -530,7 +530,7 @@ void main() {
       );
       await vm.iniciar();
       camara.recibir!(ImagenFalsa());
-      ahora = 300001;
+      ahora = SimuladorArViewModel.antiguedadAceptableUs + 1;
       detector.pendiente!.complete(
         DeteccionFacialAr(
           tamanoImagen: const Size(640, 480),
@@ -578,7 +578,8 @@ void main() {
     camara.recibir!(ImagenFalsa());
     await tester.pump();
     expect(vm.deteccion, isNotNull);
-    await tester.pump(const Duration(milliseconds: 260));
+    // La última geometría se conserva hasta 600 ms (evita parpadeos).
+    await tester.pump(const Duration(milliseconds: 620));
     expect(vm.deteccion, isNull);
     expect(vm.seguimientoLento, isTrue);
     await vm.cerrar();

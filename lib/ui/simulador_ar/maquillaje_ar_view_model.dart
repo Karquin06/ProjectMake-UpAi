@@ -56,7 +56,8 @@ class MaquillajeArViewModel extends ChangeNotifier {
       _cargandoLooks = false,
       _cerrado = false,
       _original = false,
-      _guia = false;
+      _guia = false,
+      _mascarasDiagnostico = false;
   ModoMaquillajeAr _modo = ModoMaquillajeAr.recomendado;
   String _categoria = 'labial';
   String? aviso, lookSeleccionado;
@@ -125,6 +126,7 @@ class MaquillajeArViewModel extends ChangeNotifier {
 
   bool get original => _original;
   bool get guia => _guia;
+  bool get mascarasDiagnostico => _mascarasDiagnostico;
   CapturaAr? get ultimaCaptura => _ultimaCaptura;
   void _notificar() {
     if (!_cerrado) notifyListeners();
@@ -344,6 +346,12 @@ class MaquillajeArViewModel extends ChangeNotifier {
     _original = false;
     aviso = null;
     lookSeleccionado = null;
+    debugPrint(
+      'AR producto seleccionado id=${p.id} categoria=${p.categoria} '
+      'tipo=${p.tipoEfectoAr ?? d.categoria} color=${p.colorHex} '
+      'capa=${d.familia.name} intensidad=${_capas[d.categoria]!.intensidad} '
+      'capasActivas=${_capas.length}',
+    );
     _notificar();
   }
 
@@ -356,7 +364,6 @@ class MaquillajeArViewModel extends ChangeNotifier {
       final real = _productos.buscar(p.id);
       if (real == null ||
           !registro.admite(real) ||
-          !_idsRecomendados.contains(real.id) ||
           perfil == null ||
           !CompositorLooksAr.compatible(real, perfil!)) {
         omitidos++;
@@ -420,6 +427,11 @@ class MaquillajeArViewModel extends ChangeNotifier {
 
   void mostrarGuia(bool valor) {
     _guia = valor;
+    _notificar();
+  }
+
+  void mostrarMascarasDiagnostico(bool valor) {
+    _mascarasDiagnostico = valor;
     _notificar();
   }
 

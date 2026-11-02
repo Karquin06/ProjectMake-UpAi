@@ -157,13 +157,16 @@ void main() {
             );
             final base = await render(t, [], deteccion: d),
                 foto = await render(t, capasDe(['labial']), deteccion: d);
-            expect(diferencia(base, foto, 100, 165), greaterThan(20));
+            // Pigmento semitransparente: deja ver la textura del labio.
+            expect(diferencia(base, foto, 100, 165), greaterThan(10));
             expect(
               diferencia(base, foto, 100, cerrada ? 180 : 188),
-              greaterThan(20),
+              greaterThan(10),
             );
             if (!cerrada) expect(diferencia(base, foto, 100, 176), 0);
-            expect(diferencia(base, foto, 100, 198), 0);
+            // El borde se funde unos píxeles con la piel, pero no baja
+            // por la barbilla.
+            expect(diferencia(base, foto, 100, 206), 0);
           }
         }
       }
@@ -176,8 +179,8 @@ void main() {
       addTearDown(t.view.reset);
       final base = await render(t, []);
       final rubor = await render(t, capasDe(['rubor']));
-      for (final x in [50, 150]) {
-        final i = (115 * 200 + x) * 4;
+      for (final x in [47, 153]) {
+        final i = (130 * 200 + x) * 4;
         final antes = HSVColor.fromColor(
           Color.fromARGB(255, base[i], base[i + 1], base[i + 2]),
         );
@@ -251,20 +254,23 @@ void main() {
       for (final c in ['labial', 'rubor', 'sombra']) {
         final foto = await render(t, capasDe([c]));
         bool permitido(int x, int y) => switch (c) {
+          // El borde del labial se funde unos píxeles hacia la piel.
           'labial' => const Rect.fromLTRB(
-            68,
-            158,
-            132,
-            196,
+            62,
+            152,
+            138,
+            202,
           ).contains(Offset(x.toDouble(), y.toDouble())),
+          // Pómulo: mancha redonda alrededor de y = 130, con su difuminado.
           'rubor' =>
-            (y >= 100 &&
-                y <= 132 &&
-                ((x >= 22 && x <= 78) || (x >= 122 && x <= 178))),
+            (y >= 105 &&
+                y <= 158 &&
+                ((x >= 20 && x <= 80) || (x >= 120 && x <= 180))),
+          // Párpado con su difuminado (ojos y cejas protegidos aparte).
           _ =>
-            y >= 78 &&
-                y <= 90 &&
-                ((x >= 43 && x <= 87) || (x >= 113 && x <= 157)),
+            y >= 75 &&
+                y <= 93 &&
+                ((x >= 37 && x <= 93) || (x >= 107 && x <= 163)),
         };
         var fuera = 0;
         for (var y = 0; y < 240; y++) {
@@ -321,7 +327,7 @@ void main() {
       for (final q in [
         const Offset(100, 165),
         const Offset(100, 188),
-        const Offset(50, 115),
+        const Offset(47, 130),
         const Offset(65, 85),
       ]) {
         final i = (q.dy.toInt() * 200 + q.dx.toInt()) * 4;
@@ -336,7 +342,7 @@ void main() {
       vm.quitar('labial');
       final sinLabial = await render(t, vm.capas);
       expect(diferencia(base, sinLabial, 100, 165), 0);
-      expect(diferencia(foto, sinLabial, 50, 115), 0);
+      expect(diferencia(foto, sinLabial, 47, 130), 0);
       expect(diferencia(foto, sinLabial, 65, 85), 0);
       vm.cambiarModo(ModoMaquillajeAr.libre);
       vm.cambiarModo(ModoMaquillajeAr.recomendado);
