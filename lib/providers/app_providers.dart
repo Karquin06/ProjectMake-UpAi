@@ -9,6 +9,10 @@ import '../data/repositories/auth_repository.dart';
 import '../data/repositories/catalogo_repository.dart';
 import '../data/repositories/conversacion_repository.dart';
 import '../data/repositories/recomendacion_repository.dart';
+import '../data/repositories/marca_repository.dart';
+import '../data/repositories/me_gusta_repository.dart';
+import '../data/services/marcas_service.dart';
+import 'me_gusta_provider.dart';
 import '../data/repositories/credencial_repository.dart';
 import '../data/repositories/sesion_repository.dart';
 import '../data/repositories/paleta_repository.dart';
@@ -183,6 +187,15 @@ class AppProviders extends StatelessWidget {
       update: (_, sesion, colorimetria, productos) => productos!
         ..sincronizarUsuaria(sesion.uidActiva)
         ..sincronizarEstacion(colorimetria.perfil?.estacionColor),
+    ),
+    // Marcas: CRUD, dashboards (Cloud Functions) y corazones ❤️.
+    Provider<MarcaRepository>(create: (_) => MarcaRepository()),
+    Provider<MarcasService>(create: (_) => MarcasService()),
+    Provider<MeGustaRepository>(create: (_) => MeGustaRepository()),
+    ChangeNotifierProxyProvider<SesionProvider, MeGustaProvider>(
+      create: (c) => MeGustaProvider(c.read<MeGustaRepository>()),
+      update: (_, sesion, meGusta) =>
+          meGusta!..sincronizarUsuaria(sesion.uidActiva),
     ),
     // Chat con el asistente de IA.
     ChangeNotifierProxyProvider2<SesionProvider, ColorimetriaProvider,

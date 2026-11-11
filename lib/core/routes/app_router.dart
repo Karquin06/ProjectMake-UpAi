@@ -10,6 +10,11 @@ import '../../ui/admin/catalogo_admin_view.dart';
 import '../../ui/admin/formulario_prenda_view.dart';
 import '../../ui/admin/formulario_producto_view.dart';
 import '../../ui/asistente/asistente_view.dart';
+import '../../ui/dashboard/dashboard_admin_view.dart';
+import '../../ui/marcas/formulario_marca_view.dart';
+import '../../ui/marcas/importar_productos_view.dart';
+import '../../ui/marcas/marcas_admin_view.dart';
+import '../../ui/marcas/mi_marca_view.dart';
 import '../../ui/auth/aviso_privacidad_view.dart';
 import '../../ui/auth/login_view.dart';
 import '../../ui/auth/recuperar_contrasena_view.dart';
@@ -106,8 +111,24 @@ class AppRouter {
     AppRoutes.formularioPrenda: _Destino.admin(
       () => const FormularioPrendaView(),
     ),
-    AppRoutes.formularioProducto: _Destino.admin(
+    // Argumento: id (String) o ArgumentosProductoMarca (panel de marca).
+    AppRoutes.formularioProducto: _Destino.marca(
       () => const FormularioProductoView(),
+    ),
+
+    // Marcas y dashboards — Ana.
+    AppRoutes.dashboardAdmin: _Destino.admin(() => const DashboardAdminView()),
+    AppRoutes.marcasAdmin: _Destino.admin(() => const MarcasAdminView()),
+    // Argumento opcional: id (String) de la marca. El admin de la marca
+    // entra para editar su perfil (descripción, color, logo).
+    AppRoutes.formularioMarca: _Destino.marca(
+      () => const FormularioMarcaView(),
+    ),
+    // Argumento opcional: id (String) de la marca (solo la admin general).
+    AppRoutes.miMarca: _Destino.marca(() => const MiMarcaView()),
+    // Argumento: ArgumentosProductoMarca (sin id).
+    AppRoutes.importarProductos: _Destino.marca(
+      () => const ImportarProductosView(),
     ),
   };
 
@@ -198,4 +219,5 @@ class _Destino {
   const _Destino.autenticada(this.constructor)
     : nivel = NivelAcceso.autenticada;
   const _Destino.admin(this.constructor) : nivel = NivelAcceso.admin;
+  const _Destino.marca(this.constructor) : nivel = NivelAcceso.marca;
 }

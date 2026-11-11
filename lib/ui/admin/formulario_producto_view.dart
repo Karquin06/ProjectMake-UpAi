@@ -8,6 +8,8 @@ import '../../core/utils/snackbar_helper.dart';
 import '../../core/utils/validators.dart';
 import '../../core/widgets/campo_texto.dart';
 import '../../data/repositories/catalogo_repository.dart';
+import '../../data/repositories/marca_repository.dart';
+import '../../models/marca.dart';
 import '../../data/services/storage_service.dart';
 import '../../models/producto_maquillaje.dart';
 import 'formulario_producto_view_model.dart';
@@ -17,9 +19,10 @@ import 'widgets/selector_estaciones.dart';
 import 'widgets/selector_subtonos.dart';
 import 'widgets/subida_imagen_catalogo.dart';
 
-/// Crear o editar un producto de maquillaje (solo admin). Recibe como
-/// argumento el id del producto a editar; sin argumento crea uno nuevo.
-/// Al guardar vuelve con `true`.
+/// Crear o editar un producto de maquillaje. Recibe como argumento el id
+/// del producto a editar (catálogo de la admin) o un
+/// [ArgumentosProductoMarca] (panel de una marca); sin argumento crea uno
+/// nuevo. Al guardar vuelve con `true`.
 class FormularioProductoView extends StatefulWidget {
   const FormularioProductoView({super.key});
 
@@ -46,8 +49,11 @@ class _FormularioProductoViewState extends State<FormularioProductoView> {
       context.read<CatalogoRepository>(),
       context.read<StorageService>(),
       id: context.argumentos<String>(),
+      marcaFija: context.argumentos<ArgumentosProductoMarca>(),
+      marcas: context.read<MarcaRepository>(),
     );
     _cargar();
+    _vm!.cargarMarcas();
   }
 
   Future<void> _cargar() async {
@@ -135,14 +141,26 @@ class _FormularioProductoViewState extends State<FormularioProductoView> {
               capitalizacion: TextCapitalization.sentences,
               accionTeclado: TextInputAction.next,
             ),
+            if (!vm.marcaBloqueada && vm.marcasDisponibles.isNotEmpty)
+              _SelectorMarca(
+                marcas: vm.marcasDisponibles,
+                seleccionada: vm.marcaId,
+                habilitado: habilitado,
+                onSeleccionar: (m) {
+                  vm.seleccionarMarca(m);
+                  if (m != null) _marca.text = m.nombre;
+                },
+              ),
             CampoTexto(
               etiqueta: AppStrings.campoMarca,
               controller: _marca,
               validator: Validadores.obligatorio,
               onChanged: vm.cambiarMarca,
-              habilitado: habilitado,
+              // La marca no se cambia si el producto pertenece a una.
+              habilitado: habilitado && !vm.marcaBloqueada && vm.marcaId == null,
               capitalizacion: TextCapitalization.words,
               accionTeclado: TextInputAction.next,
+              icono: vm.marcaId != null ? Icons.verified_outlined : null,
             ),
             SelectorCategoria(
               etiqueta: AppStrings.campoTipoProducto,
@@ -199,6 +217,47 @@ class _FormularioProductoViewState extends State<FormularioProductoView> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Asociar el producto a una marca registrada (solo catálogo de la admin).
+class _SelectorMarca extends StatelessWidget {
+  final List<Marca> marcas;
+  final String? seleccionada;
+  final bool habilitado;
+  final ValueChanged<Marca?> onSeleccionar;
+
+  const _SelectorMarca({
+    required this.marcas,
+    required this.seleccionada,
+    required this.habilitado,
+    required this.onSeleccionar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final existe = marcas.any((m) => m.id == seleccionada);
+    return DropdownButtonFormField<String?>(
+      initialValue: existe ? seleccionada : null,
+      isExpanded: true,
+      decoration: const InputDecoration(
+        labelText: AppStrings.campoMarcaAsociada,
+        prefixIcon: Icon(Icons.storefront_outlined),
+      ),
+      items: [
+        const DropdownMenuItem<String?>(
+          value: null,
+          child: Text(AppStrings.sinMarcaAsociada),
+        ),
+        for (final m in marcas)
+          DropdownMenuItem<String?>(value: m.id, child: Text(m.nombre)),
+      ],
+      onChanged: habilitado
+          ? (id) => onSeleccionar(
+                id == null ? null : marcas.firstWhere((m) => m.id == id),
+              )
+          : null,
     );
   }
 }

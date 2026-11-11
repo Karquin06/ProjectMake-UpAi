@@ -32,11 +32,16 @@ class DetalleRecomendacion extends StatelessWidget {
   /// Botón extra al final (p. ej. "Probar en AR" en productos).
   final Widget? Function(BuildContext context, RecomendacionItem item)? accion;
 
+  /// Botones sobre la imagen, arriba a la derecha (p. ej. el ❤️).
+  final List<Widget> Function(BuildContext context, RecomendacionItem item)?
+      accionesBarra;
+
   const DetalleRecomendacion({
     super.key,
     required this.esPrenda,
     required this.datos,
     this.accion,
+    this.accionesBarra,
   });
 
   @override
@@ -105,6 +110,7 @@ class DetalleRecomendacion extends StatelessWidget {
           pinned: true,
           backgroundColor: AppColors.fondoClaro,
           foregroundColor: AppColors.textoPrincipal,
+          actions: accionesBarra?.call(context, item),
           flexibleSpace: FlexibleSpaceBar(
             background: Hero(
               tag: ImagenItem.heroTag(item.id),
