@@ -17,6 +17,9 @@ enum NivelAcceso {
 
   /// Con sesión, correo verificado y rol admin.
   admin,
+
+  /// Admin general o admin de una marca (panel "Mi marca", productos).
+  marca,
 }
 
 /// Protege una ruta según su [NivelAcceso]:
@@ -45,9 +48,12 @@ class GuardiaRuta extends StatelessWidget {
     }
     if (!sesion.correoVerificado) return AppRoutes.verificarCorreo;
 
-    if (nivel == NivelAcceso.admin) {
+    if (nivel == NivelAcceso.admin || nivel == NivelAcceso.marca) {
       if (sesion.usuaria == null && sesion.cargandoUsuaria) return _esperar;
-      if (!sesion.esAdmin) return AppRoutes.home;
+      final permitida = nivel == NivelAcceso.admin
+          ? sesion.esAdmin
+          : sesion.esAdmin || sesion.esAdminMarca;
+      if (!permitida) return AppRoutes.home;
     }
     return null;
   }

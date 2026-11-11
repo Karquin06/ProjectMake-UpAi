@@ -15,3 +15,11 @@ export { generarRecomendaciones } from "./recomendaciones";
 export { chatAsistente } from "./asistente";
 export { eliminarCuenta } from "./cuenta";
 export { enviarNotificacion } from "./notificaciones";
+export {
+  alCalificarProducto,
+  alMarcarMeGusta,
+  asignarAdminMarca,
+  registrarEvento,
+  resumenAdmin,
+  resumenMarca,
+} from "./marcas";

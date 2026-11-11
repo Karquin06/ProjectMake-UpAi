@@ -58,6 +58,10 @@ class SesionProvider {
   String get rol => _usuaria.rol;
   bool get esAdmin => _usuaria.esAdmin;
 
+  /// Administra una marca (entra a "Mi marca") — Ana.
+  bool get esAdminMarca => _usuaria.esAdminMarca;
+  String? get marcaId => _usuaria.marcaId;
+
   /// Nombre para saludos: el de Firestore, el de Auth o la parte local
   /// del correo, en ese orden. Vacío si no hay ninguno.
   String get nombreVisible {

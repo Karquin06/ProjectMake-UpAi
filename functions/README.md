@@ -234,3 +234,60 @@ npm run sembrar:catalogo   # con GOOGLE_APPLICATION_CREDENTIALS (ver "Scripts co
 - La app tiene una copia generada en `lib/data/datos/catalogo_ejemplo.dart`
   y el catálogo admin la carga con el botón "Cargar catálogo de ejemplo"
   (solo en modo depuración), sin necesitar credenciales.
+
+## Marcas y dashboards — Ana (`src/marcas.ts`)
+
+Las marcas de maquillaje suben sus productos y ven cuántas usuarias los
+aman. **Privacidad:** las estadísticas guardan un código anónimo (sha256 del
+uid), nunca el uid; las marcas solo reciben totales.
+
+### Roles
+
+- **Admin general** (`mackeupai@gmail.com`, claim `admin`): crea marcas,
+  asigna sus administradoras y ve el dashboard general.
+- **Admin de marca** (claim `marcaId` + `usuarias/{uid}.rol = "marca"`):
+  ve "Mi marca" en Perfil, sube/edita SUS productos y edita descripción,
+  color, sitio web y logo de su marca. **Debe cerrar sesión y volver a
+  entrar** después de que se le asigna (así el token trae el claim).
+
+### Datos
+
+| Ruta | Quién escribe | Contenido |
+|---|---|---|
+| `marcas/{id}` | admin (todo) / admin de marca (perfil) | nombre, descripcion, colorHex, logoURL, logoRuta, sitioWeb, activa, admins (solo la función) |
+| `productosMaquillaje/{id}.marcaId` | admin o la marca | id de la marca dueña |
+| `usuarias/{uid}/meGusta/{productoId}` | la usuaria | `{uid, itemId, tipo: "producto", fecha}` |
+| `estadisticasProductos/{productoId}` | solo funciones | gusta, corazones, calificaciones, sumaEstrellas, porEstacion.{e}, vistas, pruebasAr, marcaId |
+| `estadisticasProductos/{id}/usuarias/{codigoAnonimo}` | solo funciones | `{estrellas, corazon, estacion}` (para no contar dos veces) |
+| `estadisticasProductos/{id}/eventos/{evento}_{codigo}` | solo funciones | marca que esa usuaria ya contó |
+
+"Les gustó" = usuarias con ❤️ **o** 4-5 estrellas; cada una cuenta una
+sola vez por producto.
+
+### Triggers
+
+- `alCalificarProducto` — `usuarias/{uid}/recomendaciones/{id}`: al cambiar
+  la calificación de un producto actualiza estrellas, promedio y "gusta".
+- `alMarcarMeGusta` — `usuarias/{uid}/meGusta/{id}`: pone o quita el ❤️.
+
+Ambos guardan la estación de la usuaria en ese momento (para "por estación").
+
+### Callables
+
+| Función | Quién | Entrada → salida |
+|---|---|---|
+| `registrarEvento` | cualquier usuaria | `{productoId, evento: "vista"\|"pruebaAr"}` → `{contado}` (una vez por usuaria) |
+| `asignarAdminMarca` | admin | `{correo, marcaId \| null}` → `{uid, correo, marcaId}` (null quita el acceso) |
+| `resumenMarca` | admin de marca / admin | `{marcaId?}` → `{marca, totales, productos[]}` |
+| `resumenAdmin` | admin | `{}` → `{totales, usuariasPorEstacion, topProductos[], marcas[]}` |
+
+Códigos de error: `solo-admin`, `es-admin-general`, `cuenta-no-existe`,
+`marca-no-existe`, `sin-marca`, `marca-inactiva`.
+
+### Desplegar
+
+```powershell
+# Desde la raíz del proyecto (con el equipo):
+firebase deploy --only functions
+firebase deploy --only firestore:rules,storage
+```

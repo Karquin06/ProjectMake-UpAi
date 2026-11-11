@@ -35,6 +35,10 @@ class Usuaria {
   static const rolUsuaria = 'usuaria';
   static const rolAdmin = 'admin';
 
+  /// Administra una marca (lo asigna la admin con la Cloud Function
+  /// `asignarAdminMarca`, que también pone [marcaId]) — Ana.
+  static const rolMarca = 'marca';
+
   final String uid;
   final String nombre;
   final String email;
@@ -42,6 +46,9 @@ class Usuaria {
   final String? fotoPerfilUrl;
   final String? tokenNotificaciones;
   final String rol;
+
+  /// Marca que administra (solo con rol [rolMarca]). No se escribe desde la app.
+  final String? marcaId;
   final Map<String, Consentimiento> consentimientos;
 
   const Usuaria({
@@ -52,10 +59,15 @@ class Usuaria {
     this.fotoPerfilUrl,
     this.tokenNotificaciones,
     this.rol = rolUsuaria,
+    this.marcaId,
     this.consentimientos = const {},
   });
 
   bool get esAdmin => rol == rolAdmin;
+
+  /// `true` si administra una marca (y tiene una asignada).
+  bool get esAdminMarca =>
+      rol == rolMarca && marcaId != null && marcaId!.isNotEmpty;
 
   /// Consentimiento del aviso de privacidad, si fue aceptado.
   Consentimiento? get consentimientoPrivacidad =>
@@ -70,6 +82,7 @@ class Usuaria {
         fotoPerfilUrl: m['fotoPerfilURL'] as String?,
         tokenNotificaciones: m['tokenNotificaciones'] as String?,
         rol: m['rol'] as String? ?? rolUsuaria,
+        marcaId: m['marcaId'] as String?,
         consentimientos: _consentimientosDesde(m['consentimientos']),
       );
 
@@ -104,6 +117,7 @@ class Usuaria {
     fotoPerfilUrl: fotoPerfilUrl ?? this.fotoPerfilUrl,
     tokenNotificaciones: tokenNotificaciones ?? this.tokenNotificaciones,
     rol: rol,
+    marcaId: marcaId,
     consentimientos: consentimientos ?? this.consentimientos,
   );
 

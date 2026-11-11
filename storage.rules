@@ -30,6 +30,15 @@ service firebase.storage {
       allow delete: if esAdmin();
     }
 
+    // Fotos de productos de una marca y su logo (Ana): la admin general o la
+    // admin de esa marca.
+    match /catalogo/marcas/{marcaId}/{id}/{archivo} {
+      allow read: if logueada();
+      allow create, update: if (esAdmin() || request.auth.token.get('marcaId', null) == marcaId)
+                            && imagenValida();
+      allow delete: if esAdmin() || request.auth.token.get('marcaId', null) == marcaId;
+    }
+
     // Temporales para análisis con Cloud Functions (selfies y prendas).
     // Las funciones los leen y borran con Admin SDK; limpiarImagenesTemporales
     // borra los que tengan más de una hora.

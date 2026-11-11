@@ -11,9 +11,14 @@ class BotonProbarAr extends StatelessWidget {
     super.key,
     required this.producto,
     this.compacto = false,
+    this.alAbrir,
   });
   final ProductoMaquillaje producto;
   final bool compacto;
+
+  /// Se llama al abrir el simulador (Ana lo usa para contar la prueba en AR
+  /// en el panel de la marca).
+  final VoidCallback? alAbrir;
   @override
   Widget build(BuildContext context) {
     final registro = RegistroEfectosAr();
@@ -25,9 +30,10 @@ class BotonProbarAr extends StatelessWidget {
             : AppStrings.arNoImplementado,
       );
     }
-    void abrir() => Navigator.of(
-      context,
-    ).pushNamed(AppRoutes.simuladorAr, arguments: producto.id);
+    void abrir() {
+      alAbrir?.call();
+      Navigator.of(context).pushNamed(AppRoutes.simuladorAr, arguments: producto.id);
+    }
     return compacto
         ? TextButton.icon(
             onPressed: abrir,

@@ -48,4 +48,13 @@ class AppRoutes {
   static const String catalogoAdmin = '/admin/catalogo';
   static const String formularioPrenda = '/admin/prenda';
   static const String formularioProducto = '/admin/producto';
+
+  // Marcas y dashboards — Ana.
+  static const String dashboardAdmin = '/admin/dashboard';
+  static const String marcasAdmin = '/admin/marcas';
+  static const String formularioMarca = '/admin/marca';
+
+  // Admin general o admin de marca.
+  static const String miMarca = '/marca';
+  static const String importarProductos = '/marca/importar';
 }
