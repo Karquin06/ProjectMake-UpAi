@@ -9,3 +9,5 @@ export 'prenda_ropa.dart';
 export 'recomendacion.dart';
 export 'armario_item.dart';
 export 'conversacion.dart';
+export 'marca.dart';
+export 'estadisticas_marca.dart';

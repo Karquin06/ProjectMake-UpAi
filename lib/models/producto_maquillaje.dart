@@ -18,6 +18,10 @@ class ProductoMaquillaje {
   final String nombre;
   final String descripcion;
   final String marca;
+
+  /// Id de la marca dueña (`marcas/{id}`) si lo subió una marca o la admin
+  /// lo asoció a una. Con él se cuentan sus estadísticas — Ana.
+  final String? marcaId;
   final String categoria;
   final String tono;
 
@@ -48,6 +52,7 @@ class ProductoMaquillaje {
     this.nombre = '',
     this.descripcion = '',
     required this.marca,
+    this.marcaId,
     required this.categoria,
     required this.tono,
     this.colorHex = '',
@@ -77,6 +82,8 @@ class ProductoMaquillaje {
         nombre: m['nombre'] as String? ?? '',
         descripcion: m['descripcion'] as String? ?? '',
         marca: m['marca'] as String? ?? '',
+        marcaId: m['marcaId'] is String && (m['marcaId'] as String).isNotEmpty
+            ? m['marcaId'] as String : null,
         categoria: m['categoria'] as String? ?? '',
         tono: m['tono'] as String? ?? '',
         colorHex: m['colorHex'] as String? ?? '',
@@ -108,6 +115,7 @@ class ProductoMaquillaje {
         'nombreMinusculas': nombreVisible.trim().toLowerCase(),
         'descripcion': descripcion,
         'marca': marca,
+        'marcaId': marcaId,
         'categoria': categoria,
         'tono': tono,
         'colorHex': colorHex,
@@ -130,6 +138,7 @@ class ProductoMaquillaje {
     String? nombre,
     String? descripcion,
     String? marca,
+    String? marcaId,
     String? categoria,
     String? tono,
     String? colorHex,
@@ -151,6 +160,7 @@ class ProductoMaquillaje {
         nombre: nombre ?? this.nombre,
         descripcion: descripcion ?? this.descripcion,
         marca: marca ?? this.marca,
+        marcaId: marcaId ?? this.marcaId,
         categoria: categoria ?? this.categoria,
         tono: tono ?? this.tono,
         colorHex: colorHex ?? this.colorHex,

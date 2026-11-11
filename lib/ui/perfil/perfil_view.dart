@@ -134,9 +134,30 @@ class PerfilView extends StatelessWidget {
               if (vm.esAdmin) ...[
                 const _Separador(),
                 OpcionPerfil(
+                  icono: Icons.insights_rounded,
+                  titulo: AppStrings.dashboardTitulo,
+                  onTap: () => context.irA(AppRoutes.dashboardAdmin),
+                ),
+                const _Separador(),
+                OpcionPerfil(
+                  icono: Icons.storefront_outlined,
+                  titulo: AppStrings.marcasTitulo,
+                  onTap: () => context.irA(AppRoutes.marcasAdmin),
+                ),
+                const _Separador(),
+                OpcionPerfil(
                   icono: Icons.inventory_2_outlined,
                   titulo: AppStrings.catalogoTitulo,
                   onTap: () => context.irA(AppRoutes.catalogoAdmin),
+                ),
+              ],
+              // Admin de una marca: su panel — Ana.
+              if (vm.esAdminMarca) ...[
+                const _Separador(),
+                OpcionPerfil(
+                  icono: Icons.storefront_outlined,
+                  titulo: AppStrings.miMarcaTitulo,
+                  onTap: () => context.irA(AppRoutes.miMarca),
                 ),
               ],
               const _Separador(),
@@ -287,7 +308,9 @@ class _MisDatos extends StatelessWidget {
             etiqueta: AppStrings.datoTipoCuenta,
             valor: vm.esAdmin
                 ? AppStrings.cuentaAdministradora
-                : AppStrings.cuentaUsuaria,
+                : vm.esAdminMarca
+                    ? AppStrings.cuentaAdminMarca
+                    : AppStrings.cuentaUsuaria,
             destacado: true,
             ultimo: true,
           ),

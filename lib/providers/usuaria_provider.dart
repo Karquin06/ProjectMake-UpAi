@@ -45,6 +45,8 @@ class UsuariaProvider extends ChangeNotifier {
   String? get error => _error;
   String get rol => _usuaria?.rol ?? Usuaria.rolUsuaria;
   bool get esAdmin => _usuaria?.esAdmin ?? false;
+  bool get esAdminMarca => _usuaria?.esAdminMarca ?? false;
+  String? get marcaId => _usuaria?.marcaId;
 
   // ---------------------------------------------------------------------
   // Operaciones (lanzan excepciones; los ViewModels las traducen).

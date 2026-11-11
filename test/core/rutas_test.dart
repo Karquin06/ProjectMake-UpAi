@@ -51,6 +51,7 @@ class _AuthRepoFalso extends Fake implements AuthRepository {
 
 class _UsuariaRepoFalso extends Fake implements UsuariaRepository {
   String rol = Usuaria.rolUsuaria;
+  String? marcaId;
 
   @override
   Stream<Usuaria?> escucharUsuaria(String uid) => Stream.value(
@@ -60,6 +61,7 @@ class _UsuariaRepoFalso extends Fake implements UsuariaRepository {
       email: 'sofia@ejemplo.com',
       fechaRegistro: DateTime(2026),
       rol: rol,
+      marcaId: marcaId,
     ),
   );
 }
@@ -134,10 +136,33 @@ void main() {
       );
     });
 
+    test('usuaria normal no entra al panel de marca', () async {
+      final s = await sesionCon(_UsuarioFalso());
+      expect(GuardiaRuta.destinoPara(NivelAcceso.marca, s), AppRoutes.home);
+    });
+
+    test('admin de marca → entra a su panel pero no a admin', () async {
+      usuariaRepo
+        ..rol = Usuaria.rolMarca
+        ..marcaId = 'm1';
+      final s = await sesionCon(_UsuarioFalso());
+      expect(s.esAdminMarca, isTrue);
+      expect(s.marcaId, 'm1');
+      expect(GuardiaRuta.destinoPara(NivelAcceso.marca, s), isNull);
+      expect(GuardiaRuta.destinoPara(NivelAcceso.admin, s), AppRoutes.home);
+    });
+
+    test('rol marca sin marcaId no cuenta como admin de marca', () async {
+      usuariaRepo.rol = Usuaria.rolMarca;
+      final s = await sesionCon(_UsuarioFalso());
+      expect(GuardiaRuta.destinoPara(NivelAcceso.marca, s), AppRoutes.home);
+    });
+
     test('admin → entra a rutas de admin', () async {
       usuariaRepo.rol = Usuaria.rolAdmin;
       final s = await sesionCon(_UsuarioFalso());
       expect(GuardiaRuta.destinoPara(NivelAcceso.admin, s), isNull);
+      expect(GuardiaRuta.destinoPara(NivelAcceso.marca, s), isNull);
       expect(s.nombreVisible, 'Sofía');
     });
   });
@@ -169,10 +194,17 @@ void main() {
       AppRoutes.catalogoAdmin,
       AppRoutes.formularioPrenda,
       AppRoutes.formularioProducto,
+      AppRoutes.dashboardAdmin,
+      AppRoutes.marcasAdmin,
+      AppRoutes.formularioMarca,
+      AppRoutes.miMarca,
+      AppRoutes.importarProductos,
     ];
     expect(AppRouter.rutasRegistradas.toSet(), esperadas.toSet());
     expect(AppRouter.nivelDe(AppRoutes.catalogoAdmin), NivelAcceso.admin);
     expect(AppRouter.nivelDe(AppRoutes.login), NivelAcceso.publica);
+    expect(AppRouter.nivelDe(AppRoutes.dashboardAdmin), NivelAcceso.admin);
+    expect(AppRouter.nivelDe(AppRoutes.miMarca), NivelAcceso.marca);
   });
 
   testWidgets(

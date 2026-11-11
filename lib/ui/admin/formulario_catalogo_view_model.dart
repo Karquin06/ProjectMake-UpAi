@@ -134,6 +134,10 @@ abstract class FormularioCatalogoViewModel extends ChangeNotifier {
   @protected
   void registrarCambio(VoidCallback cambio) => _cambiar(cambio);
 
+  /// Para las subclases: redibuja sin marcar cambios (datos auxiliares).
+  @protected
+  void registrarCambioSilencioso() => _notificar();
+
   void _cambiar(VoidCallback cambio) {
     cambio();
     _hayCambios = true;

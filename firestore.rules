@@ -1,0 +1,184 @@
+// Reglas de Firestore — proyecto macke-up-ai.
+// Se publican con: firebase deploy --only firestore:rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ───────────── Funciones auxiliares ─────────────
+    function logueada() { return request.auth != null; }
+    function esDuena(uid) { return logueada() && request.auth.uid == uid; }
+    function esAdmin() { return logueada() && request.auth.token.get('admin', false) == true; }
+    // Administradora de una marca (custom claim `marcaId`, lo pone asignarAdminMarca).
+    function esAdminMarca(marcaId) {
+      return logueada() && marcaId != null
+          && request.auth.token.get('marcaId', null) == marcaId;
+    }
+
+    function subtonos() { return ['calido', 'frio', 'neutro']; }
+    function estaciones() { return ['primavera', 'verano', 'otono', 'invierno']; }
+    function tiposRec() { return ['maquillaje', 'outfit', 'cabello']; }
+
+    // Escritura sobre documentos propios: el uid del documento debe ser el de la usuaria
+    function propio(uid) {
+      return esDuena(uid) && request.resource.data.uid == uid;
+    }
+
+    // Campo opcional: si viene, debe estar en la lista
+    function opcionalEn(d, campo, valores) {
+      return d.get(campo, null) == null || d.get(campo, null) in valores;
+    }
+
+    // ───────────── Validaciones del catálogo (RF-15, HU-10) ─────────────
+    function productoValido(d) {
+      return d.marca is string && d.marca.size() > 0
+          && d.categoria is string && d.categoria.size() > 0
+          && d.precio is number && d.precio >= 0
+          && d.subtonoCompatible is list && d.subtonoCompatible.size() > 0
+          && d.subtonoCompatible.hasOnly(subtonos())
+          && d.estacionesCompatibles is list && d.estacionesCompatibles.size() > 0
+          && d.estacionesCompatibles.hasOnly(estaciones());
+    }
+
+    function prendaValida(d) {
+      return d.marca is string && d.marca.size() > 0
+          && d.tipoPrenda is string && d.tipoPrenda.size() > 0
+          && d.colorPrincipal is string && d.colorPrincipal.size() > 0
+          && d.precio is number && d.precio >= 0
+          && d.estacionesCompatibles is list && d.estacionesCompatibles.size() > 0
+          && d.estacionesCompatibles.hasOnly(estaciones());
+    }
+
+    function marcaValida(d) {
+      return d.nombre is string && d.nombre.size() > 0 && d.nombre.size() <= 60
+          && d.activa is bool;
+    }
+
+    // ───────────── Usuarias y subcolecciones privadas ─────────────
+    match /usuarias/{uid} {
+      allow read: if esDuena(uid);
+
+      allow create: if esDuena(uid)
+                    && request.resource.data.uid == uid
+                    && request.resource.data.nombre is string
+                    && request.resource.data.nombre.size() > 0
+                    && request.resource.data.nombre.size() <= 100
+                    && request.resource.data.email is string
+                    // Nadie se crea como admin ni como admin de marca
+                    && request.resource.data.get('rol', 'usuaria') == 'usuaria'
+                    && !('marcaId' in request.resource.data);
+
+      // El uid, la fecha de registro, el rol y la marca NO se pueden
+      // modificar desde el cliente (rol y marcaId los pone asignarAdminMarca)
+      allow update: if esDuena(uid)
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                         .hasAny(['uid', 'fechaRegistro', 'rol', 'marcaId']);
+
+      allow delete: if esDuena(uid);   // habeas data: eliminar cuenta
+
+      match /recomendaciones/{id} {
+        allow read, delete: if esDuena(uid);
+        allow create, update: if propio(uid)
+          && request.resource.data.tipo in tiposRec()
+          && (request.resource.data.get('productoId', null) != null)
+               != (request.resource.data.get('prendaId', null) != null);
+      }
+
+      match /conversaciones/{id} {
+        allow read, delete: if esDuena(uid);
+        allow create, update: if propio(uid);
+      }
+
+      match /prendasAnalizadas/{id} {
+        allow read, delete: if esDuena(uid);
+        allow create, update: if propio(uid);
+      }
+      match /armario/{id} {
+        allow read, delete: if esDuena(uid);
+        allow create, update: if propio(uid);
+      }
+
+      // ❤️ de la usuaria (Ana). El id del documento es el del producto o prenda.
+      match /meGusta/{itemId} {
+        allow read, delete: if esDuena(uid);
+        allow create, update: if propio(uid)
+          && request.resource.data.tipo in ['producto', 'prenda']
+          && request.resource.data.itemId == itemId;
+      }
+    }
+
+    // ───────────── Colorimetría (Jaider) ─────────────
+    match /perfiles_colorimetria/{uid} {
+      allow read, delete: if esDuena(uid);
+      allow create, update: if propio(uid)
+        && opcionalEn(request.resource.data, 'estacion', estaciones())
+        && opcionalEn(request.resource.data, 'subtono', subtonos())
+        && opcionalEn(request.resource.data, 'contraste', ['bajo', 'medio', 'alto'])
+        && opcionalEn(request.resource.data, 'intensidad', ['suave', 'media', 'brillante'])
+        && (request.resource.data.get('confianza', null) == null
+            || (request.resource.data.confianza is number
+                && request.resource.data.confianza >= 0
+                && request.resource.data.confianza <= 1));
+    }
+
+    match /paletas/{estacion} {
+      allow read: if logueada();
+      allow write: if false;
+    }
+
+    // ───────────── Catálogos globales ─────────────
+    // La admin general maneja todo; la admin de una marca solo los productos
+    // de su marca (no puede pasarlos a otra marca).
+    match /productosMaquillaje/{id} {
+      allow read: if logueada();
+      allow create: if productoValido(request.resource.data)
+        && (esAdmin() || esAdminMarca(request.resource.data.get('marcaId', null)));
+      allow update: if productoValido(request.resource.data)
+        && (esAdmin()
+            || (esAdminMarca(resource.data.get('marcaId', null))
+                && request.resource.data.get('marcaId', null) == resource.data.get('marcaId', null)));
+      allow delete: if esAdmin() || esAdminMarca(resource.data.get('marcaId', null));
+    }
+
+    match /prendasRopa/{id} {
+      allow read: if logueada();
+      allow create, update: if esAdmin() && prendaValida(request.resource.data);
+      allow delete: if esAdmin();
+    }
+
+    // ───────────── Marcas (Ana) ─────────────
+    // La admin general las crea; la admin de cada marca solo edita su
+    // descripción, logo, color y sitio web.
+    match /marcas/{marcaId} {
+      allow read: if logueada();
+      allow create: if esAdmin() && marcaValida(request.resource.data);
+      allow update: if marcaValida(request.resource.data)
+        && (esAdmin()
+            || (esAdminMarca(marcaId)
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['descripcion', 'logoURL', 'logoRuta', 'colorHex', 'sitioWeb'])));
+      allow delete: if esAdmin();
+    }
+
+    // Estadísticas de productos: solo las escriben y leen las Cloud
+    // Functions (las marcas ven los totales con resumenMarca).
+    match /estadisticasProductos/{documento=**} {
+      allow read, write: if false;
+    }
+
+    // ───────────── Sesiones ─────────────
+    match /sesiones/{id} {
+      allow create: if logueada() && request.resource.data.uid == request.auth.uid;
+      allow read: if logueada() && resource.data.uid == request.auth.uid;
+      allow update: if logueada()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['fechaFin', 'estado']);
+      allow delete: if false;
+    }
+
+    // ───────────── Credenciales ─────────────
+    match /credenciales/{id} {
+      allow read, write: if false;
+    }
+  }
+}

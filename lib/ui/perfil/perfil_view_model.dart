@@ -64,6 +64,9 @@ class PerfilViewModel extends ChangeNotifier {
 
   /// `true` solo para la cuenta administradora (muestra el catálogo).
   bool get esAdmin => _sesion?.esAdmin ?? false;
+
+  /// Administra una marca (ve "Mi marca") — Ana.
+  bool get esAdminMarca => _sesion?.esAdminMarca ?? false;
   bool get cerrandoSesion => _cerrandoSesion;
   bool get eliminandoCuenta => _eliminandoCuenta;
 

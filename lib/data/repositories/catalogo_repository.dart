@@ -245,6 +245,59 @@ class CatalogoRepository {
   static String rutaImagenProducto(String id) =>
       'catalogo/productos/$id/${DateTime.now().millisecondsSinceEpoch}.jpg';
 
+  /// Ruta en Storage para una imagen NUEVA de un producto de la marca
+  /// [marcaId] (la regla de Storage deja subirla al admin de esa marca).
+  static String rutaImagenProductoMarca(String marcaId, String id) =>
+      'catalogo/marcas/$marcaId/$id/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+  /// Ruta en Storage para un logo NUEVO de la marca [marcaId].
+  static String rutaLogoMarca(String marcaId) =>
+      'catalogo/marcas/$marcaId/logo/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+  /// Crea varios productos nuevos de una vez (importación de una marca).
+  /// Escribe en lotes de 400 y llama [onProgreso] con los guardados.
+  Future<int> crearProductosEnLote(
+    List<ProductoMaquillaje> productos, {
+    void Function(int guardados)? onProgreso,
+  }) async {
+    try {
+      var guardados = 0;
+      for (var i = 0; i < productos.length; i += 400) {
+        final lote = _db.batch();
+        final fin = i + 400 < productos.length ? i + 400 : productos.length;
+        for (final p in productos.sublist(i, fin)) {
+          final ref = _productos.doc();
+          lote.set(
+            ref,
+            p.copyWith(id: ref.id, fechaActualizacion: DateTime.now()).toMap(),
+          );
+        }
+        await lote.commit();
+        guardados = fin;
+        onProgreso?.call(guardados);
+      }
+      return guardados;
+    } catch (e) {
+      throw AppException.desde(e);
+    }
+  }
+
+  /// Todos los productos (activos e inactivos) de la marca [marcaId],
+  /// ordenados por nombre — panel "Mi marca".
+  Future<List<ProductoMaquillaje>> productosDeMarca(String marcaId) async {
+    try {
+      final snap =
+          await _productos.where('marcaId', isEqualTo: marcaId).get();
+      final lista = snap.docs.map(ProductoMaquillaje.fromFirestore).toList()
+        ..sort((a, b) => a.nombreVisible
+            .toLowerCase()
+            .compareTo(b.nombreVisible.toLowerCase()));
+      return lista;
+    } catch (e) {
+      throw AppException.desde(e);
+    }
+  }
+
   /// Id nuevo para una prenda (útil para subir la imagen antes de guardar).
   String nuevoIdPrenda() => _prendas.doc().id;
 

@@ -1051,4 +1051,142 @@ Entrada: $metadatos
 Preview: $preview · Análisis: $analisis
 Cambio automático: ${alternativa ?? 'Ninguno'}
 Errores: $errores · Último error: ${error ?? arSinError}''';
+
+  // ---------------------------------------------------------------------
+  // Marcas y dashboards — Ana
+  // ---------------------------------------------------------------------
+  static const String marcasTitulo = 'Marcas';
+  static const String marcasSubtitulo = 'Crea marcas y asigna quién las administra';
+  static const String dashboardTitulo = 'Dashboard';
+  static const String dashboardSubtitulo = 'Cómo va MAKE UP AI';
+  static const String miMarcaTitulo = 'Mi marca';
+  static const String cuentaAdminMarca = 'Administradora de marca';
+  static const String miMarcaSubtitulo = 'Lo que sienten las usuarias por tus productos';
+  static const String nuevaMarca = 'Nueva marca';
+  static const String editarMarca = 'Editar marca';
+  static const String campoNombreMarca = 'Nombre de la marca';
+  static const String hintNombreMarca = 'Ej.: Glow Studio';
+  static const String validacionNombreMarcaLargo = 'Máximo 60 caracteres';
+  static const String campoSitioWeb = 'Sitio web (opcional)';
+  static const String campoColorMarca = 'Color de la marca';
+  static const String logoMarca = 'Logo';
+  static const String cambiarLogo = 'Cambiar logo';
+  static const String elegirLogo = 'Elegir logo';
+  static const String marcaActiva = 'Marca activa';
+  static const String marcaActivaAyuda =
+      'Si la desactivas, su admin deja de ver el panel y no puede subir productos.';
+  static const String marcaInactiva = 'Inactiva';
+  static const String marcaGuardada = 'Marca guardada';
+  static const String marcaEliminada = 'Marca eliminada';
+  static const String eliminarMarca = 'Eliminar marca';
+  static const String eliminarMarcaPregunta =
+      '¿Eliminar esta marca? Sus productos se quedan en el catálogo, sin marca asociada.';
+  static const String sinMarcas = 'Aún no hay marcas';
+  static const String sinMarcasMensaje =
+      'Crea la primera y asígnale una administradora para que suba sus productos.';
+  static const String buscarMarca = 'Buscar marca';
+  static const String adminsMarca = 'Administradoras de la marca';
+  static const String sinAdminsMarca = 'Nadie administra esta marca todavía.';
+  static const String asignarAdmin = 'Asignar';
+  static const String quitarAdmin = 'Quitar';
+  static const String correoAdminMarca = 'Correo de la cuenta';
+  static const String hintCorreoAdminMarca = 'Debe estar registrada en la app';
+  static const String adminAsignado =
+      'Listo. Debe cerrar sesión y volver a entrar para ver "Mi marca".';
+  static const String adminQuitado = 'Se le quitó el acceso a la marca';
+  static const String quitarAdminPregunta =
+      '¿Quitarle a esta cuenta el acceso a la marca?';
+  static const String guardaMarcaPrimero =
+      'Guarda la marca para poder asignar administradoras.';
+  static const String verPanel = 'Ver panel';
+  static const String productosMarca = 'Productos';
+  static const String nuevoProductoMarca = 'Agregar producto';
+  static const String sinProductosMarca = 'Tu vitrina está vacía';
+  static const String sinProductosMarcaMensaje =
+      'Sube tu primer producto: las usuarias lo verán si va con su estación.';
+  static const String campoMarcaAsociada = 'Marca asociada (opcional)';
+  static const String sinMarcaAsociada = 'Sin marca (catálogo general)';
+
+  // Indicadores
+  static const String kpiLesGusto = 'Les gustó';
+  static const String kpiPromedio = 'Promedio';
+  static const String kpiVistas = 'Vistas';
+  static const String kpiPruebasAr = 'Pruebas en AR';
+  static const String kpiUsuarias = 'Usuarias';
+  static const String kpiConAnalisis = 'Con análisis';
+  static const String kpiProductos = 'Productos';
+  static const String kpiPrendas = 'Prendas';
+  static const String kpiMarcas = 'Marcas';
+  static const String kpiCorazones = 'corazones';
+  static const String kpiCalificaciones = 'calificaciones';
+  static const String porEstacionTitulo = 'Les gusta por estación';
+  static const String usuariasPorEstacionTitulo = 'Usuarias por estación';
+  static const String topProductosTitulo = 'Top productos';
+  static const String rankingMarcasTitulo = 'Ranking de marcas';
+  static const String todosLosProductos = 'Todos tus productos';
+  static const String sinDatosAun = 'Aún no hay datos';
+  static const String sinDatosAunMensaje =
+      'Cuando las usuarias vean, prueben y califiquen tus productos, aquí verás todo.';
+  static const String privacidadDashboard =
+      'Datos anónimos y agregados: nunca se muestra quién fue.';
+  static const String comoSeCuentaGusta =
+      '"Les gustó" = usuarias que le dieron ❤️ o 4-5 estrellas (cada una cuenta una vez).';
+  static String estacionFavorita(String estacion) =>
+      'Tu público más fiel: $estacion';
+  static String porcentajeConAnalisis(int p) => '$p % ya hizo su análisis';
+  static String conversion(int p) => '$p % de las que lo vieron lo aman';
+  static String adminsCuenta(int n) =>
+      n == 1 ? '1 administradora' : '$n administradoras';
+  static String productosCuenta(int n) => n == 1 ? '1 producto' : '$n productos';
+
+  // Importar varios productos
+  static const String importarVarios = 'Importar varios';
+  static const String importarTitulo = 'Importar productos';
+  static const String importarSubtitulo = 'Sube todo tu catálogo de una, desde Excel';
+  static const String importarPaso1 = '1. Arma tu lista en Excel';
+  static const String importarPaso2 = '2. Pega tus filas aquí';
+  static const String importarPaso3 = '3. Revisa antes de subir';
+  static const String importarExplicacion =
+      'Una fila por producto y la primera fila con estos encabezados. '
+      'Los que tienen * son obligatorios. Copia las celdas en Excel (con el '
+      'encabezado) y pégalas abajo, o abre tu CSV y pega su contenido.';
+  static const String importarAyudaValores =
+      'categoria: labial, rubor, sombra o base · color: #C2185B · '
+      'estaciones: primavera|verano|otoño|invierno o "todas" · '
+      'subtonos: cálido|frío|neutro o "todos" · imagen y enlace: https://…';
+  static const String copiarPlantilla = 'Copiar plantilla';
+  static const String usarEjemplo = 'Ver un ejemplo';
+  static const String pegar = 'Pegar';
+  static const String importarHint =
+      'nombre;categoria;color;estaciones;subtonos;precio;imagen\n'
+      'Labial Rubí;labial;#9B111E;invierno|verano;frio;45900;https://…';
+  static const String revisar = 'Revisar';
+  static const String plantillaCopiada =
+      'Plantilla copiada: pégala en Excel (celda A1).';
+  static const String portapapelesVacio = 'No hay nada copiado todavía.';
+  static const String importarSoloValidos =
+      'Las filas con errores no se suben: corrígelas en tu Excel y vuelve a pegar.';
+  static const String sinFoto = 'sin foto';
+  static String fila(int n) => 'Fila $n';
+  static String listos(int n) => n == 1 ? '1 listo' : '$n listos';
+  static String conErrores(int n) => n == 1 ? '1 con errores' : '$n con errores';
+  static String importarN(int n) => n == 1 ? 'Importar 1 producto' : 'Importar $n productos';
+  static String productosImportados(int n) =>
+      n == 1 ? '¡Listo! Se subió 1 producto' : '¡Listo! Se subieron $n productos';
+
+  // Me gusta
+  static const String meGusta = 'Me gusta';
+  static const String quitarMeGusta = 'Quitar me gusta';
+
+  // Errores de las funciones de marcas
+  static const String errorSoloAdmin = 'Solo la administradora general puede hacer esto.';
+  static const String errorEsAdminGeneral =
+      'Esa es la cuenta de la administradora general: no se le puede asignar una marca.';
+  static const String errorCuentaNoExiste =
+      'No hay ninguna cuenta registrada con ese correo.';
+  static const String errorMarcaNoExiste = 'Esa marca ya no existe.';
+  static const String errorMarcaInactiva =
+      'Tu marca está desactivada. Escríbele a la administradora de MAKE UP AI.';
+  static const String errorSinMarca =
+      'Tu cuenta no tiene una marca asignada. Si te la acaban de asignar, cierra sesión y vuelve a entrar.';
 }

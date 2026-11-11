@@ -1,14 +1,74 @@
 import '../../data/repositories/catalogo_repository.dart';
+import '../../data/repositories/marca_repository.dart';
+import '../../models/marca.dart';
 import '../../models/producto_maquillaje.dart';
 import 'formulario_catalogo_view_model.dart';
 
+/// Argumento de la ruta del formulario cuando lo abre el panel de una
+/// marca: el producto queda amarrado a esa marca — Ana.
+class ArgumentosProductoMarca {
+  /// Producto a editar; `null` = nuevo.
+  final String? id;
+  final String marcaId;
+  final String marcaNombre;
+
+  const ArgumentosProductoMarca({
+    this.id,
+    required this.marcaId,
+    required this.marcaNombre,
+  });
+}
+
 /// Formulario de producto: los campos comunes más marca, precio y enlace.
+///
+/// Con [marcaFija] (admin de marca, o la admin desde "Mi marca") el nombre
+/// de la marca no se edita y el producto se guarda con su `marcaId`. Sin
+/// ella (catálogo de la admin) se puede asociar a una marca con
+/// [seleccionarMarca].
 class FormularioProductoViewModel extends FormularioCatalogoViewModel {
+  final MarcaRepository? _marcas;
+  final ArgumentosProductoMarca? marcaFija;
+
   FormularioProductoViewModel(
     super.repositorio,
     super.storage, {
     String? id,
-  }) : super(idInicial: id);
+    this.marcaFija,
+    this._marcas,
+  }) : super(idInicial: id ?? marcaFija?.id) {
+    final fija = marcaFija;
+    if (fija != null) {
+      marca = fija.marcaNombre;
+      marcaId = fija.marcaId;
+    }
+  }
+
+  /// La marca no se cambia (viene del panel de una marca).
+  bool get marcaBloqueada => marcaFija != null;
+
+  /// Marca asociada (`marcas/{id}`), o `null` = catálogo general.
+  String? marcaId;
+
+  List<Marca> _marcasDisponibles = const [];
+  List<Marca> get marcasDisponibles => _marcasDisponibles;
+
+  /// Trae las marcas activas para el selector (solo catálogo de la admin).
+  Future<void> cargarMarcas() async {
+    final repo = _marcas;
+    if (repo == null || marcaBloqueada) return;
+    try {
+      _marcasDisponibles = await repo.activas();
+      registrarCambioSilencioso();
+    } catch (_) {
+      // Sin la lista, el producto se guarda sin marca asociada.
+    }
+  }
+
+  /// Asocia el producto a [m] (y copia su nombre al campo marca).
+  void seleccionarMarca(Marca? m) => registrarCambio(() {
+        marcaId = m?.id;
+        if (m != null) marca = m.nombre;
+      });
 
   /// Producto cargado (para conservar los campos que el formulario no edita:
   /// tono, acabado, código de barras...).
@@ -37,7 +97,8 @@ class FormularioProductoViewModel extends FormularioCatalogoViewModel {
   Future<bool> cargarItem(String id) async {
     final p = await repositorio.obtenerProducto(id);
     if (p == null) return false;
-    _original = p;
+    // Desde el panel de una marca solo se editan SUS productos.
+    if (marcaFija != null && p.marcaId != marcaFija!.marcaId) return false;
     llenarComunes(
       nombre: p.nombre,
       descripcion: p.descripcion,
@@ -49,7 +110,9 @@ class FormularioProductoViewModel extends FormularioCatalogoViewModel {
       imagenUrl: p.imagenUrl,
       imagenRuta: p.imagenRuta,
     );
-    marca = p.marca;
+    _original = p;
+    marca = marcaFija?.marcaNombre ?? p.marca;
+    marcaId = marcaFija?.marcaId ?? p.marcaId;
     precio = p.precio > 0 ? p.precio.toStringAsFixed(0) : '';
     enlace = p.enlace ?? '';
     return true;
@@ -59,7 +122,13 @@ class FormularioProductoViewModel extends FormularioCatalogoViewModel {
   String nuevoId() => repositorio.nuevoIdProducto();
 
   @override
-  String rutaImagen(String id) => CatalogoRepository.rutaImagenProducto(id);
+  String rutaImagen(String id) {
+    final m = marcaId;
+    // Las imágenes de una marca van en su carpeta (su admin puede subirlas).
+    return m == null
+        ? CatalogoRepository.rutaImagenProducto(id)
+        : CatalogoRepository.rutaImagenProductoMarca(m, id);
+  }
 
   @override
   Future<void> guardarItem(
@@ -84,6 +153,7 @@ class FormularioProductoViewModel extends FormularioCatalogoViewModel {
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
       marca: marca.trim(),
+      marcaId: marcaId,
       categoria: categoria!,
       tono: base.tono.isNotEmpty ? base.tono : nombre.trim(),
       colorHex: colorHexNormalizado,
