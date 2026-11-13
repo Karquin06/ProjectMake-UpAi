@@ -54,6 +54,10 @@
   code { font-family: Consolas, "Courier New", monospace; font-size: 10pt; }
   table code { font-size: 9pt; }
 
+  /* Listas numeradas (objetivos y recomendaciones) */
+  ol.apa { margin: 0; padding-left: 2.2cm; }
+  ol.apa li { padding-left: 4pt; }
+
   /* Resumen y referencias */
   .resumen p { text-indent: 0; }
   .resumen p.palabras { text-indent: 1.27cm; }
@@ -67,7 +71,11 @@
   <div class="espacio"></div>
   <p><b>Informe de seguridad de la aplicación móvil MackeUp AI:<br>auditoría con el OWASP Mobile Top 10 (2024)</b></p>
   <p>&nbsp;</p>
-  <p>Karlos Rodolfo Quintero Vargas, Jaider Enrique Monrroy Diaz, Ana Laura Cuellar Hinojosa<br>y Oscar Mauricio Parra Cañabate</p>
+  <p>Karlos Rodolfo Quintero Vargas</p>
+  <p>Jaider Enrique Monrroy Diaz</p>
+  <p>Ana Laura Cuellar Hinojosa</p>
+  <p>Oscar Mauricio Parra Cañabate</p>
+  <p>&nbsp;</p>
   <p>Universidad Popular del Cesar</p>
   <p>Programación Móvil</p>
   <p>Alex Vacca</p>
@@ -92,6 +100,13 @@
 <!-- ============================ INTRODUCCIÓN ============================ -->
 <section class="salto">
   <p class="titulo-trabajo">Informe de seguridad de la aplicación móvil MackeUp AI: auditoría con el OWASP Mobile Top 10 (2024)</p>
+  <h1>Introducción</h1>
+  <p>Las aplicaciones móviles manejan cada vez más datos personales y se ejecutan en dispositivos que su creador no
+    controla: cualquier persona puede descargar el APK, inspeccionarlo, modificarlo o interceptar su tráfico. Por eso
+    la seguridad de una app no puede depender de lo que la interfaz muestra u oculta, sino de controles verificables en
+    el código, en la configuración del build y, sobre todo, en el servidor. El OWASP Mobile Top 10 reúne los diez
+    riesgos más frecuentes en este tipo de aplicaciones y es la referencia que se usa en este trabajo (OWASP
+    Foundation, 2024a).</p>
   <p>MackeUp AI analiza la colorimetría de la usuaria a partir de una selfie, recomienda maquillaje y ropa, ofrece un
     simulador de maquillaje en realidad aumentada, un asistente con inteligencia artificial y un módulo para marcas.
     Su backend usa Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Functions y Cloud Messaging. La
@@ -105,6 +120,29 @@
   <p>Se auditó la rama <code>feature/seguridad</code> del repositorio del proyecto en el commit <code>28fc2f7</code> (12
     de noviembre de 2026). Las evidencias de este informe ocultan llaves, tokens y datos personales; los reportes
     completos de las herramientas se guardaron en <code>auditoria/evidencia/</code>, carpeta excluida del repositorio.</p>
+
+  <h2>Objetivos</h2>
+  <h3>Objetivo general</h3>
+  <p>Evaluar y mejorar la seguridad de la aplicación MackeUp AI aplicando el OWASP Mobile Top 10 (2024), corrigiendo
+    los hallazgos de mayor severidad y demostrando con pruebas repetibles que las correcciones funcionan.</p>
+  <h3>Objetivos específicos</h3>
+  <ol class="apa">
+    <li>Elaborar un modelo de amenazas de la aplicación que identifique sus componentes, los datos sensibles que maneja
+      y al menos tres amenazas reales.</li>
+    <li>Revisar los diez riesgos del OWASP Mobile Top 10 con al menos dos técnicas de auditoría y registrar cada
+      hallazgo con su evidencia y severidad.</li>
+    <li>Corregir como mínimo cinco hallazgos, empezando por los de mayor severidad y cubriendo las mejoras obligatorias
+      de la guía de la asignatura.</li>
+    <li>Verificar cada corrección repitiendo la misma prueba antes y después, y dejar cada cambio trazable en un commit.</li>
+  </ol>
+
+  <h2>Alcance</h2>
+  <p>La auditoría cubrió la aplicación Android compilada en modo release, el código Dart, las reglas de seguridad de
+    Cloud Firestore y Cloud Storage, y las Cloud Functions del proyecto. No se incluyeron la versión de iOS, que no se
+    distribuye, ni la configuración de la consola de Firebase y Google Cloud, a la que solo se accede con la cuenta de
+    administración. Por la regla de la guía de probar solo la app y el backend propios sin datos reales (Vacca, 2026),
+    no se inició sesión ni se crearon cuentas en el proyecto de producción; las pruebas que lo necesitaban se hicieron
+    en emuladores locales.</p>
 
   <h1>Método</h1>
   <h2>Modelo de amenazas</h2>
@@ -445,9 +483,42 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
     <code>minimatch</code>) y solo podrían eliminarse forzando versiones mayores, con riesgo de romper las funciones en
     producción. Ninguna tiene una ruta de ataque en este backend, por lo que se aceptaron como riesgo residual que se
     revisará con cada actualización de <code>firebase-admin</code>.</p>
-  <p>Quedan pendientes para el equipo publicar las reglas y funciones corregidas, crear la llave de publicación
-    definitiva y registrar sus huellas en Firebase, repetir con una cuenta de prueba las pruebas de mitmproxy y Logcat
-    con sesión iniciada, e integrar App Check como mejora opcional.</p>
+  <p>Como limitaciones, dos técnicas no pudieron completarse: el análisis con MobSF, porque Docker Desktop no arrancó en
+    el equipo de trabajo, y la interceptación con mitmproxy, porque sin sesión iniciada la app no genera tráfico propio.
+    Ambas quedan documentadas para repetirse con una cuenta de prueba.</p>
+</section>
+
+<!-- ============================ CONCLUSIONES ============================ -->
+<section>
+  <h1>Conclusiones</h1>
+  <p>Se cumplieron los cuatro objetivos específicos. El modelo de amenazas identificó cuatro amenazas propias de la
+    aplicación, la revisión del OWASP Mobile Top 10 se hizo con seis técnicas y produjo nueve hallazgos con evidencia,
+    se corrigieron ocho de ellos (más del mínimo de cinco que pide la guía) y cada corrección quedó en su propio commit
+    y verificada con la misma prueba antes y después.</p>
+  <p>El hallazgo más grave, la firma del release con una llave publicada en el repositorio público, muestra que un
+    secreto no siempre es una contraseña en el código: también lo es una llave de firma, y su exposición permite
+    suplantar la aplicación. Su corrección, junto con la del respaldo de datos y la de los permisos de marca, reduce de
+    forma concreta las amenazas A-01, A-02 y A-03 del modelo.</p>
+  <p>La auditoría confirmó además que validar en el servidor es el control que más protege la aplicación: las reglas y
+    las Cloud Functions ya impedían los abusos más evidentes, y los fallos encontrados en ellas se pudieron demostrar y
+    cerrar con pruebas automáticas en el emulador. Finalmente, no toda alerta de una herramienta es explotable: las siete
+    vulnerabilidades residuales de las dependencias se analizaron y se aceptaron de forma justificada en lugar de forzar
+    cambios que podían romper la aplicación en producción.</p>
+</section>
+
+<!-- ============================ RECOMENDACIONES ============================ -->
+<section>
+  <h1>Recomendaciones</h1>
+  <ol class="apa">
+    <li>Publicar las reglas y funciones corregidas con <code>firebase deploy --only firestore:rules,storage,functions</code>,
+      porque hasta entonces H-03 y H-08 solo están corregidos en el repositorio.</li>
+    <li>Crear la llave de publicación definitiva con <code>crear_llave_release.ps1</code>, guardarla en un lugar seguro y
+      registrar sus huellas SHA-1 y SHA-256 en Firebase.</li>
+    <li>Integrar Firebase App Check con Play Integrity y restringir las llaves de API por paquete y huella (H-06).</li>
+    <li>Repetir con una cuenta de prueba la interceptación con mitmproxy y la revisión de Logcat con sesión iniciada.</li>
+    <li>Revisar <code>npm audit</code> y <code>flutter pub outdated</code> en cada actualización de dependencias, y volver a
+      correr los scripts de <code>auditoria/scripts/</code> antes de cada entrega.</li>
+  </ol>
 </section>
 
 <!-- ============================ REFERENCIAS ============================ -->
