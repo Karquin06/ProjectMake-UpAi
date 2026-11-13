@@ -144,7 +144,16 @@
     no se inició sesión ni se crearon cuentas en el proyecto de producción; las pruebas que lo necesitaban se hicieron
     en emuladores locales.</p>
 
-  <h1 class="salto">Método</h1>
+  <h1 class="salto">Metodología</h1>
+  <p>La auditoría siguió las cuatro fases que propone la guía de la asignatura (Vacca, 2026). En la primera, de
+    modelado, se identificaron los componentes de la aplicación, los datos sensibles y las amenazas reales. En la
+    segunda, de auditoría, se revisaron los diez riesgos del OWASP Mobile Top 10 con varias técnicas y cada riesgo se
+    marcó como <i>cumple</i>, <i>no cumple</i> o <i>no aplica</i>, con su justificación. En la tercera, de corrección,
+    se resolvieron los hallazgos empezando por los de mayor severidad, cada uno en un commit propio. En la cuarta, de
+    verificación, se repitió la misma prueba de cada hallazgo para comprobar que la corrección lo eliminaba.</p>
+  <p>El trabajo fue de tipo aplicado y se apoyó en pruebas reproducibles: cada técnica se automatizó con un script que
+    guarda su salida con la fecha y el commit evaluado, de modo que el resultado de antes y el de después se pueden
+    comparar sobre la misma prueba. Las secciones siguientes describen el modelo de amenazas y las técnicas usadas.</p>
   <h2>Modelo de amenazas</h2>
   <p>La Figura 1 muestra los componentes de la aplicación, el límite de confianza entre el dispositivo y Firebase, y
     dónde se guarda cada dato. La Tabla 1 resume los datos sensibles y la Tabla 2 las amenazas identificadas.</p>
