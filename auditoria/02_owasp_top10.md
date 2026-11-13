@@ -171,7 +171,7 @@ la severidad de todo lo que esté versionado.
 - [x] Revisión de código de reglas y Cloud Functions
 - [x] Logs con Logcat: arranque del APK de release en el emulador `auditoria_api35` (Android 15),
       sin datos sensibles
-- [~] Tráfico con mitmproxy: hecha sin sesión, pero sin tráfico que analizar; falta repetirla con
-      sesión iniciada
+- [x] Tráfico con mitmproxy: con sesión iniciada (cuenta de prueba escrita por el equipo en el
+      emulador) el inicio de sesión falla con `CertPathValidatorException`; 18 conexiones rechazadas
 - [x] Análisis del APK con MobSF v4.6.5 (Docker): APK antes 48/100 y después 52/100 —
       `scripts/mobsf_analizar.ps1`, reportes en `evidencia/mobsf_*`

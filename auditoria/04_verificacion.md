@@ -92,3 +92,17 @@ aceptan como riesgo residual hasta la próxima versión de `firebase-admin`.
 MobSF analiza también las librerías de Google: los avisos de MD5, SHA-1, `Random`, SQLite y archivos
 temporales vienen de ellas, no del código de la app. Alerta nueva, no corregida: `minSdk` 24 permite
 instalar la app en Android 7.0 sin parches; queda como recomendación para el equipo.
+
+### Prueba en vivo con sesión iniciada (APK `3a0f001`: pinning + `FLAG_SECURE`)
+
+Un integrante escribió la cuenta de prueba directamente en el emulador; las evidencias no incluyen la contraseña.
+
+| Paso | Qué se hizo | Resultado |
+|---|---|---|
+| 1. Sin interceptor | Inicio de sesión y entrada a la selfie | Firebase Auth autentica la cuenta: el pinning no rompe la conexión. `dumpsys window` marca la ventana con `SECURE` y `screencap` de la selfie sale negro (solo se ve el diálogo de permiso del sistema) |
+| 2. Con mitmproxy como proxy | Mismo inicio de sesión | Falla: `RecaptchaAction(signInWithPassword) … CertPathValidatorException: Trust anchor for certification path not found`; mitmproxy registra 18 conexiones con "the client does not trust the proxy's certificate" (incluida `firebaseinstallations.googleapis.com`) |
+
+Observación (M9, residual): el SDK de Firebase Auth escribe el correo en Logcat (`I/FirebaseAuth: Logging in as …`).
+No es código de la app. Limitación: con el APK de release la falla se debe a que no confía en la CA de mitmproxy; para
+aislar el pinning hay que repetirla sobre un build de depuración con la CA instalada (los `debug-overrides` aceptan
+CA de usuario y mantienen los pines). Evidencias: `evidencia/sesion_paso1/` y `evidencia/sesion_paso2_mitm/`.

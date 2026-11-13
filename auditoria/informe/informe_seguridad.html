@@ -298,9 +298,9 @@
   <h2 class="salto">Técnicas de auditoría</h2>
   <p>La guía exige al menos dos técnicas (Vacca, 2026); se usaron siete, todas automatizadas con scripts en
     <code>auditoria/scripts/</code> que guardan su salida con fecha y commit para poder repetir la prueba después de cada
-    corrección (Tabla 3). Las pruebas dinámicas se hicieron con el APK de release instalado en un emulador Android 15.
-    Por política del grupo no se inició sesión ni se crearon cuentas en el proyecto real de Firebase; las reglas se
-    probaron en el emulador local de Firebase con un proyecto de demostración.</p>
+    corrección (Tabla 3). Las pruebas dinámicas se hicieron con el APK de release instalado en un emulador Android 15;
+    para las que necesitaban sesión, un integrante del grupo ingresó directamente en el emulador una cuenta de prueba
+    creada para la auditoría. Las reglas se probaron en el emulador local de Firebase con un proyecto de demostración.</p>
 
   <div class="tabla">
     <p class="numero">Tabla 3</p>
@@ -314,11 +314,11 @@
         <tr><td>Análisis del APK de release</td><td><code>apkanalyzer</code>, <code>apksigner</code></td><td>M7, M8</td><td>Firma, depurable, símbolos en <code>libapp.so</code>, R8</td></tr>
         <tr><td>Análisis estático automatizado</td><td>MobSF v4.6.5 en Docker (MobSF, 2025)</td><td>M1, M5, M7, M8, M9, M10</td><td>APK de release antes y después, por su API REST</td></tr>
         <tr><td>Revisión de código</td><td>Lectura de reglas y 14 Cloud Functions; emulador de Firebase</td><td>M3, M4, M9</td><td>Autorización, validación, almacenamiento</td></tr>
-        <tr><td>Ejecución en emulador</td><td>Logcat y mitmproxy 12.3.1 (mitmproxy Project, 2025)</td><td>M5, M9</td><td>Arranque de la app sin sesión</td></tr>
+        <tr><td>Ejecución en emulador</td><td>Logcat y mitmproxy 12.3.1 (mitmproxy Project, 2025)</td><td>M5, M6, M9</td><td>Arranque, inicio de sesión con y sin interceptor, pantallas con el rostro</td></tr>
       </tbody>
     </table>
-    <p class="nota"><i>Nota.</i> La prueba con mitmproxy no generó tráfico sin sesión iniciada y debe repetirse con una
-      cuenta de prueba.</p>
+    <p class="nota"><i>Nota.</i> Las evidencias de la sesión no incluyen la contraseña de la cuenta de prueba, que se
+      eliminará al terminar la auditoría.</p>
   </div>
 </section>
 
@@ -380,7 +380,13 @@
   <h3>M5. Insecure Communication: cumple</h3>
   <p>La app no habilita tráfico en claro; con <code>targetSdk</code> 36 está bloqueado por defecto y todo el tráfico va
     por HTTPS a servicios de Google. En la versión auditada no había certificate pinning; se agregó después como mejora
-    opcional (ver Correcciones).</p>
+    opcional (ver Correcciones). La prueba dinámica lo confirma: con mitmproxy interceptando el tráfico, el inicio de
+    sesión falla con <code>CertPathValidatorException</code> y el proxy registra 18 conexiones rechazadas porque la app
+    no confía en su certificado.</p>
+  <pre>mitmdump:  Client TLS handshake failed. The client does not trust the proxy's certificate
+           for firebaseinstallations.googleapis.com   (18 conexiones rechazadas)
+logcat:    RecaptchaAction(action=signInWithPassword) ... CertPathValidatorException:
+           Trust anchor for certification path not found</pre>
 
   <h3>M6. Inadequate Privacy Controls: no cumple</h3>
   <p>La colorimetría pide consentimiento y las selfies se borran después del análisis. Sin embargo, la app declaraba
@@ -493,8 +499,8 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
         <tr><td>H-07</td><td>Permisos del APK</td><td>14, con micrófono y almacenamiento</td><td>8, sin micrófono, almacenamiento ni biometría</td><td>Sí</td></tr>
         <tr><td>H-08</td><td>Emulador de reglas</td><td>Otra usuaria lee la foto (200)</td><td>Otra usuaria, 403; la dueña, 200</td><td>Sí</td></tr>
         <tr><td>H-09</td><td>Código y Logcat del release</td><td>16 <code>debugPrint</code> activos</td><td>Ninguna línea de la app en Logcat</td><td>Sí</td></tr>
-        <tr><td>Pinning</td><td><code>aapt2 dump xmltree</code> del APK y <code>verificar_pines.ps1</code></td><td>Sin <code>network_security_config</code></td><td>5 pines en el APK; los 7 dominios de Firebase encadenan a un pin; la app arranca sin errores de red</td><td>Sí</td></tr>
-        <tr><td><code>FLAG_SECURE</code></td><td>Pruebas automáticas</td><td>Capturas permitidas en todas las pantallas</td><td>6 pruebas nuevas: se activa al entrar y se quita al salir, también con pantallas apiladas</td><td>Sí</td></tr>
+        <tr><td>Pinning</td><td><code>aapt2 dump xmltree</code> del APK y <code>verificar_pines.ps1</code></td><td>Sin <code>network_security_config</code></td><td>5 pines en el APK; los 7 dominios encadenan a un pin; sin interceptor el inicio de sesión funciona; con mitmproxy falla (<code>CertPathValidatorException</code>)</td><td>Sí</td></tr>
+        <tr><td><code>FLAG_SECURE</code></td><td>Pruebas automáticas y <code>screencap</code> en el emulador</td><td>Capturas permitidas en todas las pantallas</td><td>6 pruebas nuevas; la captura de la pantalla de la selfie sale en negro, solo se ve el diálogo del sistema</td><td>Sí</td></tr>
       </tbody>
     </table>
     <p class="nota"><i>Nota.</i> La prueba de reglas usa el emulador local de Firebase con el proyecto
@@ -543,9 +549,14 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
   <p>MobSF señaló además una alerta que no estaba entre los hallazgos: la app admite Android 7.0
     (<code>minSdk</code> 24), una versión que ya no recibe parches de seguridad. Subir la versión mínima reduce ese
     riesgo pero deja fuera teléfonos antiguos, por lo que se deja como decisión del equipo en las recomendaciones.</p>
-  <p>Como limitación, la interceptación con mitmproxy no pudo completarse: sin sesión iniciada la app no genera tráfico
-    propio, y la auditoría no inicia sesión en el proyecto de producción. Queda documentada para que el equipo la
-    repita iniciando sesión con una cuenta de prueba.</p>
+  <p>Durante la prueba con sesión iniciada apareció una observación más: el SDK de Firebase Authentication escribe en
+    Logcat el correo de la usuaria al iniciar sesión (<code>Logging in as …</code>). No viene del código de la app, que
+    ya no registra nada en release (H-09), sino de la librería de Google, por lo que queda como riesgo residual de M9.</p>
+  <p>Como limitación, la prueba con mitmproxy se hizo con el APK de release, que no confía en certificados instalados
+    por el usuario: demuestra que la app rechaza una interceptación, pero no aísla el efecto del pinning frente a la
+    validación normal. Para aislarlo, la configuración incluye una excepción solo para builds de depuración que acepta
+    certificados de usuario sin desactivar los pines, de modo que la misma prueba sobre un build de depuración con el
+    certificado de mitmproxy instalado debe fallar únicamente por el pinning.</p>
 </section>
 
 <!-- ============================ CONCLUSIONES ============================ -->
@@ -576,7 +587,8 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
     <li>Crear la llave de publicación definitiva con <code>crear_llave_release.ps1</code>, guardarla en un lugar seguro y
       registrar sus huellas SHA-1 y SHA-256 en Firebase.</li>
     <li>Integrar Firebase App Check con Play Integrity y restringir las llaves de API por paquete y huella (H-06).</li>
-    <li>Repetir con una cuenta de prueba la interceptación con mitmproxy y la revisión de Logcat con sesión iniciada.</li>
+    <li>Eliminar la cuenta de prueba usada en la verificación y repetir la prueba de mitmproxy sobre un build de
+      depuración con el certificado instalado para aislar el efecto del pinning.</li>
     <li>Evaluar subir el <code>minSdk</code> de 24 (Android 7.0) a una versión que aún reciba parches de seguridad,
       según la alerta de MobSF, considerando cuántas usuarias tienen teléfonos antiguos.</li>
     <li>Revisar <code>npm audit</code> y <code>flutter pub outdated</code> en cada actualización de dependencias, y volver a
