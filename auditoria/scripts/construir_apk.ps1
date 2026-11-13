@@ -1,7 +1,9 @@
 ﻿# M7 / M8 — Compila el APK de release para analizarlo con MobSF y apkanalyzer.
-#   -Ofuscado  -> agrega --obfuscate --split-debug-info (para comparar antes/después)
+# H-04: por defecto el código Dart se ofusca (--obfuscate) y los símbolos para leer
+# los stack traces quedan en evidencia\apk\<fecha>\simbolos (fuera del repo).
+#   -SinOfuscar -> build como antes de la corrección (solo para reproducir el "antes")
 
-param([switch]$Ofuscado)
+param([switch]$SinOfuscar)
 
 . "$PSScriptRoot\comun.ps1"
 $ErrorActionPreference = 'Continue'
@@ -9,7 +11,7 @@ $out = Nueva-CarpetaEvidencia 'apk'
 
 Push-Location $Raiz
 $argBuild = @('build', 'apk', '--release')
-if ($Ofuscado) { $argBuild += @('--obfuscate', "--split-debug-info=$out\simbolos") }
+if (-not $SinOfuscar) { $argBuild += @('--obfuscate', "--split-debug-info=$out\simbolos") }
 Titulo ("flutter " + ($argBuild -join ' '))
 flutter @argBuild 2>&1 | Tee-Object (Join-Path $out 'build.txt')
 Pop-Location

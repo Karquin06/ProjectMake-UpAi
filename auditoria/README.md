@@ -59,6 +59,19 @@ Desde la raíz del repo, en PowerShell:
 
 Si PowerShell bloquea los scripts: `Set-ExecutionPolicy -Scope Process Bypass` (solo para esa ventana).
 
+## Compilar el release (después de las correcciones)
+
+1. Una sola vez por equipo: crear la llave de publicación y registrar sus huellas SHA en
+   Firebase (H-01). `android/key.properties` y el `.jks` no se suben; guarden una copia segura.
+   ```powershell
+   .\auditoria\scripts\crear_llave_release.ps1
+   ```
+2. Compilar siempre ofuscado (H-04); los símbolos sirven para leer los stack traces:
+   ```powershell
+   flutter build apk --release --obfuscate --split-debug-info=..\simbolos-mackeupai
+   ```
+   o `.\auditoria\scripts\construir_apk.ps1`, que además analiza el APK.
+
 ## Flujo de trabajo en Git
 
 - Todo el trabajo va en la rama `feature/seguridad`.
