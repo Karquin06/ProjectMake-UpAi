@@ -4,151 +4,116 @@
 <meta charset="utf-8">
 <title>Informe de seguridad — MackeUp AI</title>
 <!--
-  Informe de seguridad (entregable 1). Se convierte a PDF con:
+  Informe de seguridad (entregable 1) en formato APA 7.ª edición, trabajo de estudiante.
+  Se convierte a PDF (con número de página arriba a la derecha) con:
     .\auditoria\scripts\generar_informe.ps1
-  Actualizar las secciones 6 y 7 al terminar las fases 3 y 4.
 -->
 <style>
-  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
-  :root {
-    --verde: #0b7a43; --verde-claro: #e9f5ee; --tinta: #1d2420; --gris: #5d6862;
-    --linea: #d5ddd8; --alta: #b42318; --media: #b54708; --baja: #3d6fb6; --ok: #0b7a43;
-    --codigo: #f4f6f5;
-  }
+  /* APA 7: márgenes de 2,54 cm, Times New Roman 12 pt, interlineado doble, texto alineado a la izquierda. */
+  @page { size: Letter; margin: 2.54cm; }
   * { box-sizing: border-box; }
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  body { margin: 0; background: #fff; color: var(--tinta);
-         font: 10.2pt/1.5 "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
-  h1, h2, h3 { color: var(--verde); line-height: 1.25; }
-  h2 { font-size: 15pt; border-bottom: 1.5px solid var(--verde); padding-bottom: 4px;
-       margin: 0 0 10px; break-after: avoid; }
-  h3 { font-size: 11.5pt; margin: 16px 0 6px; break-after: avoid; }
-  p { margin: 0 0 8px; }
-  section { margin-bottom: 18px; }
+  body { margin: 0; background: #fff; color: #000;
+         font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 2; }
+  p { margin: 0; text-indent: 1.27cm; text-align: left; }
   .salto { break-before: page; }
-  code, pre { font-family: Consolas, "Cascadia Mono", monospace; font-size: 8.6pt; }
-  code { background: var(--codigo); padding: 0 3px; border-radius: 3px; }
-  pre { background: var(--codigo); border: 1px solid var(--linea); border-radius: 4px;
-        padding: 7px 9px; margin: 4px 0 8px; white-space: pre-wrap; word-break: break-word;
-        break-inside: avoid; }
-  table { width: 100%; border-collapse: collapse; margin: 6px 0 12px; font-size: 9pt; }
-  th { background: var(--verde); color: #fff; text-align: left; padding: 5px 7px; font-weight: 600; }
-  td { padding: 5px 7px; border-bottom: 1px solid var(--linea); vertical-align: top; }
+
+  /* Niveles de título APA */
+  h1, h2, h3 { font-size: 12pt; margin: 0; line-height: 2; break-after: avoid; }
+  h1 { text-align: center; font-weight: bold; }
+  h2 { text-align: left; font-weight: bold; }
+  h3 { text-align: left; font-weight: bold; font-style: italic; }
+  p.titulo-trabajo { text-align: center; font-weight: bold; text-indent: 0; }
+
+  /* Portada de estudiante */
+  .portada { height: 22.5cm; text-align: center; }
+  .portada .espacio { height: 6cm; }
+  .portada p { text-indent: 0; text-align: center; }
+
+  /* Tablas y figuras APA: número en negrita, título en cursiva, solo líneas horizontales */
+  .tabla, .figura { margin: 12pt 0 6pt; }
+  .figura { break-inside: avoid; }
+  /* Las tablas largas pueden seguir en la página siguiente (APA lo permite), pero el
+     número, el título y el encabezado no se separan de la tabla. */
+  p.numero { font-weight: bold; text-indent: 0; break-after: avoid; }
+  p.titulo-tf { font-style: italic; text-indent: 0; break-after: avoid; }
+  thead { display: table-header-group; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.3;
+          border-top: 1px solid #000; border-bottom: 1px solid #000; margin-top: 2pt; }
+  thead th { border-bottom: 1px solid #000; text-align: left; font-weight: bold; padding: 4pt 5pt; vertical-align: bottom; }
+  td { padding: 4pt 5pt; vertical-align: top; }
+  td:first-child, th:first-child { white-space: nowrap; }
   tr { break-inside: avoid; }
-  tbody tr:nth-child(even) td { background: #f8faf9; }
-  ul { margin: 0 0 8px; padding-left: 18px; }
-  li { margin-bottom: 2px; }
+  p.nota { text-indent: 0; font-size: 10.5pt; line-height: 1.5; margin-top: 4pt; }
+  .figura svg { width: 100%; height: auto; display: block; border: 1px solid #999; margin-top: 4pt; }
 
-  /* Portada */
-  .portada { height: 255mm; display: flex; flex-direction: column; }
-  .portada .marca { border-bottom: 3px solid var(--verde); padding-bottom: 10px;
-                    display: flex; justify-content: space-between; align-items: flex-end; }
-  .portada .marca b { color: var(--verde); font-size: 20pt; letter-spacing: .5px; }
-  .portada .marca span { color: var(--gris); font-size: 9.5pt; text-align: right; }
-  .portada .titulo { margin-top: 60mm; }
-  .portada h1 { font-size: 28pt; margin: 0 0 8px; }
-  .portada .sub { font-size: 14pt; color: var(--gris); margin-bottom: 26px; }
-  .ficha { background: var(--verde-claro); border-left: 4px solid var(--verde);
-           padding: 12px 16px; display: grid; grid-template-columns: 120px 1fr; gap: 5px 12px;
-           font-size: 10.5pt; }
-  .ficha dt { font-weight: 700; color: var(--verde); }
-  .ficha dd { margin: 0; }
-  .portada .pie { margin-top: auto; color: var(--gris); font-size: 8.5pt; }
+  /* Bloques de evidencia (salidas de herramientas) */
+  pre { font-family: Consolas, "Courier New", monospace; font-size: 8.8pt; line-height: 1.35;
+        border-left: 2px solid #777; padding: 4pt 8pt; margin: 6pt 0 10pt 1.27cm;
+        white-space: pre-wrap; word-break: break-word; break-inside: avoid; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 10pt; }
+  table code { font-size: 9pt; }
 
-  /* Elementos */
-  .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 8.3pt;
-          font-weight: 700; color: #fff; white-space: nowrap; }
-  .alta { background: var(--alta); } .media { background: var(--media); }
-  .baja { background: var(--baja); } .ok { background: var(--ok); }
-  .nc { background: var(--alta); } .pend { background: #8a948f; }
-  .resumen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0 14px; }
-  .resumen div { border: 1px solid var(--linea); border-radius: 6px; padding: 8px 10px; }
-  .resumen b { display: block; font-size: 19pt; line-height: 1.1; }
-  .resumen span { font-size: 8.5pt; color: var(--gris); }
-  .nota { background: #fff8e1; border-left: 4px solid #e0a800; padding: 7px 10px; margin: 8px 0;
-          font-size: 9.2pt; break-inside: avoid; }
-  .hallazgo { border: 1px solid var(--linea); border-radius: 6px; padding: 10px 12px;
-              margin: 0 0 12px; break-inside: avoid; }
-  .hallazgo header { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
-  .hallazgo header b { font-size: 11pt; }
-  .hallazgo .owasp { color: var(--gris); font-size: 8.8pt; margin-left: auto; }
-  .hallazgo dl { display: grid; grid-template-columns: 95px 1fr; gap: 3px 10px; margin: 0; }
-  .hallazgo dt { font-weight: 700; color: var(--verde); font-size: 9pt; }
-  .hallazgo dd { margin: 0; }
-  .diagrama { border: 1px solid var(--linea); border-radius: 6px; padding: 6px; break-inside: avoid; }
-  .diagrama svg { width: 100%; height: auto; display: block; }
-  .pequeno { font-size: 8.6pt; color: var(--gris); }
+  /* Resumen y referencias */
+  .resumen p { text-indent: 0; }
+  .resumen p.palabras { text-indent: 1.27cm; }
+  .referencias p { text-indent: -1.27cm; padding-left: 1.27cm; word-break: break-word; }
 </style>
 </head>
 <body>
 
-<!-- ============================ PORTADA ============================ -->
+<!-- ============================ PORTADA (APA 7, estudiante) ============================ -->
 <div class="portada">
-  <div class="marca">
-    <b>UNICESAR</b>
-    <span>Programación Móvil<br>Profesor: Alex Vacca</span>
-  </div>
-  <div class="titulo">
-    <h1>Informe de seguridad</h1>
-    <div class="sub">Auditoría OWASP Mobile Top 10 (2024) de MackeUp AI</div>
-    <dl class="ficha">
-      <dt>Materia</dt><dd>Programación Móvil</dd>
-      <dt>Profesor</dt><dd>Alex Vacca</dd>
-      <dt>Integrantes</dt><dd>[Completar con los nombres del grupo]</dd>
-      <dt>Repositorio</dt><dd>github.com/Karquin06/ProjectMake-UpAi — rama <code>feature/seguridad</code></dd>
-      <dt>Versión auditada</dt><dd>Commit <code>28fc2f7</code> (12 de noviembre de 2026)</dd>
-      <dt>Entrega</dt><dd>16 de noviembre de 2026</dd>
-    </dl>
-  </div>
-  <div class="pie">Las evidencias de este informe ocultan llaves, tokens y datos personales. Los reportes
-    completos de las herramientas están en <code>auditoria/evidencia/</code>, que no se sube al repositorio.</div>
+  <div class="espacio"></div>
+  <p><b>Informe de seguridad de la aplicación móvil MackeUp AI:<br>auditoría con el OWASP Mobile Top 10 (2024)</b></p>
+  <p>&nbsp;</p>
+  <p>[Nombres de los integrantes del grupo]</p>
+  <p>Universidad Popular del Cesar</p>
+  <p>Programación Móvil</p>
+  <p>Alex Vacca</p>
+  <p>16 de noviembre de 2026</p>
 </div>
 
-<!-- ============================ 1. RESUMEN ============================ -->
-<section class="salto">
-  <h2>1. Resumen ejecutivo</h2>
-  <p>MackeUp AI es una app Flutter de asesoría de imagen: analiza la colorimetría con una selfie, recomienda
-    maquillaje y ropa, tiene un simulador de maquillaje en realidad aumentada, un asistente con IA y un módulo de
-    marcas. El backend es Firebase (Authentication, Cloud Firestore, Cloud Storage, Cloud Functions y Cloud Messaging).</p>
-  <p>Se revisaron los diez riesgos del OWASP Mobile Top 10 (2024) con cinco técnicas: búsqueda de secretos con
-    gitleaks, análisis de dependencias, revisión del manifiesto y los permisos, análisis del APK de release y revisión
-    del código de las reglas y de las Cloud Functions. La base es sólida: las reglas y las funciones validan la sesión,
-    los roles y las entradas en el servidor, y no hay contraseñas ni tokens guardados en el dispositivo. El problema
-    más grave es de configuración: <b>el APK de release se firma con una llave publicada en el repositorio público</b>.</p>
-  <p><b>Resultado de las correcciones:</b> se cerraron 8 de los 9 hallazgos, cada uno en su propio commit, y se verificaron repitiendo la misma prueba (secciones 6 y 7). H-05 queda parcial con 7 avisos moderados residuales en los SDK de Google y H-06 (App Check) queda como mejora pendiente.</p>
-
-  <div class="resumen">
-    <div><b>9</b><span>hallazgos registrados</span></div>
-    <div><b style="color:var(--alta)">1</b><span>de severidad alta</span></div>
-    <div><b style="color:var(--media)">5</b><span>de severidad media</span></div>
-    <div><b style="color:var(--baja)">3</b><span>de severidad baja</span></div>
-  </div>
-
-  <table>
-    <thead><tr><th style="width:9%">ID</th><th style="width:38%">Riesgo</th><th style="width:16%">Estado</th><th>Hallazgos</th></tr></thead>
-    <tbody>
-      <tr><td><b>M1</b></td><td>Improper Credential Usage</td><td><span class="chip nc">No cumple</span></td><td>H-01</td></tr>
-      <tr><td><b>M2</b></td><td>Inadequate Supply Chain Security</td><td><span class="chip nc">No cumple</span></td><td>H-05</td></tr>
-      <tr><td><b>M3</b></td><td>Insecure Authentication/Authorization</td><td><span class="chip nc">No cumple</span></td><td>H-03, H-06</td></tr>
-      <tr><td><b>M4</b></td><td>Insufficient Input/Output Validation</td><td><span class="chip ok">Cumple</span></td><td>—</td></tr>
-      <tr><td><b>M5</b></td><td>Insecure Communication</td><td><span class="chip ok">Cumple</span></td><td>— (falta la prueba dinámica)</td></tr>
-      <tr><td><b>M6</b></td><td>Inadequate Privacy Controls</td><td><span class="chip nc">No cumple</span></td><td>H-07, H-08</td></tr>
-      <tr><td><b>M7</b></td><td>Insufficient Binary Protections</td><td><span class="chip nc">No cumple</span></td><td>H-04</td></tr>
-      <tr><td><b>M8</b></td><td>Security Misconfiguration</td><td><span class="chip nc">No cumple</span></td><td>H-01, H-07</td></tr>
-      <tr><td><b>M9</b></td><td>Insecure Data Storage</td><td><span class="chip nc">No cumple</span></td><td>H-02, H-09</td></tr>
-      <tr><td><b>M10</b></td><td>Insufficient Cryptography</td><td><span class="chip ok">Cumple</span></td><td>—</td></tr>
-    </tbody>
-  </table>
+<!-- ============================ RESUMEN ============================ -->
+<section class="salto resumen">
+  <h1>Resumen</h1>
+  <p>Este informe presenta la auditoría de seguridad de MackeUp AI, una aplicación Flutter de asesoría de imagen
+    con backend en Firebase, realizada con la lista OWASP Mobile Top 10 (2024). Se elaboró un modelo de amenazas, se
+    revisaron los diez riesgos con seis técnicas (búsqueda de secretos con gitleaks, análisis de dependencias,
+    revisión del manifiesto, análisis del APK de release, revisión de código de las reglas y de las Cloud Functions, y
+    Logcat en un emulador) y se registraron nueve hallazgos: uno de severidad alta, cinco medios y tres bajos. El más
+    grave fue que el APK de release se firmaba con una llave publicada en el repositorio público. Se corrigieron ocho
+    hallazgos, cada uno en su propio commit, y se verificaron repitiendo la misma prueba antes y después de la
+    corrección. Siete quedaron cerrados por completo, uno quedó cerrado de forma parcial con un riesgo residual
+    justificado, y la integración con App Check quedó como mejora pendiente.</p>
+  <p class="palabras"><i>Palabras clave:</i> seguridad móvil, OWASP Mobile Top 10, Flutter, Firebase, auditoría</p>
 </section>
 
-<!-- ============================ 2. MODELO DE AMENAZAS ============================ -->
+<!-- ============================ INTRODUCCIÓN ============================ -->
 <section class="salto">
-  <h2>2. Modelo de amenazas</h2>
-  <p>Regla base: el dispositivo y la app instalada no son de confianza. Toda decisión de permisos se valida en
-    las reglas de Firebase o en Cloud Functions.</p>
+  <p class="titulo-trabajo">Informe de seguridad de la aplicación móvil MackeUp AI: auditoría con el OWASP Mobile Top 10 (2024)</p>
+  <p>MackeUp AI analiza la colorimetría de la usuaria a partir de una selfie, recomienda maquillaje y ropa, ofrece un
+    simulador de maquillaje en realidad aumentada, un asistente con inteligencia artificial y un módulo para marcas.
+    Su backend usa Firebase Authentication, Cloud Firestore, Cloud Storage, Cloud Functions y Cloud Messaging. La
+    auditoría siguió la guía de la asignatura (Vacca, 2026), que pide modelar las amenazas, auditar la app con el
+    OWASP Mobile Top 10, corregir al menos cinco hallazgos y demostrar el antes y el después.</p>
+  <p>La regla base del trabajo es que el dispositivo y la aplicación instalada no son de confianza: toda decisión de
+    permisos se valida en el servidor. Como marco de referencia se usaron el OWASP Mobile Top 10 (OWASP Foundation,
+    2024a), el estándar de verificación MASVS (OWASP Foundation, 2024b) y la guía de pruebas MASTG en su versión 2.0.0
+    (OWASP Foundation, 2026). Los cambios de la edición 2024 frente a la de 2016 se tomaron del resumen de
+    Holloway-George (2024).</p>
+  <p>Se auditó la rama <code>feature/seguridad</code> del repositorio del proyecto en el commit <code>28fc2f7</code> (12
+    de noviembre de 2026). Las evidencias de este informe ocultan llaves, tokens y datos personales; los reportes
+    completos de las herramientas se guardaron en <code>auditoria/evidencia/</code>, carpeta excluida del repositorio.</p>
 
-  <h3>2.1 Diagrama de la app y flujo de datos</h3>
-  <div class="diagrama">
+  <h1>Método</h1>
+  <h2>Modelo de amenazas</h2>
+  <p>La Figura 1 muestra los componentes de la aplicación, el límite de confianza entre el dispositivo y Firebase, y
+    dónde se guarda cada dato. La Tabla 1 resume los datos sensibles y la Tabla 2 las amenazas identificadas.</p>
+
+  <div class="figura">
+    <p class="numero">Figura 1</p>
+    <p class="titulo-tf">Componentes de MackeUp AI y flujo de datos entre el dispositivo y Firebase</p>
   <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="11">
     <defs>
       <marker id="f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -244,320 +209,263 @@
       <path d="M735,240 C756,280 756,330 737,352"/>
     </g>
   </svg>
+<p class="nota"><i>Nota.</i> La única vía entre el dispositivo y el backend es el SDK de Firebase sobre HTTPS, con el
+      ID token de la usuaria en cada petición. Elaboración propia.</p>
   </div>
 
-  <h3>2.2 Datos sensibles</h3>
-  <table>
-    <thead><tr><th>Dato</th><th>Dónde se guarda</th><th>En tránsito</th><th>Sensibilidad</th></tr></thead>
-    <tbody>
-      <tr><td>Correo y contraseña</td><td>Firebase Auth; en el dispositivo solo el correo (Keystore)</td><td>HTTPS a Auth</td><td><span class="chip alta">Alta</span></td></tr>
-      <tr><td>Sesión (ID token / refresh token)</td><td>Manejado por el SDK de Firebase Auth</td><td>Cabeceras a Functions</td><td><span class="chip alta">Alta</span></td></tr>
-      <tr><td>Selfie y fotos del rostro (AR)</td><td>Temporal de análisis (se borra); capturas AR en archivos de la app</td><td>HTTPS a Storage y Functions</td><td><span class="chip alta">Alta</span> biométrico</td></tr>
-      <tr><td>Rol de administradora / admin de marca</td><td>Custom claims del token de Auth</td><td>—</td><td><span class="chip alta">Alta</span></td></tr>
-      <tr><td>Perfil de colorimetría</td><td>Firestore <code>perfiles_colorimetria</code></td><td>HTTPS</td><td><span class="chip media">Media</span></td></tr>
-      <tr><td>Foto de perfil, conversaciones con la IA, armario</td><td>Storage y Firestore</td><td>HTTPS</td><td><span class="chip media">Media</span></td></tr>
-      <tr><td>Token de notificaciones (FCM)</td><td>Firestore <code>usuarias/{uid}</code></td><td>HTTPS</td><td><span class="chip baja">Baja</span></td></tr>
-    </tbody>
-  </table>
+  <div class="tabla">
+    <p class="numero">Tabla 1</p>
+    <p class="titulo-tf">Datos sensibles que maneja la aplicación</p>
+    <table>
+      <thead><tr><th>Dato</th><th>Dónde se guarda</th><th>En tránsito</th><th>Sensibilidad</th></tr></thead>
+      <tbody>
+        <tr><td>Correo y contraseña</td><td>Firebase Auth; en el dispositivo solo el correo (Keystore)</td><td>HTTPS a Auth</td><td>Alta</td></tr>
+        <tr><td>Sesión (ID token y refresh token)</td><td>SDK de Firebase Auth</td><td>Cabeceras a Functions</td><td>Alta</td></tr>
+        <tr><td>Selfie y fotos del rostro</td><td>Temporal de análisis; capturas AR en archivos de la app</td><td>HTTPS a Storage y Functions</td><td>Alta (biométrico)</td></tr>
+        <tr><td>Rol de administradora o de admin de marca</td><td>Custom claims del token</td><td>—</td><td>Alta</td></tr>
+        <tr><td>Perfil de colorimetría</td><td>Firestore <code>perfiles_colorimetria</code></td><td>HTTPS</td><td>Media</td></tr>
+        <tr><td>Foto de perfil, conversaciones con la IA, armario</td><td>Storage y Firestore</td><td>HTTPS</td><td>Media</td></tr>
+        <tr><td>Token de notificaciones (FCM)</td><td>Firestore <code>usuarias/{uid}</code></td><td>HTTPS</td><td>Baja</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-  <h3>2.3 Amenazas</h3>
-  <table>
-    <thead><tr><th style="width:7%">ID</th><th style="width:37%">Amenaza</th><th style="width:20%">Quién</th><th style="width:10%">OWASP</th><th>Control esperado</th></tr></thead>
-    <tbody>
-      <tr><td>A-01</td><td>Distribuir un APK modificado firmado con la misma llave que la app real, porque la llave está en el repositorio público.</td><td>Cualquiera que clone el repo</td><td>M1, M8</td><td>Llave de release privada; rotar la expuesta (H-01)</td></tr>
-      <tr><td>A-02</td><td>Una marca desactivada o una ex-admin de marca sigue modificando o borrando productos del catálogo.</td><td>Ex-administradora de una marca</td><td>M3</td><td>Reglas que revisen <code>activa</code> y revocación de sesión (H-03)</td></tr>
-      <tr><td>A-03</td><td>Recuperar las fotos del rostro del simulador AR desde el respaldo de Google o una copia del teléfono.</td><td>Persona con acceso a la cuenta o al dispositivo</td><td>M9, M6</td><td>Excluir del respaldo y cifrar (H-02)</td></tr>
-      <tr><td>A-04</td><td>Llamar a las Cloud Functions con un script, sin la app, para gastar la cuota de Gemini o falsear las estadísticas de marcas.</td><td>Atacante externo con cuentas en masa</td><td>M3</td><td>App Check con Play Integrity y llaves restringidas (H-06)</td></tr>
-    </tbody>
-  </table>
-  <p class="pequeno">Ya mitigado en el diseño: modificar la app para entrar al panel de administración no sirve,
-    porque las reglas y las funciones validan el claim <code>admin</code> en el servidor.</p>
+  <div class="tabla">
+    <p class="numero">Tabla 2</p>
+    <p class="titulo-tf">Amenazas identificadas y control esperado</p>
+    <table>
+      <thead><tr><th style="width:7%">ID</th><th style="width:38%">Amenaza</th><th style="width:19%">Quién</th><th style="width:10%">OWASP</th><th>Control esperado</th></tr></thead>
+      <tbody>
+        <tr><td>A-01</td><td>Distribuir un APK modificado firmado con la misma llave que la app real, porque la llave está en el repositorio público.</td><td>Cualquiera que clone el repositorio</td><td>M1, M8</td><td>Llave de release privada (H-01)</td></tr>
+        <tr><td>A-02</td><td>Una marca desactivada o una ex-admin de marca sigue modificando el catálogo.</td><td>Ex-administradora de una marca</td><td>M3</td><td>Reglas que revisen marca activa y lista de admins (H-03)</td></tr>
+        <tr><td>A-03</td><td>Recuperar las fotos del rostro del simulador AR desde el respaldo de Google o una copia del teléfono.</td><td>Persona con acceso a la cuenta o al dispositivo</td><td>M9, M6</td><td>Excluir los datos del respaldo (H-02)</td></tr>
+        <tr><td>A-04</td><td>Llamar a las Cloud Functions con un script, sin la app, para gastar la cuota de Gemini o falsear estadísticas.</td><td>Atacante con cuentas creadas en masa</td><td>M3</td><td>App Check con Play Integrity (H-06)</td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> Modificar la app para entrar al panel de administración ya está mitigado: las reglas y las
+      funciones validan el claim <code>admin</code> en el servidor.</p>
+  </div>
+
+  <h2>Técnicas de auditoría</h2>
+  <p>La guía exige al menos dos técnicas (Vacca, 2026); se usaron seis, todas automatizadas con scripts en
+    <code>auditoria/scripts/</code> que guardan su salida con fecha y commit para poder repetir la prueba después de cada
+    corrección (Tabla 3). Las pruebas dinámicas se hicieron con el APK de release instalado en un emulador Android 15.
+    Por política del grupo no se inició sesión ni se crearon cuentas en el proyecto real de Firebase; las reglas se
+    probaron en el emulador local de Firebase con un proyecto de demostración.</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 3</p>
+    <p class="titulo-tf">Técnicas, herramientas y riesgos cubiertos</p>
+    <table>
+      <thead><tr><th style="width:24%">Técnica</th><th style="width:30%">Herramienta</th><th style="width:13%">Riesgos</th><th>Alcance</th></tr></thead>
+      <tbody>
+        <tr><td>Secretos en código e historial</td><td>gitleaks 8.30.1 (Rice, 2025)</td><td>M1, M10</td><td>81 commits, todas las ramas y los archivos actuales</td></tr>
+        <tr><td>Dependencias</td><td><code>flutter pub outdated</code>, <code>npm audit</code></td><td>M2</td><td>Paquetes de Flutter y de Cloud Functions</td></tr>
+        <tr><td>Manifiesto y permisos</td><td>Script propio y <code>apkanalyzer</code></td><td>M5, M6, M8</td><td>Manifiesto fuente y del APK, <code>Info.plist</code></td></tr>
+        <tr><td>Análisis del APK de release</td><td><code>apkanalyzer</code>, <code>apksigner</code></td><td>M7, M8</td><td>Firma, depurable, símbolos en <code>libapp.so</code>, R8</td></tr>
+        <tr><td>Revisión de código</td><td>Lectura de reglas y 14 Cloud Functions; emulador de Firebase</td><td>M3, M4, M9</td><td>Autorización, validación, almacenamiento</td></tr>
+        <tr><td>Ejecución en emulador</td><td>Logcat y mitmproxy 12.3.1 (mitmproxy Project, 2025)</td><td>M5, M9</td><td>Arranque de la app sin sesión</td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> El análisis con MobSF no se realizó porque Docker Desktop no arrancó en el equipo de
+      trabajo. La prueba con mitmproxy no generó tráfico sin sesión y debe repetirse con una cuenta de prueba.</p>
+  </div>
 </section>
 
-<!-- ============================ 3. METODOLOGÍA ============================ -->
+<!-- ============================ RESULTADOS ============================ -->
 <section class="salto">
-  <h2>3. Metodología</h2>
-  <p>La auditoría se hizo sobre el commit <code>28fc2f7</code> con scripts reproducibles en
-    <code>auditoria/scripts/</code>. Cada script guarda su salida con fecha y commit, para repetir la misma prueba
-    después de cada corrección (Fase 4).</p>
-  <table>
-    <thead><tr><th style="width:26%">Técnica</th><th style="width:24%">Herramienta / script</th><th style="width:16%">Riesgos</th><th>Resultado</th></tr></thead>
-    <tbody>
-      <tr><td>Secretos en código e historial</td><td>gitleaks 8.30.1 — <code>escanear_secretos.ps1</code></td><td>M1, M10</td><td>81 commits y todas las ramas; 6 coincidencias en el historial, 3 en los archivos actuales</td></tr>
-      <tr><td>Dependencias</td><td><code>flutter pub outdated</code>, <code>npm audit</code> — <code>revisar_dependencias.ps1</code></td><td>M2</td><td>10 vulnerabilidades en <code>functions/</code></td></tr>
-      <tr><td>Manifiesto y permisos</td><td><code>revisar_manifiesto.ps1</code></td><td>M5, M6, M8</td><td>Fuente y fusionado de release, <code>Info.plist</code></td></tr>
-      <tr><td>Análisis del APK de release</td><td><code>apkanalyzer</code>, <code>apksigner</code> — <code>construir_apk.ps1</code></td><td>M7, M8</td><td>Firma, <code>debuggable</code>, símbolos en <code>libapp.so</code></td></tr>
-      <tr><td>Revisión de código</td><td>Lectura de <code>firestore.rules</code>, <code>storage.rules</code> y 14 Cloud Functions</td><td>M3, M4, M9</td><td>Autorización, validación de entradas, almacenamiento</td></tr>
-      <tr><td>Logs y tráfico en ejecución</td><td>Logcat y mitmproxy 12.3.1 en el emulador <code>auditoria_api35</code></td><td>M5, M9</td><td>Pendiente: se ejecutan en la Fase 4</td></tr>
-    </tbody>
-  </table>
-  <div class="nota"><b>Reglas seguidas:</b> solo se probó nuestra app y nuestro proyecto de Firebase. Ninguna evidencia
-    muestra llaves completas, tokens ni datos personales: las llaves aparecen recortadas como <code>AIzaSyAl…</code>.</div>
-</section>
+  <h1>Resultados</h1>
+  <h2>Revisión del OWASP Mobile Top 10</h2>
+  <p>La Tabla 4 resume el estado de cada riesgo en la versión auditada. Tres riesgos cumplen y siete no cumplen; el
+    detalle de cada uno se presenta a continuación.</p>
 
-<!-- ============================ 4. TOP 10 ============================ -->
-<section class="salto">
-  <h2>4. Revisión del OWASP Mobile Top 10</h2>
+  <div class="tabla">
+    <p class="numero">Tabla 4</p>
+    <p class="titulo-tf">Estado de los riesgos del OWASP Mobile Top 10 (2024) en la versión auditada</p>
+    <table>
+      <thead><tr><th style="width:9%">ID</th><th style="width:44%">Riesgo</th><th style="width:16%">Estado</th><th>Hallazgos</th></tr></thead>
+      <tbody>
+        <tr><td>M1</td><td>Improper Credential Usage</td><td>No cumple</td><td>H-01</td></tr>
+        <tr><td>M2</td><td>Inadequate Supply Chain Security</td><td>No cumple</td><td>H-05</td></tr>
+        <tr><td>M3</td><td>Insecure Authentication/Authorization</td><td>No cumple</td><td>H-03, H-06</td></tr>
+        <tr><td>M4</td><td>Insufficient Input/Output Validation</td><td>Cumple</td><td>—</td></tr>
+        <tr><td>M5</td><td>Insecure Communication</td><td>Cumple</td><td>—</td></tr>
+        <tr><td>M6</td><td>Inadequate Privacy Controls</td><td>No cumple</td><td>H-07, H-08</td></tr>
+        <tr><td>M7</td><td>Insufficient Binary Protections</td><td>No cumple</td><td>H-04</td></tr>
+        <tr><td>M8</td><td>Security Misconfiguration</td><td>No cumple</td><td>H-01, H-07</td></tr>
+        <tr><td>M9</td><td>Insecure Data Storage</td><td>No cumple</td><td>H-02, H-09</td></tr>
+        <tr><td>M10</td><td>Insufficient Cryptography</td><td>Cumple</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> Riesgos según OWASP Foundation (2024a).</p>
+  </div>
 
-  <h3>M1 · Improper Credential Usage — <span class="chip nc">No cumple</span></h3>
-  <p>gitleaks marca como <code>gcp-api-key</code> las llaves de cliente de Firebase en <code>lib/firebase_options.dart</code>
-    y <code>android/app/google-services.json</code> (4 distintas en el historial por el cambio de proyecto). Son
-    identificadores públicos por diseño: el acceso lo controlan las reglas, así que se aceptan como falso positivo,
-    con la condición de restringirlas (H-06). La llave de Gemini está en Secret Manager (<code>defineSecret</code>),
-    <code>functions/.env</code> solo tiene el nombre del modelo en todo su historial y las cuentas de servicio están en
-    <code>.gitignore</code>. <b>Sí hay una credencial expuesta:</b> <code>debug.keystore</code> y su contraseña, que
-    además firman el release (H-01).</p>
+  <h3>M1. Improper Credential Usage: no cumple</h3>
+  <p>gitleaks marcó como <code>gcp-api-key</code> cuatro llaves de cliente de Firebase en el historial, en
+    <code>lib/firebase_options.dart</code> y <code>android/app/google-services.json</code>. Google las trata como
+    identificadores públicos cuyo acceso controlan las reglas (Google, s.&nbsp;f.-a), por lo que se aceptaron como falso
+    positivo con la condición de restringirlas. La llave de Gemini está en Secret Manager y no aparece en el código.
+    Sí hay una credencial expuesta: <code>debug.keystore</code>, con su contraseña escrita en Gradle, firmaba también el
+    release (H-01).</p>
   <pre>gitleaks git --log-opts=--all   →  81 commits scanned · leaks found: 6
   4  gcp-api-key  lib/firebase_options.dart
   2  gcp-api-key  android/app/google-services.json</pre>
 
-  <h3>M2 · Inadequate Supply Chain Security — <span class="chip nc">No cumple</span></h3>
-  <p><code>npm audit</code> en <code>functions/</code> reporta 10 vulnerabilidades transitivas con arreglo disponible
-    (H-05). En Flutter hay versiones mayores pendientes de Firebase y ML Kit, sin avisos de seguridad publicados, y
-    un <code>dependency_overrides</code> que fija <code>permission_handler_android</code> en 13.0.1.</p>
+  <h3>M2. Inadequate Supply Chain Security: no cumple</h3>
+  <p><code>npm audit</code> en <code>functions/</code> reportó diez vulnerabilidades transitivas, una de ellas alta en
+    <code>body-parser</code> (H-05). En Flutter había versiones mayores pendientes de Firebase y ML Kit sin avisos de
+    seguridad publicados.</p>
 
-  <h3>M3 · Insecure Authentication/Authorization — <span class="chip nc">No cumple</span></h3>
-  <p><b>Cumple:</b> las 11 funciones <code>onCall</code> exigen sesión y las de administración verifican el claim
-    <code>admin</code> en el servidor. Las reglas limitan cada colección a su dueña, impiden asignarse <code>rol</code>
-    o <code>marcaId</code> y cierran las colecciones internas. <code>eliminarCuenta</code> exige reautenticación
-    reciente. <b>Falla:</b> una marca desactivada conserva permisos de escritura y quitar el rol no revoca la sesión
-    (H-03). Además, no hay App Check (H-06).</p>
+  <h3>M3. Insecure Authentication/Authorization: no cumple</h3>
+  <p>Las once funciones invocables exigen sesión y las de administración verifican el claim <code>admin</code> en el
+    servidor. Las reglas limitan cada colección a su dueña e impiden asignarse un rol desde el cliente. Sin embargo, una
+    marca desactivada conservaba permisos de escritura y retirar el rol no revocaba la sesión (H-03). Tampoco había App
+    Check (H-06), el mecanismo de Firebase para aceptar solo peticiones de la app legítima (Google, s.&nbsp;f.-b).</p>
 
-  <h3>M4 · Insufficient Input/Output Validation — <span class="chip ok">Cumple</span></h3>
-  <p>Cada función valida tipos, largos y listas blancas: mensajes de chat de hasta 500 caracteres y 10 de historial,
-    límite de mensajes por minuto, <code>limite</code> entre 1 y 50, identificadores sin <code>/</code> y rutas de
-    temporales con patrón estricto que evita <code>..</code>. Las reglas validan tipos y enumeraciones y los
-    formularios validan URL y correo. No hay deep links. <span class="pequeno">Observación: el historial del chat lo
-    envía el cliente; el impacto se limita a la propia conversación.</span></p>
+  <h3>M4. Insufficient Input/Output Validation: cumple</h3>
+  <p>Cada función valida tipos, largos y listas blancas: mensajes de chat de hasta 500 caracteres, límite de mensajes
+    por minuto, identificadores sin barras y rutas de archivos temporales con un patrón estricto. Las reglas validan
+    tipos y enumeraciones, y la app no declara deep links.</p>
 
-  <h3>M5 · Insecure Communication — <span class="chip ok">Cumple</span></h3>
-  <p>No se define <code>usesCleartextTraffic</code> ni <code>network_security_config</code>. Con <code>targetSdk</code> 36
-    el tráfico en claro está bloqueado por defecto y todo va por HTTPS a servicios de Google. <code>Info.plist</code>
-    no tiene <code>NSAllowsArbitraryLoads</code>. La prueba con mitmproxy queda para la Fase 4. No hay certificate
-    pinning (mejora opcional).</p>
+  <h3>M5. Insecure Communication: cumple</h3>
+  <p>La app no habilita tráfico en claro; con <code>targetSdk</code> 36 está bloqueado por defecto y todo el tráfico va
+    por HTTPS a servicios de Google. No hay certificate pinning, que queda como mejora opcional.</p>
 
-  <h3>M6 · Inadequate Privacy Controls — <span class="chip nc">No cumple</span></h3>
-  <p><b>Cumple:</b> la colorimetría pide consentimiento; las selfies se analizan en un temporal que se borra y las que
-    van a Functions se eliminan en menos de una hora; existe la eliminación de cuenta. <b>Falla:</b> se piden permisos
-    de galería innecesarios (H-07) y las fotos de perfil son legibles por cualquier usuaria (H-08).</p>
+  <h3>M6. Inadequate Privacy Controls: no cumple</h3>
+  <p>La colorimetría pide consentimiento y las selfies se borran después del análisis. Sin embargo, la app declaraba
+    permisos de galería, micrófono y biometría que no usa (H-07) y cualquier usuaria podía leer la foto de perfil de
+    otra (H-08).</p>
 
-  <h3>M7 · Insufficient Binary Protections — <span class="chip nc">No cumple</span></h3>
-  <p>El código Dart se compila sin <code>--obfuscate</code>: nombres de clases y métodos quedan legibles en
-    <code>libapp.so</code> (H-04). No hay verificación de integridad del dispositivo ni de la app (H-06).</p>
-  <pre>APK release (commit 28fc2f7) — lib/arm64-v8a/libapp.so
+  <h3>M7. Insufficient Binary Protections: no cumple</h3>
+  <p>El código Dart se compilaba sin ofuscar (H-04). R8 sí estaba activo en la parte Java del APK.</p>
+  <pre>APK release (28fc2f7) — lib/arm64-v8a/libapp.so
   rutas "package:mackeupai/...dart" legibles:  209
-  nombres: CredencialRepository · CapturasArRepository · asignarAdminMarca · correoRecordado
-classes.dex: 989 clases renombradas por R8 (Logcat: t7.b.call()(r8-map-id-...))
-apkanalyzer manifest debuggable  →  false</pre>
+  nombres: CredencialRepository · CapturasArRepository · asignarAdminMarca
+classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable → false</pre>
 
-  <h3>M8 · Security Misconfiguration — <span class="chip nc">No cumple</span></h3>
-  <p>El release no es <code>debuggable</code> y el único componente exportado es <code>MainActivity</code> (el lanzador).
-    Pero el release se firma con la llave de depuración pública (H-01) y pide permisos de más (H-07). En iOS faltan
-    <code>NSCameraUsageDescription</code> y <code>NSPhotoLibraryUsageDescription</code> (observación, la entrega es Android).</p>
+  <h3>M8. Security Misconfiguration: no cumple</h3>
+  <p>El release no es depurable y el único componente exportado propio es la actividad principal. Sin embargo, el
+    release se firmaba con la llave de depuración pública (H-01) y pedía permisos de más (H-07).</p>
 
-  <h3>M9 · Insecure Data Storage — <span class="chip nc">No cumple</span></h3>
-  <p><b>Cumple:</b> <code>flutter_secure_storage</code> (Keystore) solo guarda el correo recordado y la marca del
-    onboarding; nunca contraseñas ni tokens. <b>Falla:</b> las capturas AR del rostro se guardan sin cifrar y entran en
-    el respaldo de Android (H-02), y 16 <code>debugPrint</code> escriben en Logcat en release (H-09).</p>
+  <h3>M9. Insecure Data Storage: no cumple</h3>
+  <p><code>flutter_secure_storage</code> solo guarda el correo recordado y nunca contraseñas ni tokens. Sin embargo, las
+    capturas AR del rostro se guardaban sin cifrar y entraban en el respaldo de Android (H-02), y 16 llamadas a
+    <code>debugPrint</code> escribían en Logcat en release (H-09).</p>
 
-  <h3>M10 · Insufficient Cryptography — <span class="chip ok">Cumple</span></h3>
-  <p>No se usan MD5, SHA-1, DES ni ECB, ni hay llaves embebidas. El único hash propio es SHA-256, que seudonimiza a
-    la usuaria en las estadísticas del servidor. El cifrado local lo hace el Keystore.</p>
+  <h3>M10. Insufficient Cryptography: cumple</h3>
+  <p>No se usan MD5, SHA-1, DES ni ECB, ni hay llaves embebidas. El único hash propio es SHA-256 para seudonimizar
+    estadísticas en el servidor.</p>
+
+  <h2>Hallazgos</h2>
+  <p>La Tabla 5 registra los nueve hallazgos con el formato que pide la guía (Vacca, 2026), ordenados por severidad.</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 5</p>
+    <p class="titulo-tf">Registro de hallazgos de la auditoría</p>
+    <table>
+      <thead><tr><th style="width:6%">ID</th><th style="width:8%">OWASP</th><th style="width:30%">Descripción</th><th style="width:26%">Evidencia</th><th style="width:8%">Sev.</th><th>Corrección propuesta</th></tr></thead>
+      <tbody>
+        <tr><td>H-01</td><td>M1, M8</td><td>El release se firma con <code>debug.keystore</code>, publicado en el repositorio con su contraseña.</td><td><code>build.gradle.kts</code> L31-44; <code>apksigner</code>: <code>CN=Android Debug</code></td><td>Alta</td><td>Llave de release fuera del repositorio.</td></tr>
+        <tr><td>H-02</td><td>M9</td><td>Capturas AR del rostro sin cifrar e incluidas en el respaldo de Android.</td><td><code>allowBackup</code> sin definir; <code>dumpsys</code>: <code>ALLOW_BACKUP</code></td><td>Media</td><td>Desactivar el respaldo y excluir los datos.</td></tr>
+        <tr><td>H-03</td><td>M3</td><td>Marca desactivada o ex-admin siguen escribiendo en el catálogo.</td><td><code>firestore.rules</code> L131-139; <code>marcas.ts</code> L367</td><td>Media</td><td>Exigir marca activa y correo en <code>admins</code>; revocar sesión.</td></tr>
+        <tr><td>H-04</td><td>M7</td><td>Código Dart sin ofuscar en release.</td><td>209 rutas legibles en <code>libapp.so</code></td><td>Media</td><td>Compilar con <code>--obfuscate</code>.</td></tr>
+        <tr><td>H-05</td><td>M2</td><td>Diez vulnerabilidades en dependencias de Functions.</td><td><code>npm audit</code>: 1 alta, 8 moderadas, 1 baja</td><td>Media</td><td><code>npm audit fix</code> y actualizar <code>firebase-admin</code>.</td></tr>
+        <tr><td>H-06</td><td>M3, M1</td><td>Backend sin App Check.</td><td>Sin <code>app_check</code> en el código</td><td>Media</td><td>App Check con Play Integrity.</td></tr>
+        <tr><td>H-07</td><td>M6, M8</td><td>Permisos que la app no usa (galería, micrófono, biometría).</td><td>Manifiesto del APK: 14 permisos</td><td>Baja</td><td>Quitarlos con <code>tools:node="remove"</code>.</td></tr>
+        <tr><td>H-08</td><td>M6</td><td>Fotos de perfil legibles por cualquier usuaria.</td><td><code>storage.rules</code> L18-19</td><td>Baja</td><td>Lectura solo de la dueña o la admin.</td></tr>
+        <tr><td>H-09</td><td>M9</td><td>16 <code>debugPrint</code> activos en release.</td><td>Revisión de código</td><td>Baja</td><td>Silenciar <code>debugPrint</code> en release.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Correcciones</h2>
+  <p>Se corrigieron ocho de los nueve hallazgos, empezando por el de mayor severidad, cada uno en su propio commit con
+    su identificador en el mensaje (Tabla 6). Antes de cada commit se ejecutaron <code>flutter analyze</code>,
+    <code>flutter test</code> (326 pruebas) y <code>npm test</code> (51 pruebas). Las correcciones siguen las guías de
+    Android sobre respaldo automático, selector de fotos y firma de apps (Android Developers, s.&nbsp;f.-a, s.&nbsp;f.-b,
+    s.&nbsp;f.-c) y la de Flutter sobre ofuscación (Flutter, s.&nbsp;f.).</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 6</p>
+    <p class="titulo-tf">Correcciones aplicadas y mejora obligatoria que cubren</p>
+    <table>
+      <thead><tr><th style="width:7%">ID</th><th style="width:22%">Mejora obligatoria</th><th>Cambio</th><th style="width:12%">Commit</th></tr></thead>
+      <tbody>
+        <tr><td>H-01</td><td>Ningún secreto en el repositorio</td><td>Release firmado con una llave propia (<code>key.properties</code> y <code>.jks</code> ignorados por Git); Gradle se detiene si falta.</td><td><code>e85e1aa</code></td></tr>
+        <tr><td>H-03</td><td>Permisos validados en el servidor</td><td>Reglas exigen marca activa y correo en <code>admins</code>; se revocan los refresh tokens al cambiar el rol.</td><td><code>bca8a32</code></td></tr>
+        <tr><td>H-02</td><td>Datos sensibles protegidos</td><td><code>allowBackup="false"</code> y reglas de extracción que excluyen todo.</td><td><code>868452b</code></td></tr>
+        <tr><td>H-04</td><td>Release ofuscado y con R8</td><td>Build con <code>--obfuscate --split-debug-info</code>; símbolos fuera del repositorio.</td><td><code>4d1386e</code></td></tr>
+        <tr><td>H-09</td><td>Release sin logs sensibles</td><td><code>debugPrint</code> vacío en release (<code>lib/main.dart</code>).</td><td><code>f88462c</code></td></tr>
+        <tr><td>H-05</td><td>Dependencias sin vulnerabilidades</td><td><code>npm audit fix</code> y <code>firebase-admin</code> 14.5.1.</td><td><code>0e8c8f5</code></td></tr>
+        <tr><td>H-07</td><td>Mínimo privilegio</td><td>Se quitan seis permisos que la app no usa.</td><td><code>2738357</code></td></tr>
+        <tr><td>H-08</td><td>Mínimo privilegio</td><td>Foto de perfil legible solo por su dueña o la admin.</td><td><code>32401ed</code></td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> H-06 no se implementó porque App Check exige registrar la app en Play Integrity desde la
+      consola de Firebase. Las reglas y funciones corregidas deben publicarse con <code>firebase deploy</code>.</p>
+  </div>
+
+  <h2>Verificación</h2>
+  <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada y sobre la rama corregida (Tabla 7). Un
+    hallazgo solo se consideró cerrado si la prueba repetida ya no lo reproducía.</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 7</p>
+    <p class="titulo-tf">Resultado de las pruebas antes y después de cada corrección</p>
+    <table>
+      <thead><tr><th style="width:7%">ID</th><th style="width:22%">Prueba</th><th>Antes</th><th>Después</th><th style="width:10%">Cerrado</th></tr></thead>
+      <tbody>
+        <tr><td>H-01</td><td><code>apksigner verify</code></td><td><code>CN=Android Debug</code> (llave del repositorio)</td><td><code>CN=MackeUp AI, O=UNICESAR</code> (llave propia)</td><td>Sí</td></tr>
+        <tr><td>H-02</td><td><code>dumpsys package</code></td><td>Bandera <code>ALLOW_BACKUP</code></td><td>Sin <code>ALLOW_BACKUP</code></td><td>Sí</td></tr>
+        <tr><td>H-03</td><td>Emulador de reglas</td><td>Ex-admin y marca desactivada escriben (200)</td><td>Ambas reciben 403; la admin vigente, 200</td><td>Sí</td></tr>
+        <tr><td>H-04</td><td>Rutas en <code>libapp.so</code></td><td>209 rutas y nombres de clases</td><td>0 rutas; sin nombres de clases</td><td>Sí</td></tr>
+        <tr><td>H-05</td><td><code>npm audit</code></td><td>10 (1 alta)</td><td>7 moderadas, 0 altas</td><td>Parcial</td></tr>
+        <tr><td>H-07</td><td>Permisos del APK</td><td>14, con micrófono y almacenamiento</td><td>8, sin micrófono, almacenamiento ni biometría</td><td>Sí</td></tr>
+        <tr><td>H-08</td><td>Emulador de reglas</td><td>Otra usuaria lee la foto (200)</td><td>Otra usuaria, 403; la dueña, 200</td><td>Sí</td></tr>
+        <tr><td>H-09</td><td>Código y Logcat del release</td><td>16 <code>debugPrint</code> activos</td><td>Ninguna línea de la app en Logcat</td><td>Sí</td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> La prueba de reglas usa el emulador local de Firebase con el proyecto
+      <code>demo-auditoria</code>, sin acceso al proyecto real.</p>
+  </div>
+  <pre>probar_reglas.ps1 -Commit 28fc2f7  →  Resultado: 4 caso(s) no cumplen
+probar_reglas.ps1  (corregido)     →  Resultado: todas las reglas se comportan como se espera
+npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 moderate</pre>
 </section>
 
-<!-- ============================ 5. HALLAZGOS ============================ -->
-<section class="salto">
-  <h2>5. Hallazgos</h2>
-
-  <div class="hallazgo">
-    <header><span class="chip alta">Alta</span><b>H-01 · Release firmado con una llave publicada</b><span class="owasp">M1 · M8</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>El APK de release se firma con <code>android/app/debug.keystore</code>, versionado en un
-        repositorio <b>público</b> con su contraseña escrita en Gradle. Cualquiera puede firmar un APK con la misma firma
-        y distribuirlo como actualización por fuera de la tienda. Su huella está registrada en Firebase para el inicio de
-        sesión con Google.</dd>
-      <dt>Evidencia</dt><dd><pre>android/app/build.gradle.kts
-31  signingConfigs { getByName("debug") {
-32      storeFile = file("debug.keystore")
-33      storePassword = "android"  …  }}
-40  buildTypes { release {
-44      signingConfig = signingConfigs.getByName("debug") }}
-
-$ git ls-files | grep keystore   →  android/app/debug.keystore   (commit 6830141)</pre></dd>
-      <dt>Corrección</dt><dd>Llave de release fuera del repo (<code>key.properties</code> + <code>.jks</code> en
-        <code>.gitignore</code>) y registrar su SHA en Firebase. Sacar <code>debug.keystore</code> del repo y rotar la
-        huella registrada.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip media">Media</span><b>H-02 · Fotos del rostro sin cifrar y dentro del respaldo</b><span class="owasp">M9</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>Las capturas del simulador AR se guardan en PNG en
-        <code>getApplicationDocumentsDirectory()/resultados_ar/</code>. La carpeta de cada cuenta es el uid en base64, lo
-        que no las protege. <code>android:allowBackup</code> no está definido (por defecto <code>true</code>): las fotos
-        y la caché de Firestore se copian al respaldo de Google y a la transferencia entre teléfonos.</dd>
-      <dt>Evidencia</dt><dd><pre>revisar_manifiesto.ps1 → &lt;application&gt;
-  allowBackup            (sin definir)
-  fullBackupContent      (sin definir)
-  dataExtractionRules    (sin definir)
-lib/data/repositories/capturas_ar_repository.dart L10-33  →  File('…/resultados_ar/$cuenta/$id.png')</pre></dd>
-      <dt>Corrección</dt><dd><code>android:allowBackup="false"</code> o reglas de extracción que excluyan
-        <code>resultados_ar/</code> y la base de Firestore. Opcional: cifrar las capturas con una llave en Keystore.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip media">Media</span><b>H-03 · Permisos de marca que no se retiran</b><span class="owasp">M3</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>Al desactivar una marca, <code>resumenMarca</code> le bloquea el panel, pero las reglas
-        solo miran el claim <code>marcaId</code>: su admin sigue pudiendo crear, editar y borrar productos e imágenes.
-        Además, <code>asignarAdminMarca</code> cambia el claim sin revocar la sesión, así que quien pierde el rol lo
-        conserva hasta que expire su token (hasta 1 hora).</dd>
-      <dt>Evidencia</dt><dd><pre>firestore.rules L131-139  allow create/update/delete … esAdminMarca(marcaId)   // no revisa marcas/{id}.activa
-storage.rules  L35-40     request.auth.token.get('marcaId', null) == marcaId
-functions/src/marcas.ts L367  auth.setCustomUserClaims(uid, claims)    // sin revokeRefreshTokens</pre></dd>
-      <dt>Corrección</dt><dd>Exigir <code>get(/…/marcas/$(marcaId)).data.activa == true</code> en Firestore y Storage para
-        la admin de marca, y llamar a <code>auth.revokeRefreshTokens(uid)</code> al quitar o cambiar la marca.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip media">Media</span><b>H-04 · Código Dart sin ofuscar en release</b><span class="owasp">M7</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>El release se compila sin <code>--obfuscate --split-debug-info</code>. Los nombres de clases,
-        métodos y rutas del proyecto quedan legibles en <code>libapp.so</code>, lo que facilita entender la lógica de
-        roles y las llamadas al backend.</dd>
-      <dt>Evidencia</dt><dd><pre>flutter build apk --release            (sin --obfuscate)
-grep -a -o "package:mackeupai/.*.dart" libapp.so | sort -u | wc -l   →  209
-grep -a -c "CredencialRepository" libapp.so                       →  1</pre></dd>
-      <dt>Corrección</dt><dd><code>flutter build apk --release --obfuscate --split-debug-info=build/simbolos</code>
-        (opción <code>-Ofuscado</code> del script), con los símbolos guardados fuera del repo.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip media">Media</span><b>H-05 · Dependencias con vulnerabilidades conocidas</b><span class="owasp">M2</span></header>
-    <dl>
-      <dt>Descripción</dt><dd><code>npm audit</code> en <code>functions/</code>: 10 vulnerabilidades transitivas, todas con arreglo.</dd>
-      <dt>Evidencia</dt><dd><pre>body-parser 2.0.0 - 2.3.0   Severity: high      (denegación de servicio)
-minimatch, qs, uuid, google-gax …   Severity: moderate
-10 vulnerabilities (1 low, 8 moderate, 1 high)  ·  fix available via `npm audit fix`</pre></dd>
-      <dt>Corrección</dt><dd><code>npm audit fix</code>, actualizar <code>firebase-admin</code> (14.5.0 → 14.5.1), correr
-        <code>npm test</code> y repetir el análisis.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip media">Media</span><b>H-06 · Backend sin App Check</b><span class="owasp">M3 · M1</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>Functions, Firestore y Storage aceptan peticiones de cualquier cliente que use la
-        configuración pública, que está en un repositorio público. Un script puede crear cuentas y llamar a
-        <code>chatAsistente</code> (gasta cuota de Gemini) o falsear eventos de marcas. No se pudo verificar si las llaves
-        tienen restricciones en Google Cloud.</dd>
-      <dt>Evidencia</dt><dd><pre>grep -r "app_check|AppCheck|enforceAppCheck" pubspec.yaml lib functions/src   →  sin resultados</pre></dd>
-      <dt>Corrección</dt><dd><code>firebase_app_check</code> con Play Integrity, <code>enforceAppCheck: true</code> en las
-        funciones y activación en Firestore y Storage; restringir las llaves por paquete, SHA y API. (Mejora opcional del PDF.)</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip baja">Baja</span><b>H-07 · Permisos que la app no usa</b><span class="owasp">M6 · M8</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>Se declaran y se piden <code>READ_MEDIA_IMAGES</code> y <code>READ_EXTERNAL_STORAGE</code>,
-        aunque <code>image_picker</code> usa el selector del sistema, que no los necesita en Android 13+. El APK final además declara <code>RECORD_AUDIO</code>, <code>WRITE_EXTERNAL_STORAGE</code>, <code>USE_BIOMETRIC</code> y <code>USE_FINGERPRINT</code> (de plugins) sin usarlos: las cámaras usan <code>enableAudio: false</code>.</dd>
-      <dt>Evidencia</dt><dd><pre>AndroidManifest.xml L6-9   READ_MEDIA_IMAGES · READ_EXTERNAL_STORAGE (maxSdk 32)
-permisos_service.dart L34-39   [Permission.photos, Permission.storage]
-apkanalyzer manifest print (APK release) → + RECORD_AUDIO · WRITE_EXTERNAL_STORAGE · USE_BIOMETRIC · USE_FINGERPRINT</pre></dd>
-      <dt>Corrección</dt><dd>Quitar esos permisos (los de plugins con <code>tools:node="remove"</code>) y la solicitud de <code>Permission.photos</code>.</dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip baja">Baja</span><b>H-08 · Fotos de perfil visibles para todas</b><span class="owasp">M6</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>Cualquier usuaria con sesión puede leer <code>perfiles/{uid}/foto.jpg</code> de otra; la app
-        no tiene ninguna función que lo requiera.</dd>
-      <dt>Evidencia</dt><dd><pre>storage.rules L18-19   match /perfiles/{uid}/{archivo} { allow read: if logueada(); }</pre></dd>
-      <dt>Corrección</dt><dd><code>allow read: if esDuena(uid) || esAdmin();</code></dd>
-    </dl>
-  </div>
-
-  <div class="hallazgo">
-    <header><span class="chip baja">Baja</span><b>H-09 · Logs de depuración activos en release</b><span class="owasp">M9</span></header>
-    <dl>
-      <dt>Descripción</dt><dd>16 <code>debugPrint</code> sin <code>kDebugMode</code> escriben en Logcat en release: errores
-        de Firebase Messaging y del detector AR, stack traces y metadatos de la cámara. No se vieron tokens ni datos
-        personales.</dd>
-      <dt>Evidencia</dt><dd><pre>simulador_ar_view_model.dart L267  debugPrint('AR error real: $mensaje');
-                             L268  if (stack != null) debugPrint(stack.toString());
-notificaciones_provider.dart L51   debugPrint('No se pudo guardar el token FCM: $e');
-… 16 en total (simulador AR, maquillaje AR, malla facial, notificaciones)</pre></dd>
-      <dt>Corrección</dt><dd>Envolver en <code>if (kDebugMode)</code> o usar un logger que se apague en release; verificar
-        con <code>logcat.ps1 -Release</code>.</dd>
-    </dl>
-  </div>
-</section>
-
-<!-- ============================ 6. CORRECCIONES ============================ -->
-<section class="salto">
-  <h2>6. Correcciones</h2>
-  <p>Se corrigieron <b>8 de los 9 hallazgos</b>, empezando por el de mayor severidad, cada uno en su propio commit
-    de la rama <code>feature/seguridad</code> con su ID en el mensaje. Antes de cada commit pasaron
-    <code>flutter analyze</code>, <code>flutter test</code> (326 tests) y <code>npm test</code> (51 tests).</p>
-  <table>
-    <thead><tr><th style="width:7%">ID</th><th style="width:22%">Mejora obligatoria</th><th>Cambio</th><th style="width:11%">Commit</th></tr></thead>
-    <tbody>
-      <tr><td>H-01</td><td>Ningún secreto en el repositorio</td><td>El release se firma con una llave propia (<code>android/key.properties</code> + <code>.jks</code>, ignorados por Git). Gradle se detiene si falta, en vez de usar la de depuración. Script <code>crear_llave_release.ps1</code>.</td><td><code>e85e1aa</code></td></tr>
-      <tr><td>H-03</td><td>Permisos validados en el servidor</td><td>Firestore y Storage exigen marca activa y correo en <code>marcas/{id}.admins</code>; <code>asignarAdminMarca</code> revoca los refresh tokens; <code>resumenMarca</code> revisa la lista. Test nuevo.</td><td><code>bca8a32</code></td></tr>
-      <tr><td>H-02</td><td>Datos sensibles guardados de forma segura</td><td><code>allowBackup="false"</code>, <code>fullBackupContent="false"</code> y reglas de extracción que excluyen todo (capturas AR y caché de Firestore).</td><td><code>868452b</code></td></tr>
-      <tr><td>H-04</td><td>Release con R8 y ofuscado</td><td>Build de release con <code>--obfuscate --split-debug-info</code> por defecto; símbolos fuera del repo.</td><td><code>4d1386e</code></td></tr>
-      <tr><td>H-09</td><td>Release sin logs sensibles</td><td><code>debugPrint</code> pasa a ser una función vacía en release (<code>lib/main.dart</code>).</td><td><code>f88462c</code></td></tr>
-      <tr><td>H-05</td><td>Dependencias sin vulnerabilidades</td><td><code>npm audit fix</code> y <code>firebase-admin</code> 14.5.1: se elimina la vulnerabilidad alta.</td><td><code>0e8c8f5</code></td></tr>
-      <tr><td>H-07</td><td>Mínimo privilegio</td><td>Se quitan <code>READ_MEDIA_IMAGES</code>, <code>READ_EXTERNAL_STORAGE</code> y, con <code>tools:node="remove"</code>, <code>RECORD_AUDIO</code>, <code>WRITE_EXTERNAL_STORAGE</code>, <code>USE_BIOMETRIC</code> y <code>USE_FINGERPRINT</code>.</td><td><code>2738357</code></td></tr>
-      <tr><td>H-08</td><td>Mínimo privilegio</td><td>Fotos de perfil legibles solo por su dueña o la admin.</td><td><code>32401ed</code></td></tr>
-      <tr><td>H-06</td><td>Opcional: integridad</td><td>No se implementó: App Check exige registrar la app en Play Integrity desde la consola de Firebase.</td><td>—</td></tr>
-    </tbody>
-  </table>
-  <div class="nota"><b>Pendiente del equipo:</b> publicar las reglas y funciones (<code>firebase deploy --only
-    firestore:rules,storage,functions</code>), crear la llave de publicación definitiva y registrar sus huellas SHA en
-    Firebase. La llave usada en la verificación es de prueba y solo existe en el equipo donde se generó.</div>
-</section>
-
-<!-- ============================ 7. VERIFICACIÓN ============================ -->
+<!-- ============================ DISCUSIÓN ============================ -->
 <section>
-  <h2>7. Verificación (antes y después)</h2>
-  <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada (<code>28fc2f7</code>) y sobre la rama
-    corregida. Un hallazgo solo se cierra si la prueba repetida ya no lo reproduce.</p>
-  <table>
-    <thead><tr><th style="width:7%">ID</th><th style="width:22%">Prueba</th><th>Antes</th><th>Después</th><th style="width:9%">Cerrado</th></tr></thead>
-    <tbody>
-      <tr><td>H-01</td><td><code>apksigner verify --print-certs</code></td><td><code>CN=Android Debug, O=MakeUpAi</code> (llave del repo)</td><td><code>CN=MackeUp AI, O=UNICESAR</code> (llave propia, fuera del repo)</td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-02</td><td><code>dumpsys package</code> en el emulador</td><td><code>flags=[… ALLOW_BACKUP]</code></td><td><code>flags=[HAS_CODE ALLOW_CLEAR_USER_DATA]</code>, sin <code>ALLOW_BACKUP</code></td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-03</td><td><code>probar_reglas.ps1</code> (emulador, proyecto demo)</td><td>Ex-admin y marca desactivada escriben: 200 (3 fallas)</td><td>Ambos reciben 403; la admin vigente sigue con 200</td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-04</td><td>Rutas <code>package:mackeupai/…</code> en <code>libapp.so</code></td><td>209 rutas y nombres de clases</td><td>0 rutas; sin nombres de clases (solo textos literales)</td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-05</td><td><code>npm audit</code></td><td>10 (1 alta)</td><td>7 moderadas, 0 altas (residual en SDK de Google)</td><td><span class="chip media">Parcial</span></td></tr>
-      <tr><td>H-07</td><td>Permisos del APK (<code>apkanalyzer</code>)</td><td>14, con micrófono y almacenamiento</td><td>8: sin micrófono, almacenamiento ni biometría</td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-08</td><td><code>probar_reglas.ps1</code></td><td>Otra usuaria lee la foto: 200</td><td>Otra usuaria: 403; la dueña: 200</td><td><span class="chip ok">Sí</span></td></tr>
-      <tr><td>H-09</td><td>Código y Logcat del release</td><td>16 <code>debugPrint</code> activos</td><td><code>debugPrint</code> vacío en release</td><td><span class="chip ok">Sí</span></td></tr>
-    </tbody>
-  </table>
-  <pre>probar_reglas.ps1 -Commit 28fc2f7   →  Resultado: 4 caso(s) no cumplen
-probar_reglas.ps1  (corregido)      →  Resultado: todas las reglas se comportan como se espera
-npm audit  antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 moderate</pre>
+  <h1>Discusión</h1>
+  <p>La base de seguridad de MackeUp AI es sólida: la autorización y la validación de entradas se hacen en el servidor,
+    los secretos del backend están en Secret Manager y el dispositivo no guarda contraseñas ni tokens. Los problemas
+    encontrados fueron sobre todo de configuración del build y de permisos, que suelen pasar desapercibidos porque la
+    app funciona igual con ellos.</p>
+  <p>El hallazgo H-05 quedó cerrado de forma parcial. Las siete vulnerabilidades moderadas restantes están anidadas en
+    los SDK de Google (<code>gaxios</code>, <code>uuid</code>, <code>rimraf</code>, <code>glob</code> y
+    <code>minimatch</code>) y solo podrían eliminarse forzando versiones mayores, con riesgo de romper las funciones en
+    producción. Ninguna tiene una ruta de ataque en este backend, por lo que se aceptaron como riesgo residual que se
+    revisará con cada actualización de <code>firebase-admin</code>.</p>
+  <p>Quedan pendientes para el equipo publicar las reglas y funciones corregidas, crear la llave de publicación
+    definitiva y registrar sus huellas en Firebase, repetir con una cuenta de prueba las pruebas de mitmproxy y Logcat
+    con sesión iniciada, e integrar App Check como mejora opcional.</p>
 </section>
 
-<!-- ============================ 8. REFERENCIAS ============================ -->
-<section>
-  <h2>8. Referencias</h2>
-  <ul>
-    <li>OWASP Mobile Top 10 (2024) — owasp.org/www-project-mobile-top-10</li>
-    <li>OWASP MASVS — mas.owasp.org/MASVS</li>
-    <li>OWASP MASTG 2.0.0 — mas.owasp.org/MASTG</li>
-    <li>MASTG-KNOW-0036: Shared Preferences</li>
-    <li>Firebase: “Learn about using and managing API keys for Firebase” y documentación de App Check</li>
-    <li>Android Developers: Auto Backup, Photo Picker y firma de apps</li>
-  </ul>
+<!-- ============================ REFERENCIAS ============================ -->
+<section class="salto referencias">
+  <h1>Referencias</h1>
+  <p>Android Developers. (s.&nbsp;f.-a). <i>Back up user data with Auto Backup</i>. Google. https://developer.android.com/identity/data/autobackup</p>
+  <p>Android Developers. (s.&nbsp;f.-b). <i>Photo picker</i>. Google. https://developer.android.com/training/data-storage/shared/photopicker</p>
+  <p>Android Developers. (s.&nbsp;f.-c). <i>Sign your app</i>. Google. https://developer.android.com/studio/publish/app-signing</p>
+  <p>Flutter. (s.&nbsp;f.). <i>Obfuscate Dart code</i>. Google. https://docs.flutter.dev/deployment/obfuscate</p>
+  <p>Google. (s.&nbsp;f.-a). <i>Learn about using and managing API keys for Firebase</i>. Firebase. https://firebase.google.com/docs/projects/api-keys</p>
+  <p>Google. (s.&nbsp;f.-b). <i>Firebase App Check</i>. Firebase. https://firebase.google.com/docs/app-check</p>
+  <p>Holloway-George, E. (2024, febrero). <i>What’s the buzz about the 2024 OWASP Mobile Top 10 changes?</i> ProAndroidDev. https://proandroiddev.com/whats-the-buzz-about-the-2024-owasp-mobile-top-10-changes-83c93f765bd3</p>
+  <p>mitmproxy Project. (2025). <i>mitmproxy</i> (Versión 12.3.1) [Software]. https://mitmproxy.org</p>
+  <p>OWASP Foundation. (2024a). <i>OWASP Mobile Top 10</i>. https://owasp.org/www-project-mobile-top-10/</p>
+  <p>OWASP Foundation. (2024b). <i>OWASP Mobile Application Security Verification Standard (MASVS)</i> (Versión 2.1.0). https://mas.owasp.org/MASVS/</p>
+  <p>OWASP Foundation. (2026). <i>OWASP Mobile Application Security Testing Guide (MASTG)</i> (Versión 2.0.0). https://mas.owasp.org/MASTG/</p>
+  <p>Rice, Z. (2025). <i>Gitleaks</i> (Versión 8.30.1) [Software]. GitHub. https://github.com/gitleaks/gitleaks</p>
+  <p>Vacca, A. (2026). <i>Tarea: Seguridad en aplicaciones móviles</i> [Guía de actividad, Programación Móvil]. Universidad Popular del Cesar.</p>
 </section>
 
 </body>

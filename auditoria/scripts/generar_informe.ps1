@@ -18,5 +18,16 @@ Titulo "Generando $pdf"
 & $navegador --headless=new --disable-gpu --no-first-run --user-data-dir="$perfil" `
     --no-pdf-header-footer --print-to-pdf="$pdf" $url 2>&1 | Out-Null
 Start-Sleep 1
-if (Test-Path $pdf) { Ok ("PDF listo ({0:N0} KB): {1}" -f ((Get-Item $pdf).Length / 1KB), $pdf) }
-else { throw 'Chrome no generó el PDF' }
+if (-not (Test-Path $pdf)) { throw 'Chrome no generó el PDF' }
+
+# APA 7: número de página arriba a la derecha (pdf-lib se instala una sola vez, fuera del repo).
+$herramientas = Join-Path $env:LOCALAPPDATA 'mackeupai-informe'
+if (-not (Test-Path (Join-Path $herramientas 'node_modules\pdf-lib'))) {
+    New-Item -ItemType Directory -Force $herramientas | Out-Null
+    Push-Location $herramientas
+    if (-not (Test-Path package.json)) { npm init -y *> $null }
+    npm install pdf-lib@1.17.1 --silent *> $null
+    Pop-Location
+}
+node (Join-Path $PSScriptRoot 'numerar_paginas.mjs') $herramientas $pdf
+Ok ("PDF listo ({0:N0} KB): {1}" -f ((Get-Item $pdf).Length / 1KB), $pdf)
