@@ -29,6 +29,7 @@ corregir al menos cinco hallazgos y demostrar el antes y el después. Entrega: *
 | Análisis del APK | MobSF (Docker) | `scripts/construir_apk.ps1`, `scripts/mobsf.ps1` y `scripts/mobsf_analizar.ps1` (API REST: sube, escanea y guarda reporte JSON, PDF y puntaje) |
 | Logs en ejecución | `adb logcat` (Android SDK) | `scripts/logcat.ps1` |
 | Tráfico de red | mitmproxy 12.3 (`mitmweb`) | `scripts/mitmproxy.ps1` |
+| Pines del certificate pinning | openssl + .NET | `scripts/verificar_pines.ps1` (antes de renovar los pines) |
 | Dispositivo de pruebas | Emulador `auditoria_api35` (Android 15, Google APIs, admite `adb root`) | `scripts/entorno.ps1 -Emulador` |
 
 El PDF pide **al menos dos** técnicas; con las tres primeras (no necesitan dispositivo) ya se cumple.

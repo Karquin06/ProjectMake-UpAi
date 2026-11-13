@@ -40,5 +40,12 @@ Las cinco primeras cubren las mejoras obligatorias del PDF:
 ## Mejora opcional (hasta +5)
 
 - [ ] Biometría ligada a una llave
-- [ ] Certificate pinning con plan de rotación
+- [x] Certificate pinning con plan de rotación — commit `793f84a` (`network_security_config.xml`, `scripts/verificar_pines.ps1`)
 - [ ] Integridad con Play Integrity / App Check (H-06)
+
+## Mejoras adicionales (además de los hallazgos)
+
+| Mejora | Riesgo | Commit | Qué hace |
+|---|---|---|---|
+| Certificate pinning con plan de rotación | M5 | `793f84a` | `*.googleapis.com` y `*.cloudfunctions.net` solo aceptan cadenas de Google Trust Services (R1–R4) o GlobalSign Root CA; tráfico en claro prohibido; pines con vencimiento 2027-06-30 y script `verificar_pines.ps1` para renovarlos |
+| `FLAG_SECURE` en pantallas con el rostro | M6, M9 | `3a0f001` | Selfie, simulador AR y capturas AR bloquean capturas y grabaciones de pantalla y no aparecen en "apps recientes" |

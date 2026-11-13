@@ -94,7 +94,9 @@
     grave fue que el APK de release se firmaba con una llave publicada en el repositorio público. Se corrigieron ocho
     hallazgos, cada uno en su propio commit, y se verificaron repitiendo la misma prueba antes y después de la
     corrección. Siete quedaron cerrados por completo, uno quedó cerrado de forma parcial con un riesgo residual
-    justificado, y la integración con App Check quedó como mejora pendiente.</p>
+    justificado, y la integración con App Check quedó como mejora pendiente. Además se implementaron dos mejoras
+    preventivas: certificate pinning con plan de rotación y protección de las pantallas que muestran el rostro con
+    <code>FLAG_SECURE</code>.</p>
   <p class="palabras"><i>Palabras clave:</i> seguridad móvil, OWASP Mobile Top 10, Flutter, Firebase, auditoría</p>
 </section>
 
@@ -377,7 +379,8 @@
 
   <h3>M5. Insecure Communication: cumple</h3>
   <p>La app no habilita tráfico en claro; con <code>targetSdk</code> 36 está bloqueado por defecto y todo el tráfico va
-    por HTTPS a servicios de Google. No hay certificate pinning, que queda como mejora opcional.</p>
+    por HTTPS a servicios de Google. En la versión auditada no había certificate pinning; se agregó después como mejora
+    opcional (ver Correcciones).</p>
 
   <h3>M6. Inadequate Privacy Controls: no cumple</h3>
   <p>La colorimetría pide consentimiento y las selfies se borran después del análisis. Sin embargo, la app declaraba
@@ -430,8 +433,7 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
   <p>Se corrigieron ocho de los nueve hallazgos, empezando por el de mayor severidad, cada uno en su propio commit con
     su identificador en el mensaje (Tabla 6). Antes de cada commit se ejecutaron <code>flutter analyze</code>,
     <code>flutter test</code> (326 pruebas) y <code>npm test</code> (51 pruebas). Las correcciones siguen las guías de
-    Android sobre respaldo automático, selector de fotos y firma de apps (Android Developers, s.&nbsp;f.-a, s.&nbsp;f.-b,
-    s.&nbsp;f.-c) y la de Flutter sobre ofuscación (Flutter, s.&nbsp;f.).</p>
+    Android sobre respaldo automático, selector de fotos y firma de apps (Android Developers, s.&nbsp;f.-a, s.&nbsp;f.-c, s.&nbsp;f.-d) y la de Flutter sobre ofuscación (Flutter, s.&nbsp;f.).</p>
 
   <div class="tabla">
     <p class="numero">Tabla 6</p>
@@ -453,12 +455,32 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
       consola de Firebase. Las reglas y funciones corregidas deben publicarse con <code>firebase deploy</code>.</p>
   </div>
 
-  <h2 class="salto">Verificación</h2>
-  <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada y sobre la rama corregida (Tabla 7). Un
-    hallazgo solo se consideró cerrado si la prueba repetida ya no lo reproducía.</p>
+  <h3>Mejoras preventivas adicionales</h3>
+  <p>Además de los hallazgos, se implementaron dos controles de la tabla de controles por plataforma de la guía (Vacca,
+    2026), uno de ellos la mejora opcional de certificate pinning (Tabla 7). El pinning sigue la configuración de seguridad
+    de red de Android (Android Developers, s.&nbsp;f.-b): se fijan las raíces de Google Trust Services, que vencen en 2036,
+    y no los certificados intermedios, que Google rota con frecuencia; hay pines de respaldo, y los pines vencen el 30 de
+    junio de 2027 para que, si Google cambia de autoridad, la app vuelva a la validación normal en vez de quedarse sin
+    conexión. El script <code>verificar_pines.ps1</code> comprueba las cadenas reales antes de renovarlos.</p>
 
   <div class="tabla">
     <p class="numero">Tabla 7</p>
+    <p class="titulo-tf">Mejoras preventivas implementadas</p>
+    <table>
+      <thead><tr><th style="width:22%">Mejora</th><th style="width:10%">OWASP</th><th>Cambio</th><th style="width:12%">Commit</th></tr></thead>
+      <tbody>
+        <tr><td>Certificate pinning con plan de rotación</td><td>M5</td><td><code>network_security_config.xml</code>: sin tráfico en claro; <code>*.googleapis.com</code> y <code>*.cloudfunctions.net</code> fijados a GTS Root R1–R4 y GlobalSign Root CA; vencimiento 2027-06-30.</td><td><code>793f84a</code></td></tr>
+        <tr><td><code>FLAG_SECURE</code> en pantallas con el rostro</td><td>M6, M9</td><td>La selfie, el simulador AR y las capturas AR bloquean capturas y grabaciones de pantalla y no se ven en "apps recientes".</td><td><code>3a0f001</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="salto">Verificación</h2>
+  <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada y sobre la rama corregida (Tabla 8). Un
+    hallazgo solo se consideró cerrado si la prueba repetida ya no lo reproducía.</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 8</p>
     <p class="titulo-tf">Resultado de las pruebas antes y después de cada corrección</p>
     <table>
       <thead><tr><th style="width:7%">ID</th><th style="width:22%">Prueba</th><th>Antes</th><th>Después</th><th style="width:10%">Cerrado</th></tr></thead>
@@ -471,6 +493,8 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
         <tr><td>H-07</td><td>Permisos del APK</td><td>14, con micrófono y almacenamiento</td><td>8, sin micrófono, almacenamiento ni biometría</td><td>Sí</td></tr>
         <tr><td>H-08</td><td>Emulador de reglas</td><td>Otra usuaria lee la foto (200)</td><td>Otra usuaria, 403; la dueña, 200</td><td>Sí</td></tr>
         <tr><td>H-09</td><td>Código y Logcat del release</td><td>16 <code>debugPrint</code> activos</td><td>Ninguna línea de la app en Logcat</td><td>Sí</td></tr>
+        <tr><td>Pinning</td><td><code>aapt2 dump xmltree</code> del APK y <code>verificar_pines.ps1</code></td><td>Sin <code>network_security_config</code></td><td>5 pines en el APK; los 7 dominios de Firebase encadenan a un pin; la app arranca sin errores de red</td><td>Sí</td></tr>
+        <tr><td><code>FLAG_SECURE</code></td><td>Pruebas automáticas</td><td>Capturas permitidas en todas las pantallas</td><td>6 pruebas nuevas: se activa al entrar y se quita al salir, también con pantallas apiladas</td><td>Sí</td></tr>
       </tbody>
     </table>
     <p class="nota"><i>Nota.</i> La prueba de reglas usa el emulador local de Firebase con el proyecto
@@ -480,12 +504,12 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
 probar_reglas.ps1  (corregido)     →  Resultado: todas las reglas se comportan como se espera
 npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 moderate</pre>
 
-  <p>Como verificación independiente, los dos APK de release se analizaron con MobSF (Tabla 8). La herramienta
+  <p>Como verificación independiente, los dos APK de release se analizaron con MobSF (Tabla 9). La herramienta
     confirma de forma automática tres de las correcciones: desaparecen la alerta alta de firma con certificado de
     depuración (H-01) y el aviso de respaldo de datos (H-02), y los permisos peligrosos bajan de seis a dos (H-07).</p>
 
   <div class="tabla">
-    <p class="numero">Tabla 8</p>
+    <p class="numero">Tabla 9</p>
     <p class="titulo-tf">Resultado del análisis con MobSF antes y después de las correcciones</p>
     <table>
       <thead><tr><th style="width:30%">Indicador</th><th>Antes (<code>28fc2f7</code>)</th><th>Después (<code>4d1386e</code>)</th></tr></thead>
@@ -530,7 +554,8 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
   <p>Se cumplieron los cuatro objetivos específicos. El modelo de amenazas identificó cuatro amenazas propias de la
     aplicación, la revisión del OWASP Mobile Top 10 se hizo con siete técnicas y produjo nueve hallazgos con evidencia,
     se corrigieron ocho de ellos (más del mínimo de cinco que pide la guía) y cada corrección quedó en su propio commit
-    y verificada con la misma prueba antes y después.</p>
+    y verificada con la misma prueba antes y después. Se añadieron además certificate pinning con plan de rotación, la
+    mejora opcional de la guía, y la protección <code>FLAG_SECURE</code> de las pantallas que muestran el rostro.</p>
   <p>El hallazgo más grave, la firma del release con una llave publicada en el repositorio público, muestra que un
     secreto no siempre es una contraseña en el código: también lo es una llave de firma, y su exposición permite
     suplantar la aplicación. Su corrección, junto con la del respaldo de datos y la de los permisos de marca, reduce de
@@ -563,8 +588,9 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
 <section class="salto referencias">
   <h1>Referencias</h1>
   <p>Android Developers. (s.&nbsp;f.-a). <i>Back up user data with Auto Backup</i>. Google. https://developer.android.com/identity/data/autobackup</p>
-  <p>Android Developers. (s.&nbsp;f.-b). <i>Photo picker</i>. Google. https://developer.android.com/training/data-storage/shared/photopicker</p>
-  <p>Android Developers. (s.&nbsp;f.-c). <i>Sign your app</i>. Google. https://developer.android.com/studio/publish/app-signing</p>
+  <p>Android Developers. (s.&nbsp;f.-b). <i>Network security configuration</i>. Google. https://developer.android.com/privacy-and-security/security-config</p>
+  <p>Android Developers. (s.&nbsp;f.-c). <i>Photo picker</i>. Google. https://developer.android.com/training/data-storage/shared/photopicker</p>
+  <p>Android Developers. (s.&nbsp;f.-d). <i>Sign your app</i>. Google. https://developer.android.com/studio/publish/app-signing</p>
   <p>Flutter. (s.&nbsp;f.). <i>Obfuscate Dart code</i>. Google. https://docs.flutter.dev/deployment/obfuscate</p>
   <p>Google. (s.&nbsp;f.-a). <i>Learn about using and managing API keys for Firebase</i>. Firebase. https://firebase.google.com/docs/projects/api-keys</p>
   <p>Google. (s.&nbsp;f.-b). <i>Firebase App Check</i>. Firebase. https://firebase.google.com/docs/app-check</p>
