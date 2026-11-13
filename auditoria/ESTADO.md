@@ -65,6 +65,5 @@ Hecho: probar_reglas antes/después (H-03, H-08), npm audit después (H-05), flu
 
 ## Pendiente del equipo (fuera del alcance de Claude)
 
-- Nombres de los integrantes en la portada del informe.
 - `firebase deploy --only firestore:rules,storage,functions` tras revisar H-03, H-05 y H-08.
 - Crear la llave de release real y registrar su SHA-1/SHA-256 en Firebase (H-01).
