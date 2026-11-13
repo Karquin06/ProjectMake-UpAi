@@ -57,3 +57,7 @@ serviceAccountKey.json
 
 # Caché de Kotlin generada por Gradle
 /android/.kotlin/
+
+# Llave de publicacion de Android (H-01): nunca subirla
+/android/key.properties
+*.jks
