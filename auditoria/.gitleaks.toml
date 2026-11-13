@@ -1,0 +1,21 @@
+# Configuración de gitleaks para la auditoría (M1 / M10).
+# Usa todas las reglas por defecto. No se agregan excepciones de reglas: si algo es un falso
+# positivo, se justifica en 02_owasp_top10.md en vez de esconderlo aquí.
+
+title = "MackeUp AI - auditoria de secretos"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Carpetas generadas o de terceros"
+paths = [
+  '''(^|/)build/''',
+  '''(^|/)\.dart_tool/''',
+  '''(^|/)functions/node_modules/''',
+  '''(^|/)functions/lib/''',
+  '''(^|/)auditoria/evidencia/''',
+  '''(^|/)\.flutter-plugins-dependencies$''',
+  '''(^|/)pubspec\.lock$''',
+  '''(^|/)functions/package-lock\.json$''',
+]

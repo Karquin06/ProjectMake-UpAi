@@ -11,7 +11,7 @@ enum EstadoPermiso {
   denegadoPermanente,
 }
 
-/// Pide permisos del sistema (cámara, galería, notificaciones).
+/// Pide permisos del sistema (cámara y notificaciones).
 ///
 /// Lo usan los cuatro módulos. En web el navegador gestiona sus propios
 /// permisos, así que se devuelve [EstadoPermiso.concedido].
@@ -31,13 +31,8 @@ class PermisosService {
     return combinar([await Permission.camera.status]);
   }
 
-  /// Android 13+ usa `photos` (READ_MEDIA_IMAGES); versiones anteriores,
-  /// `storage`. Se piden ambos y basta con que uno quede concedido.
-  Future<EstadoPermiso> pedirGaleria() => _pedir(
-        defaultTargetPlatform == TargetPlatform.android
-            ? [Permission.photos, Permission.storage]
-            : [Permission.photos],
-      );
+  // Galería: no se pide permiso (H-07). `image_picker` abre el selector del
+  // sistema, que no requiere READ_MEDIA_IMAGES ni READ_EXTERNAL_STORAGE.
 
   Future<EstadoPermiso> pedirNotificaciones() =>
       _pedir([Permission.notification]);

@@ -13,6 +13,17 @@ service cloud.firestore {
       return logueada() && marcaId != null
           && request.auth.token.get('marcaId', null) == marcaId;
     }
+    // H-03: además del claim, la marca debe seguir activa y el correo de la
+    // usuaria debe seguir en `admins` (lo mantiene asignarAdminMarca). Así quitar
+    // el rol o desactivar la marca corta el acceso al instante, sin esperar a
+    // que caduque el token.
+    function esAdminMarcaVigente(marcaId) {
+      return esAdminMarca(marcaId)
+          && exists(/databases/$(database)/documents/marcas/$(marcaId))
+          && get(/databases/$(database)/documents/marcas/$(marcaId)).data.get('activa', true) == true
+          && request.auth.token.get('email', '') in
+               get(/databases/$(database)/documents/marcas/$(marcaId)).data.get('admins', []);
+    }
 
     function subtonos() { return ['calido', 'frio', 'neutro']; }
     function estaciones() { return ['primavera', 'verano', 'otono', 'invierno']; }
@@ -131,12 +142,12 @@ service cloud.firestore {
     match /productosMaquillaje/{id} {
       allow read: if logueada();
       allow create: if productoValido(request.resource.data)
-        && (esAdmin() || esAdminMarca(request.resource.data.get('marcaId', null)));
+        && (esAdmin() || esAdminMarcaVigente(request.resource.data.get('marcaId', null)));
       allow update: if productoValido(request.resource.data)
         && (esAdmin()
-            || (esAdminMarca(resource.data.get('marcaId', null))
+            || (esAdminMarcaVigente(resource.data.get('marcaId', null))
                 && request.resource.data.get('marcaId', null) == resource.data.get('marcaId', null)));
-      allow delete: if esAdmin() || esAdminMarca(resource.data.get('marcaId', null));
+      allow delete: if esAdmin() || esAdminMarcaVigente(resource.data.get('marcaId', null));
     }
 
     match /prendasRopa/{id} {
@@ -153,7 +164,7 @@ service cloud.firestore {
       allow create: if esAdmin() && marcaValida(request.resource.data);
       allow update: if marcaValida(request.resource.data)
         && (esAdmin()
-            || (esAdminMarca(marcaId)
+            || (esAdminMarcaVigente(marcaId)
                 && request.resource.data.diff(resource.data).affectedKeys()
                      .hasOnly(['descripcion', 'logoURL', 'logoRuta', 'colorHex', 'sitioWeb'])));
       allow delete: if esAdmin();

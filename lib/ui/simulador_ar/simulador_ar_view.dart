@@ -10,6 +10,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/widgets/estado_vacio.dart';
 import '../../core/widgets/indicador_carga.dart';
 import '../../core/widgets/mensaje_error.dart';
+import '../../core/widgets/pantalla_protegida.dart';
 import '../../data/repositories/capturas_ar_repository.dart';
 import '../../data/services/permisos_service.dart';
 import '../../providers/armario_provider.dart';
@@ -52,7 +53,8 @@ class SimuladorArView extends StatelessWidget {
           },
         ),
       ],
-      child: const _CamaraSimulador(),
+      // Muestra el rostro: sin capturas de pantalla ni vista en "recientes".
+      child: const PantallaProtegida(child: _CamaraSimulador()),
     );
   }
 }

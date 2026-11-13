@@ -6,12 +6,22 @@ import '../../core/constants/app_strings.dart';
 import '../../core/widgets/estado_vacio.dart';
 import '../../core/widgets/indicador_carga.dart';
 import '../../core/widgets/mensaje_error.dart';
+import '../../core/widgets/pantalla_protegida.dart';
 import '../../data/repositories/capturas_ar_repository.dart';
 import '../../providers/armario_provider.dart';
 import 'resultados_ar_view_model.dart';
 
 class ResultadosArView extends StatelessWidget {
   const ResultadosArView({super.key});
+
+  // Capturas del rostro: sin capturas de pantalla ni vista en "recientes".
+  @override
+  Widget build(BuildContext context) =>
+      const PantallaProtegida(child: _ResultadosArContenido());
+}
+
+class _ResultadosArContenido extends StatelessWidget {
+  const _ResultadosArContenido();
   @override
   Widget build(BuildContext context) {
     final uid = context.watch<ArmarioProvider>().uidSesion;
