@@ -11,6 +11,7 @@ import {
   leerRegistro,
   REGISTRO_VACIO,
   resumir,
+  sigueSiendoAdminDeMarca,
   type RegistroUsuaria,
 } from "./marcas";
 
@@ -124,5 +125,16 @@ describe("marcas: resumen del dashboard", () => {
     assert.equal(r.totales.vistas, 13);
     assert.equal(r.totales.promedio, 4.3);
     assert.deepEqual(r.totales.porEstacion, { primavera: 0, verano: 1, otono: 7, invierno: 0 });
+  });
+});
+
+describe("marcas: admin vigente (H-03)", () => {
+  it("solo si el correo sigue en admins", () => {
+    assert.equal(sigueSiendoAdminDeMarca(["ana@marca.co"], "ana@marca.co"), true);
+    assert.equal(sigueSiendoAdminDeMarca(["ana@marca.co"], "Ana@Marca.co"), true);
+    assert.equal(sigueSiendoAdminDeMarca(["otra@marca.co"], "ana@marca.co"), false);
+    assert.equal(sigueSiendoAdminDeMarca([], "ana@marca.co"), false);
+    assert.equal(sigueSiendoAdminDeMarca(undefined, "ana@marca.co"), false);
+    assert.equal(sigueSiendoAdminDeMarca(["ana@marca.co"], undefined), false);
   });
 });

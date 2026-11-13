@@ -365,6 +365,9 @@ export const asignarAdminMarca = onCall(
     if (marcaId) claims.marcaId = marcaId;
     else delete claims.marcaId;
     await auth.setCustomUserClaims(usuaria.uid, claims);
+    // H-03: si cambió la marca, se cierra la sesión vigente para que el claim
+    // viejo no siga sirviendo hasta que caduque el token (hasta 1 h).
+    if (anterior !== (marcaId ?? undefined)) await auth.revokeRefreshTokens(usuaria.uid);
 
     const lote = db.batch();
     lote.set(
@@ -392,7 +395,12 @@ export const asignarAdminMarca = onCall(
   },
 );
 
-async function resumenDeMarca(marcaId: string, esAdminGeneral: boolean) {
+/** `true` si el correo sigue en `admins` de la marca (lo mantiene asignarAdminMarca). */
+export function sigueSiendoAdminDeMarca(admins: unknown, correo: unknown): boolean {
+  return Array.isArray(admins) && typeof correo === "string" && admins.includes(correo.toLowerCase());
+}
+
+async function resumenDeMarca(marcaId: string, esAdminGeneral: boolean, correo?: unknown) {
   const db = getFirestore();
   const [marca, productos] = await Promise.all([
     db.collection(COLECCION_MARCAS).doc(marcaId).get(),
@@ -401,6 +409,10 @@ async function resumenDeMarca(marcaId: string, esAdminGeneral: boolean) {
   if (!marca.exists) throw errorNegocio("marca-no-existe");
   // Una marca desactivada por la admin deja de ver su panel.
   if (!esAdminGeneral && marca.get("activa") === false) throw errorNegocio("marca-inactiva", "permission-denied");
+  // H-03: a quien se le quitó el rol no le sirve el claim viejo.
+  if (!esAdminGeneral && !sigueSiendoAdminDeMarca(marca.get("admins"), correo)) {
+    throw errorNegocio("sin-marca", "permission-denied");
+  }
   const refs = productos.docs.map((p) => db.collection(COLECCION_ESTADISTICAS).doc(p.id));
   const estadisticas = refs.length ? await db.getAll(...refs) : [];
   const datos = estadisticas.map((e) => e.data());
@@ -423,7 +435,7 @@ export const resumenMarca = onCall({ region: REGION, timeoutSeconds: 30 }, async
   const pedida = (request.data as { marcaId?: unknown } | undefined)?.marcaId;
   const marcaId = token?.admin === true && typeof pedida === "string" ? pedida : token?.marcaId;
   if (typeof marcaId !== "string" || !marcaId) throw errorNegocio("sin-marca", "permission-denied");
-  return resumenDeMarca(marcaId, token?.admin === true);
+  return resumenDeMarca(marcaId, token?.admin === true, token?.email);
 });
 
 /** resumenAdmin() — dashboard general (solo la admin). */
