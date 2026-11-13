@@ -22,7 +22,8 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:dataExtractionRules="@xml/reglas_extraccion_datos">
+        android:dataExtractionRules="@xml/reglas_extraccion_datos"
+        android:networkSecurityConfig="@xml/network_security_config">
         <!-- H-02: sin respaldo: las capturas AR (rostro) y la caché de Firestore
              no deben salir del dispositivo. -->
         <activity

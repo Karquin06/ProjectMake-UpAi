@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Seguridad de red (M5). Mejora opcional de la auditoría: certificate pinning con plan de rotación.
+
+  - Nunca tráfico en claro (HTTP), en ningún dominio.
+  - Los dominios de Firebase solo aceptan cadenas que terminen en una raíz de Google Trust Services
+    (o en GlobalSign Root CA, que firma de forma cruzada a GTS para teléfonos antiguos). Aunque alguien
+    instale un certificado de confianza en el teléfono (proxy, malware), no puede interceptar Firebase.
+
+  Pines = SHA-256 de la clave pública (SPKI) de cada raíz, calculados desde https://pki.goog/repo/certs/
+  y comprobados contra las cadenas reales de los dominios (auditoria/scripts/verificar_pines.ps1).
+    *.googleapis.com     -> WE2 -> GTS Root R4   (Firestore, Storage, Auth, Installations, FCM)
+    *.cloudfunctions.net -> WR2 -> GTS Root R1   (Cloud Functions)
+
+  Plan de rotación:
+    1. Se fijan raíces (vigentes hasta 2036), no certificados hoja ni intermedios, que Google rota a menudo.
+    2. Hay pines de respaldo: las cuatro raíces GTS y GlobalSign; basta con que coincida uno.
+    3. Los pines vencen el 2027-06-30: después de esa fecha Android deja de exigirlos y la app sigue
+       funcionando con la validación normal, en vez de quedarse sin conexión.
+    4. Antes del vencimiento (y cada vez que Google anuncie cambios de CA) correr
+       verificar_pines.ps1; si todo coincide, extender la fecha; si no, agregar la raíz nueva.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">cloudfunctions.net</domain>
+        <pin-set expiration="2027-06-30">
+            <!-- GTS Root R1 -->
+            <pin digest="SHA-256">hxqRlPTu1bMS/0DITB1SSu0vd4u/8l8TjPgfaAp63Gc=</pin>
+            <!-- GTS Root R2 -->
+            <pin digest="SHA-256">Vfd95BwDeSQo+NUYxVEEIlvkOlWY2SalKK1lPhzOx78=</pin>
+            <!-- GTS Root R3 -->
+            <pin digest="SHA-256">QXnt2YHvdHR3tJYmQIr0Paosp6t/nggsEGD4QJZ3Q0g=</pin>
+            <!-- GTS Root R4 -->
+            <pin digest="SHA-256">mEflZT5enoR1FuXLgYYGqnVEoZvmf9c2bVBpiOjYQ0c=</pin>
+            <!-- GlobalSign Root CA (respaldo: firma cruzada de GTS R1-R4) -->
+            <pin digest="SHA-256">K87oWBWM9UZfyddvDfoxL+8lpNyoUB2ptGtn0fv6G2Q=</pin>
+        </pin-set>
+    </domain-config>
+
+    <!-- Solo en builds de depuración: se aceptan certificados instalados por el usuario para poder
+         probar con mitmproxy. Los pines SIGUEN aplicando (overridePins es false por defecto), así que
+         esa prueba demuestra que el pinning bloquea la interceptación. En release esto no existe. -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>
