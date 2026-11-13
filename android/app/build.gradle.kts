@@ -1,9 +1,21 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Llave de publicación (H-01): android/key.properties y el .jks NO se suben al
+// repositorio (están en .gitignore). Se crean con
+//   .\auditoria\scripts\crear_llave_release.ps1
+val propiedadesLlave = Properties().apply {
+    val archivo = rootProject.file("key.properties")
+    if (archivo.exists()) FileInputStream(archivo).use { load(it) }
+}
+val hayLlaveRelease = !propiedadesLlave.getProperty("storeFile").isNullOrBlank()
 
 android {
     namespace = "com.example.mackeupai"
@@ -27,7 +39,7 @@ android {
 
     // Certificado de depuración compartido por el equipo: así todos firman con
     // la misma huella SHA registrada en Firebase (inicio de sesión con Google).
-    // No es secreto; las claves de publicación van aparte (key.properties).
+    // Solo firma builds de depuración; el release usa su propia llave.
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -35,14 +47,34 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        if (hayLlaveRelease) {
+            create("release") {
+                storeFile = file(propiedadesLlave.getProperty("storeFile"))
+                storePassword = propiedadesLlave.getProperty("storePassword")
+                keyAlias = propiedadesLlave.getProperty("keyAlias")
+                keyPassword = propiedadesLlave.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Nunca con la llave de depuración: está en el repositorio público.
+            if (hayLlaveRelease) signingConfig = signingConfigs.getByName("release")
         }
+    }
+}
+
+// Sin llave de publicación no se arma un release (antes se firmaba en silencio
+// con la llave de depuración).
+gradle.taskGraph.whenReady {
+    val armaRelease = allTasks.any { it.project == project && it.name.contains("Release") &&
+        (it.name.startsWith("assemble") || it.name.startsWith("bundle") || it.name.startsWith("package")) }
+    if (armaRelease && !hayLlaveRelease) {
+        throw GradleException(
+            "Falta android/key.properties con la llave de publicación (H-01). " +
+                "Créala con .\\auditoria\\scripts\\crear_llave_release.ps1",
+        )
     }
 }
 

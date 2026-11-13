@@ -50,3 +50,14 @@ replay_pid*.log
 serviceAccountKey.json
 # Claves de cuentas de servicio de Firebase (nunca subirlas)
 *firebase-adminsdk*.json
+
+# Auditoría de seguridad: salidas crudas (pueden contener secretos o tokens)
+/auditoria/evidencia/
+*.mitm
+
+# Caché de Kotlin generada por Gradle
+/android/.kotlin/
+
+# Llave de publicacion de Android (H-01): nunca subirla
+/android/key.properties
+*.jks
