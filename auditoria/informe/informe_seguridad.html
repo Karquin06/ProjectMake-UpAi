@@ -121,7 +121,7 @@
     de noviembre de 2026). Las evidencias de este informe ocultan llaves, tokens y datos personales; los reportes
     completos de las herramientas se guardaron en <code>auditoria/evidencia/</code>, carpeta excluida del repositorio.</p>
 
-  <h2>Objetivos</h2>
+  <h2 class="salto">Objetivos</h2>
   <h3>Objetivo general</h3>
   <p>Evaluar y mejorar la seguridad de la aplicación MackeUp AI aplicando el OWASP Mobile Top 10 (2024), corrigiendo
     los hallazgos de mayor severidad y demostrando con pruebas repetibles que las correcciones funcionan.</p>
@@ -154,7 +154,7 @@
   <p>El trabajo fue de tipo aplicado y se apoyó en pruebas reproducibles: cada técnica se automatizó con un script que
     guarda su salida con la fecha y el commit evaluado, de modo que el resultado de antes y el de después se pueden
     comparar sobre la misma prueba. Las secciones siguientes describen el modelo de amenazas y las técnicas usadas.</p>
-  <h2>Modelo de amenazas</h2>
+  <h2 class="salto">Modelo de amenazas</h2>
   <p>La Figura 1 muestra los componentes de la aplicación, el límite de confianza entre el dispositivo y Firebase, y
     dónde se guarda cada dato. La Tabla 1 resume los datos sensibles y la Tabla 2 las amenazas identificadas.</p>
 
@@ -293,7 +293,7 @@
       funciones validan el claim <code>admin</code> en el servidor.</p>
   </div>
 
-  <h2>Técnicas de auditoría</h2>
+  <h2 class="salto">Técnicas de auditoría</h2>
   <p>La guía exige al menos dos técnicas (Vacca, 2026); se usaron seis, todas automatizadas con scripts en
     <code>auditoria/scripts/</code> que guardan su salida con fecha y commit para poder repetir la prueba después de cada
     corrección (Tabla 3). Las pruebas dinámicas se hicieron con el APK de release instalado en un emulador Android 15.
@@ -403,7 +403,7 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
   <p>No se usan MD5, SHA-1, DES ni ECB, ni hay llaves embebidas. El único hash propio es SHA-256 para seudonimizar
     estadísticas en el servidor.</p>
 
-  <h2>Hallazgos</h2>
+  <h2 class="salto">Hallazgos</h2>
   <p>La Tabla 5 registra los nueve hallazgos con el formato que pide la guía (Vacca, 2026), ordenados por severidad.</p>
 
   <div class="tabla">
@@ -425,7 +425,7 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
     </table>
   </div>
 
-  <h2>Correcciones</h2>
+  <h2 class="salto">Correcciones</h2>
   <p>Se corrigieron ocho de los nueve hallazgos, empezando por el de mayor severidad, cada uno en su propio commit con
     su identificador en el mensaje (Tabla 6). Antes de cada commit se ejecutaron <code>flutter analyze</code>,
     <code>flutter test</code> (326 pruebas) y <code>npm test</code> (51 pruebas). Las correcciones siguen las guías de
@@ -452,7 +452,7 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
       consola de Firebase. Las reglas y funciones corregidas deben publicarse con <code>firebase deploy</code>.</p>
   </div>
 
-  <h2>Verificación</h2>
+  <h2 class="salto">Verificación</h2>
   <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada y sobre la rama corregida (Tabla 7). Un
     hallazgo solo se consideró cerrado si la prueba repetida ya no lo reproducía.</p>
 
