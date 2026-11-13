@@ -38,9 +38,10 @@
   p.numero { font-weight: bold; text-indent: 0; break-after: avoid; }
   p.titulo-tf { font-style: italic; text-indent: 0; break-after: avoid; }
   thead { display: table-header-group; }
-  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.3;
-          border-top: 1px solid #000; border-bottom: 1px solid #000; margin-top: 2pt; }
-  thead th { border-bottom: 1px solid #000; text-align: left; font-weight: bold; padding: 4pt 5pt; vertical-align: bottom; }
+  /* Tablas con todas las líneas (cuadrícula completa). */
+  table { width: 100%; border-collapse: collapse; font-size: 10.5pt; line-height: 1.3; margin-top: 2pt; }
+  th, td { border: 1px solid #000; }
+  thead th { text-align: left; font-weight: bold; padding: 4pt 5pt; vertical-align: bottom; }
   td { padding: 4pt 5pt; vertical-align: top; }
   td:first-child, th:first-child { white-space: nowrap; }
   tr { break-inside: avoid; }
@@ -99,7 +100,6 @@
 
 <!-- ============================ INTRODUCCIÓN ============================ -->
 <section class="salto">
-  <p class="titulo-trabajo">Informe de seguridad de la aplicación móvil MackeUp AI: auditoría con el OWASP Mobile Top 10 (2024)</p>
   <h1>Introducción</h1>
   <p>Las aplicaciones móviles manejan cada vez más datos personales y se ejecutan en dispositivos que su creador no
     controla: cualquier persona puede descargar el APK, inspeccionarlo, modificarlo o interceptar su tráfico. Por eso
@@ -136,7 +136,7 @@
     <li>Verificar cada corrección repitiendo la misma prueba antes y después, y dejar cada cambio trazable en un commit.</li>
   </ol>
 
-  <h2>Alcance</h2>
+  <h2 class="salto">Alcance</h2>
   <p>La auditoría cubrió la aplicación Android compilada en modo release, el código Dart, las reglas de seguridad de
     Cloud Firestore y Cloud Storage, y las Cloud Functions del proyecto. No se incluyeron la versión de iOS, que no se
     distribuye, ni la configuración de la consola de Firebase y Google Cloud, a la que solo se accede con la cuenta de
@@ -144,7 +144,7 @@
     no se inició sesión ni se crearon cuentas en el proyecto de producción; las pruebas que lo necesitaban se hicieron
     en emuladores locales.</p>
 
-  <h1>Método</h1>
+  <h1 class="salto">Método</h1>
   <h2>Modelo de amenazas</h2>
   <p>La Figura 1 muestra los componentes de la aplicación, el límite de confianza entre el dispositivo y Firebase, y
     dónde se guarda cada dato. La Tabla 1 resume los datos sensibles y la Tabla 2 las amenazas identificadas.</p>
@@ -473,7 +473,7 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
 
 <!-- ============================ DISCUSIÓN ============================ -->
 <section>
-  <h1>Discusión</h1>
+  <h1 class="salto">Discusión</h1>
   <p>La base de seguridad de MackeUp AI es sólida: la autorización y la validación de entradas se hacen en el servidor,
     los secretos del backend están en Secret Manager y el dispositivo no guarda contraseñas ni tokens. Los problemas
     encontrados fueron sobre todo de configuración del build y de permisos, que suelen pasar desapercibidos porque la
@@ -490,7 +490,7 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
 
 <!-- ============================ CONCLUSIONES ============================ -->
 <section>
-  <h1>Conclusiones</h1>
+  <h1 class="salto">Conclusiones</h1>
   <p>Se cumplieron los cuatro objetivos específicos. El modelo de amenazas identificó cuatro amenazas propias de la
     aplicación, la revisión del OWASP Mobile Top 10 se hizo con seis técnicas y produjo nueve hallazgos con evidencia,
     se corrigieron ocho de ellos (más del mínimo de cinco que pide la guía) y cada corrección quedó en su propio commit
@@ -508,7 +508,7 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
 
 <!-- ============================ RECOMENDACIONES ============================ -->
 <section>
-  <h1>Recomendaciones</h1>
+  <h1 class="salto">Recomendaciones</h1>
   <ol class="apa">
     <li>Publicar las reglas y funciones corregidas con <code>firebase deploy --only firestore:rules,storage,functions</code>,
       porque hasta entonces H-03 y H-08 solo están corregidos en el repositorio.</li>
