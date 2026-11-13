@@ -11,6 +11,7 @@ import '../../core/widgets/boton_secundario.dart';
 import '../../core/widgets/estado_vacio.dart';
 import '../../core/widgets/indicador_carga.dart';
 import '../../core/widgets/mensaje_error.dart';
+import '../../core/widgets/pantalla_protegida.dart';
 import '../../data/services/permisos_service.dart';
 import 'captura_selfie_view_model.dart';
 import 'widgets/guia_captura_selfie.dart';
@@ -30,7 +31,8 @@ class CapturaSelfieView extends StatelessWidget {
         Future.microtask(vm.iniciar);
         return vm;
       },
-      child: const _CapturaSelfie(),
+      // Muestra el rostro: sin capturas de pantalla ni vista en "recientes".
+      child: const PantallaProtegida(child: _CapturaSelfie()),
     );
   }
 }
