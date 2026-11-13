@@ -61,6 +61,17 @@ Desde la raíz del repo, en PowerShell:
 
 Si PowerShell bloquea los scripts: `Set-ExecutionPolicy -Scope Process Bypass` (solo para esa ventana).
 
+## Informe en PDF (dos versiones)
+
+El contenido se edita solo en `informe/informe_seguridad.html`; de ahí salen las dos versiones:
+
+| Versión | Archivo | Comando |
+|---|---|---|
+| APA 7 (Times 12, interlineado doble, carta) | `informe/Informe_Seguridad_MackeUpAI.pdf` | `.\auditoria\scripts\generar_informe.ps1` |
+| Diseño de la guía UNICESAR (logo, colores de la guía, A4) | `informe/Informe_Seguridad_MackeUpAI_UNICESAR.pdf` | `.\auditoria\scripts\generar_informe.ps1 -Version unicesar` |
+
+La versión UNICESAR toma su estilo de `informe/unicesar/estilo.css` y su portada de `informe/unicesar/portada.html`.
+
 ## Compilar el release (después de las correcciones)
 
 1. Una sola vez por equipo: crear la llave de publicación y registrar sus huellas SHA en
