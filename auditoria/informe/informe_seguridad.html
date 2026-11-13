@@ -115,6 +115,7 @@
     del código de las reglas y de las Cloud Functions. La base es sólida: las reglas y las funciones validan la sesión,
     los roles y las entradas en el servidor, y no hay contraseñas ni tokens guardados en el dispositivo. El problema
     más grave es de configuración: <b>el APK de release se firma con una llave publicada en el repositorio público</b>.</p>
+  <p><b>Resultado de las correcciones:</b> se cerraron 8 de los 9 hallazgos, cada uno en su propio commit, y se verificaron repitiendo la misma prueba (secciones 6 y 7). H-05 queda parcial con 7 avisos moderados residuales en los SDK de Google y H-06 (App Check) queda como mejora pendiente.</p>
 
   <div class="resumen">
     <div><b>9</b><span>hallazgos registrados</span></div>
@@ -501,37 +502,49 @@ notificaciones_provider.dart L51   debugPrint('No se pudo guardar el token FCM: 
 <!-- ============================ 6. CORRECCIONES ============================ -->
 <section class="salto">
   <h2>6. Correcciones</h2>
-  <div class="nota">Sección para completar en la Fase 3: cada corrección en su propio commit que nombre su ID
-    (por ejemplo, <code>fix(seguridad): H-01 …</code>).</div>
+  <p>Se corrigieron <b>8 de los 9 hallazgos</b>, empezando por el de mayor severidad, cada uno en su propio commit
+    de la rama <code>feature/seguridad</code> con su ID en el mensaje. Antes de cada commit pasaron
+    <code>flutter analyze</code>, <code>flutter test</code> (326 tests) y <code>npm test</code> (51 tests).</p>
   <table>
-    <thead><tr><th style="width:8%">ID</th><th style="width:30%">Mejora obligatoria que cubre</th><th>Cambio</th><th style="width:14%">Commit</th><th style="width:11%">Estado</th></tr></thead>
+    <thead><tr><th style="width:7%">ID</th><th style="width:22%">Mejora obligatoria</th><th>Cambio</th><th style="width:11%">Commit</th></tr></thead>
     <tbody>
-      <tr><td>H-01</td><td>Ningún secreto en el repositorio; rotar lo publicado</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
-      <tr><td>H-03</td><td>Validación de permisos en el servidor</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
-      <tr><td>H-02</td><td>Datos sensibles guardados de forma segura</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
-      <tr><td>H-04, H-09</td><td>Release sin debug, sin logs sensibles y con R8</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
-      <tr><td>H-05</td><td>Dependencias sin vulnerabilidades conocidas</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
-      <tr><td>H-06</td><td>Opcional: integridad con Play Integrity / App Check</td><td></td><td></td><td><span class="chip pend">Pendiente</span></td></tr>
+      <tr><td>H-01</td><td>Ningún secreto en el repositorio</td><td>El release se firma con una llave propia (<code>android/key.properties</code> + <code>.jks</code>, ignorados por Git). Gradle se detiene si falta, en vez de usar la de depuración. Script <code>crear_llave_release.ps1</code>.</td><td><code>e85e1aa</code></td></tr>
+      <tr><td>H-03</td><td>Permisos validados en el servidor</td><td>Firestore y Storage exigen marca activa y correo en <code>marcas/{id}.admins</code>; <code>asignarAdminMarca</code> revoca los refresh tokens; <code>resumenMarca</code> revisa la lista. Test nuevo.</td><td><code>bca8a32</code></td></tr>
+      <tr><td>H-02</td><td>Datos sensibles guardados de forma segura</td><td><code>allowBackup="false"</code>, <code>fullBackupContent="false"</code> y reglas de extracción que excluyen todo (capturas AR y caché de Firestore).</td><td><code>868452b</code></td></tr>
+      <tr><td>H-04</td><td>Release con R8 y ofuscado</td><td>Build de release con <code>--obfuscate --split-debug-info</code> por defecto; símbolos fuera del repo.</td><td><code>4d1386e</code></td></tr>
+      <tr><td>H-09</td><td>Release sin logs sensibles</td><td><code>debugPrint</code> pasa a ser una función vacía en release (<code>lib/main.dart</code>).</td><td><code>f88462c</code></td></tr>
+      <tr><td>H-05</td><td>Dependencias sin vulnerabilidades</td><td><code>npm audit fix</code> y <code>firebase-admin</code> 14.5.1: se elimina la vulnerabilidad alta.</td><td><code>0e8c8f5</code></td></tr>
+      <tr><td>H-07</td><td>Mínimo privilegio</td><td>Se quitan <code>READ_MEDIA_IMAGES</code>, <code>READ_EXTERNAL_STORAGE</code> y, con <code>tools:node="remove"</code>, <code>RECORD_AUDIO</code>, <code>WRITE_EXTERNAL_STORAGE</code>, <code>USE_BIOMETRIC</code> y <code>USE_FINGERPRINT</code>.</td><td><code>2738357</code></td></tr>
+      <tr><td>H-08</td><td>Mínimo privilegio</td><td>Fotos de perfil legibles solo por su dueña o la admin.</td><td><code>32401ed</code></td></tr>
+      <tr><td>H-06</td><td>Opcional: integridad</td><td>No se implementó: App Check exige registrar la app en Play Integrity desde la consola de Firebase.</td><td>—</td></tr>
     </tbody>
   </table>
+  <div class="nota"><b>Pendiente del equipo:</b> publicar las reglas y funciones (<code>firebase deploy --only
+    firestore:rules,storage,functions</code>), crear la llave de publicación definitiva y registrar sus huellas SHA en
+    Firebase. La llave usada en la verificación es de prueba y solo existe en el equipo donde se generó.</div>
 </section>
 
 <!-- ============================ 7. VERIFICACIÓN ============================ -->
 <section>
   <h2>7. Verificación (antes y después)</h2>
-  <div class="nota">Sección para completar en la Fase 4: se repite la misma prueba de cada hallazgo corregido. Un
-    hallazgo solo se cierra si la prueba repetida ya no lo reproduce.</div>
+  <p>Se repitió la misma prueba de cada hallazgo sobre la versión auditada (<code>28fc2f7</code>) y sobre la rama
+    corregida. Un hallazgo solo se cierra si la prueba repetida ya no lo reproduce.</p>
   <table>
-    <thead><tr><th style="width:8%">ID</th><th style="width:27%">Prueba</th><th>Antes</th><th>Después</th><th style="width:10%">Cerrado</th></tr></thead>
+    <thead><tr><th style="width:7%">ID</th><th style="width:22%">Prueba</th><th>Antes</th><th>Después</th><th style="width:9%">Cerrado</th></tr></thead>
     <tbody>
-      <tr><td>H-01</td><td><code>apksigner verify --print-certs</code>, <code>git ls-files</code></td><td>Firmado con la llave de depuración del repo</td><td></td><td></td></tr>
-      <tr><td>H-02</td><td><code>revisar_manifiesto.ps1</code></td><td><code>allowBackup</code> sin definir</td><td></td><td></td></tr>
-      <tr><td>H-03</td><td>Escritura con una cuenta de marca desactivada (emulador de reglas)</td><td>Permitida</td><td></td><td></td></tr>
-      <tr><td>H-04</td><td><code>strings libapp.so</code></td><td>Nombres de clases legibles</td><td></td><td></td></tr>
-      <tr><td>H-05</td><td><code>revisar_dependencias.ps1</code></td><td>10 vulnerabilidades</td><td></td><td></td></tr>
-      <tr><td>H-09</td><td><code>logcat.ps1 -Release</code></td><td>16 <code>debugPrint</code> activos</td><td></td><td></td></tr>
+      <tr><td>H-01</td><td><code>apksigner verify --print-certs</code></td><td><code>CN=Android Debug, O=MakeUpAi</code> (llave del repo)</td><td><code>CN=MackeUp AI, O=UNICESAR</code> (llave propia, fuera del repo)</td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-02</td><td><code>dumpsys package</code> en el emulador</td><td><code>flags=[… ALLOW_BACKUP]</code></td><td><code>flags=[HAS_CODE ALLOW_CLEAR_USER_DATA]</code>, sin <code>ALLOW_BACKUP</code></td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-03</td><td><code>probar_reglas.ps1</code> (emulador, proyecto demo)</td><td>Ex-admin y marca desactivada escriben: 200 (3 fallas)</td><td>Ambos reciben 403; la admin vigente sigue con 200</td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-04</td><td>Rutas <code>package:mackeupai/…</code> en <code>libapp.so</code></td><td>209 rutas y nombres de clases</td><td>0 rutas; sin nombres de clases (solo textos literales)</td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-05</td><td><code>npm audit</code></td><td>10 (1 alta)</td><td>7 moderadas, 0 altas (residual en SDK de Google)</td><td><span class="chip media">Parcial</span></td></tr>
+      <tr><td>H-07</td><td>Permisos del APK (<code>apkanalyzer</code>)</td><td>14, con micrófono y almacenamiento</td><td>8: sin micrófono, almacenamiento ni biometría</td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-08</td><td><code>probar_reglas.ps1</code></td><td>Otra usuaria lee la foto: 200</td><td>Otra usuaria: 403; la dueña: 200</td><td><span class="chip ok">Sí</span></td></tr>
+      <tr><td>H-09</td><td>Código y Logcat del release</td><td>16 <code>debugPrint</code> activos</td><td><code>debugPrint</code> vacío en release</td><td><span class="chip ok">Sí</span></td></tr>
     </tbody>
   </table>
+  <pre>probar_reglas.ps1 -Commit 28fc2f7   →  Resultado: 4 caso(s) no cumplen
+probar_reglas.ps1  (corregido)      →  Resultado: todas las reglas se comportan como se espera
+npm audit  antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 moderate</pre>
 </section>
 
 <!-- ============================ 8. REFERENCIAS ============================ -->
