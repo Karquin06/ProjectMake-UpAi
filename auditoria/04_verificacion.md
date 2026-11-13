@@ -76,3 +76,19 @@ aceptan como riesgo residual hasta la próxima versión de `firebase-admin`.
   la cuenta de prueba: el login debe fallar por el certificado.
 - **H-09, Logcat:** `.\auditoria\scripts\logcat.ps1 -Release` usando el simulador AR y las
   notificaciones: no debe aparecer ninguna línea `I/flutter` de la app.
+
+### Verificación independiente con MobSF v4.6.5
+
+`.\auditoria\scripts\mobsf.ps1` y `.\auditoria\scripts\mobsf_analizar.ps1` sobre los dos APK de release.
+
+| Indicador | Antes (`28fc2f7`) | Después (`4d1386e`) |
+|---|---|---|
+| Puntaje de seguridad | 48/100 | 52/100 |
+| Alertas altas | 2: firma con certificado de depuración (H-01); `minSdk` 24 | 1: `minSdk` 24 |
+| Avisos | 15, incluido `allowBackup` sin definir (H-02) | 14 |
+| Permisos peligrosos | 6 (cámara, notificaciones, micrófono, imágenes, lectura/escritura de almacenamiento) | 2 (cámara, notificaciones) (H-07) |
+| Secretos | llave de cliente de Firebase + tablas hexadecimales | igual (falsos positivos) |
+
+MobSF analiza también las librerías de Google: los avisos de MD5, SHA-1, `Random`, SQLite y archivos
+temporales vienen de ellas, no del código de la app. Alerta nueva, no corregida: `minSdk` 24 permite
+instalar la app en Android 7.0 sin parches; queda como recomendación para el equipo.

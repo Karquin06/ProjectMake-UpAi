@@ -173,5 +173,5 @@ la severidad de todo lo que esté versionado.
       sin datos sensibles
 - [~] Tráfico con mitmproxy: hecha sin sesión, pero sin tráfico que analizar; falta repetirla con
       sesión iniciada
-- [ ] Análisis del APK con MobSF: Docker Desktop no arrancó en este equipo por sockets dañados
-      (ver README)
+- [x] Análisis del APK con MobSF v4.6.5 (Docker): APK antes 48/100 y después 52/100 —
+      `scripts/mobsf_analizar.ps1`, reportes en `evidencia/mobsf_*`

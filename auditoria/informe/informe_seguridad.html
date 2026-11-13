@@ -88,9 +88,9 @@
   <h1>Resumen</h1>
   <p>Este informe presenta la auditoría de seguridad de MackeUp AI, una aplicación Flutter de asesoría de imagen
     con backend en Firebase, realizada con la lista OWASP Mobile Top 10 (2024). Se elaboró un modelo de amenazas, se
-    revisaron los diez riesgos con seis técnicas (búsqueda de secretos con gitleaks, análisis de dependencias,
-    revisión del manifiesto, análisis del APK de release, revisión de código de las reglas y de las Cloud Functions, y
-    Logcat en un emulador) y se registraron nueve hallazgos: uno de severidad alta, cinco medios y tres bajos. El más
+    revisaron los diez riesgos con siete técnicas (búsqueda de secretos con gitleaks, análisis de dependencias,
+    revisión del manifiesto, análisis del APK de release, análisis estático con MobSF, revisión de código de las reglas
+    y de las Cloud Functions, y Logcat en un emulador) y se registraron nueve hallazgos: uno de severidad alta, cinco medios y tres bajos. El más
     grave fue que el APK de release se firmaba con una llave publicada en el repositorio público. Se corrigieron ocho
     hallazgos, cada uno en su propio commit, y se verificaron repitiendo la misma prueba antes y después de la
     corrección. Siete quedaron cerrados por completo, uno quedó cerrado de forma parcial con un riesgo residual
@@ -294,7 +294,7 @@
   </div>
 
   <h2 class="salto">Técnicas de auditoría</h2>
-  <p>La guía exige al menos dos técnicas (Vacca, 2026); se usaron seis, todas automatizadas con scripts en
+  <p>La guía exige al menos dos técnicas (Vacca, 2026); se usaron siete, todas automatizadas con scripts en
     <code>auditoria/scripts/</code> que guardan su salida con fecha y commit para poder repetir la prueba después de cada
     corrección (Tabla 3). Las pruebas dinámicas se hicieron con el APK de release instalado en un emulador Android 15.
     Por política del grupo no se inició sesión ni se crearon cuentas en el proyecto real de Firebase; las reglas se
@@ -310,12 +310,13 @@
         <tr><td>Dependencias</td><td><code>flutter pub outdated</code>, <code>npm audit</code></td><td>M2</td><td>Paquetes de Flutter y de Cloud Functions</td></tr>
         <tr><td>Manifiesto y permisos</td><td>Script propio y <code>apkanalyzer</code></td><td>M5, M6, M8</td><td>Manifiesto fuente y del APK, <code>Info.plist</code></td></tr>
         <tr><td>Análisis del APK de release</td><td><code>apkanalyzer</code>, <code>apksigner</code></td><td>M7, M8</td><td>Firma, depurable, símbolos en <code>libapp.so</code>, R8</td></tr>
+        <tr><td>Análisis estático automatizado</td><td>MobSF v4.6.5 en Docker (MobSF, 2025)</td><td>M1, M5, M7, M8, M9, M10</td><td>APK de release antes y después, por su API REST</td></tr>
         <tr><td>Revisión de código</td><td>Lectura de reglas y 14 Cloud Functions; emulador de Firebase</td><td>M3, M4, M9</td><td>Autorización, validación, almacenamiento</td></tr>
         <tr><td>Ejecución en emulador</td><td>Logcat y mitmproxy 12.3.1 (mitmproxy Project, 2025)</td><td>M5, M9</td><td>Arranque de la app sin sesión</td></tr>
       </tbody>
     </table>
-    <p class="nota"><i>Nota.</i> El análisis con MobSF no se realizó porque Docker Desktop no arrancó en el equipo de
-      trabajo. La prueba con mitmproxy no generó tráfico sin sesión y debe repetirse con una cuenta de prueba.</p>
+    <p class="nota"><i>Nota.</i> La prueba con mitmproxy no generó tráfico sin sesión iniciada y debe repetirse con una
+      cuenta de prueba.</p>
   </div>
 </section>
 
@@ -478,6 +479,29 @@ classes.dex: 989 clases renombradas por R8 · apkanalyzer manifest debuggable �
   <pre>probar_reglas.ps1 -Commit 28fc2f7  →  Resultado: 4 caso(s) no cumplen
 probar_reglas.ps1  (corregido)     →  Resultado: todas las reglas se comportan como se espera
 npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 moderate</pre>
+
+  <p>Como verificación independiente, los dos APK de release se analizaron con MobSF (Tabla 8). La herramienta
+    confirma de forma automática tres de las correcciones: desaparecen la alerta alta de firma con certificado de
+    depuración (H-01) y el aviso de respaldo de datos (H-02), y los permisos peligrosos bajan de seis a dos (H-07).</p>
+
+  <div class="tabla">
+    <p class="numero">Tabla 8</p>
+    <p class="titulo-tf">Resultado del análisis con MobSF antes y después de las correcciones</p>
+    <table>
+      <thead><tr><th style="width:30%">Indicador</th><th>Antes (<code>28fc2f7</code>)</th><th>Después (<code>4d1386e</code>)</th></tr></thead>
+      <tbody>
+        <tr><td>Puntaje de seguridad</td><td>48/100</td><td>52/100</td></tr>
+        <tr><td>Alertas altas</td><td>2: firma con certificado de depuración; <code>minSdk</code> 24</td><td>1: <code>minSdk</code> 24</td></tr>
+        <tr><td>Avisos</td><td>15, incluido <code>allowBackup</code> sin definir</td><td>14, sin el aviso de <code>allowBackup</code></td></tr>
+        <tr><td>Permisos peligrosos</td><td>6: cámara, notificaciones, micrófono, imágenes, lectura y escritura de almacenamiento</td><td>2: cámara y notificaciones</td></tr>
+        <tr><td>Secretos detectados</td><td>Llave de cliente de Firebase y tablas hexadecimales de librerías</td><td>Igual (falsos positivos)</td></tr>
+      </tbody>
+    </table>
+    <p class="nota"><i>Nota.</i> MobSF analiza todo el código del APK, incluidas las librerías de Google. Los avisos de
+      MD5, SHA-1, generador aleatorio inseguro, SQLite y archivos temporales provienen de esas librerías: el código de la
+      app no usa esos algoritmos (ver M10). Los componentes exportados que reporta son de Firebase y están protegidos por
+      permisos del sistema. Reportes completos en <code>auditoria/evidencia/mobsf_*</code>.</p>
+  </div>
 </section>
 
 <!-- ============================ DISCUSIÓN ============================ -->
@@ -492,16 +516,19 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
     <code>minimatch</code>) y solo podrían eliminarse forzando versiones mayores, con riesgo de romper las funciones en
     producción. Ninguna tiene una ruta de ataque en este backend, por lo que se aceptaron como riesgo residual que se
     revisará con cada actualización de <code>firebase-admin</code>.</p>
-  <p>Como limitaciones, dos técnicas no pudieron completarse: el análisis con MobSF, porque Docker Desktop no arrancó en
-    el equipo de trabajo, y la interceptación con mitmproxy, porque sin sesión iniciada la app no genera tráfico propio.
-    Ambas quedan documentadas para repetirse con una cuenta de prueba.</p>
+  <p>MobSF señaló además una alerta que no estaba entre los hallazgos: la app admite Android 7.0
+    (<code>minSdk</code> 24), una versión que ya no recibe parches de seguridad. Subir la versión mínima reduce ese
+    riesgo pero deja fuera teléfonos antiguos, por lo que se deja como decisión del equipo en las recomendaciones.</p>
+  <p>Como limitación, la interceptación con mitmproxy no pudo completarse: sin sesión iniciada la app no genera tráfico
+    propio, y la auditoría no inicia sesión en el proyecto de producción. Queda documentada para que el equipo la
+    repita iniciando sesión con una cuenta de prueba.</p>
 </section>
 
 <!-- ============================ CONCLUSIONES ============================ -->
 <section>
   <h1 class="salto">Conclusiones</h1>
   <p>Se cumplieron los cuatro objetivos específicos. El modelo de amenazas identificó cuatro amenazas propias de la
-    aplicación, la revisión del OWASP Mobile Top 10 se hizo con seis técnicas y produjo nueve hallazgos con evidencia,
+    aplicación, la revisión del OWASP Mobile Top 10 se hizo con siete técnicas y produjo nueve hallazgos con evidencia,
     se corrigieron ocho de ellos (más del mínimo de cinco que pide la guía) y cada corrección quedó en su propio commit
     y verificada con la misma prueba antes y después.</p>
   <p>El hallazgo más grave, la firma del release con una llave publicada en el repositorio público, muestra que un
@@ -525,6 +552,8 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
       registrar sus huellas SHA-1 y SHA-256 en Firebase.</li>
     <li>Integrar Firebase App Check con Play Integrity y restringir las llaves de API por paquete y huella (H-06).</li>
     <li>Repetir con una cuenta de prueba la interceptación con mitmproxy y la revisión de Logcat con sesión iniciada.</li>
+    <li>Evaluar subir el <code>minSdk</code> de 24 (Android 7.0) a una versión que aún reciba parches de seguridad,
+      según la alerta de MobSF, considerando cuántas usuarias tienen teléfonos antiguos.</li>
     <li>Revisar <code>npm audit</code> y <code>flutter pub outdated</code> en cada actualización de dependencias, y volver a
       correr los scripts de <code>auditoria/scripts/</code> antes de cada entrega.</li>
   </ol>
@@ -541,6 +570,7 @@ npm audit   antes: 10 vulnerabilities (1 low, 8 moderate, 1 high)   después: 7 
   <p>Google. (s.&nbsp;f.-b). <i>Firebase App Check</i>. Firebase. https://firebase.google.com/docs/app-check</p>
   <p>Holloway-George, E. (2024, febrero). <i>What’s the buzz about the 2024 OWASP Mobile Top 10 changes?</i> ProAndroidDev. https://proandroiddev.com/whats-the-buzz-about-the-2024-owasp-mobile-top-10-changes-83c93f765bd3</p>
   <p>mitmproxy Project. (2025). <i>mitmproxy</i> (Versión 12.3.1) [Software]. https://mitmproxy.org</p>
+  <p>MobSF. (2025). <i>Mobile Security Framework (MobSF)</i> (Versión 4.6.5) [Software]. GitHub. https://github.com/MobSF/Mobile-Security-Framework-MobSF</p>
   <p>OWASP Foundation. (2024a). <i>OWASP Mobile Top 10</i>. https://owasp.org/www-project-mobile-top-10/</p>
   <p>OWASP Foundation. (2024b). <i>OWASP Mobile Application Security Verification Standard (MASVS)</i> (Versión 2.1.0). https://mas.owasp.org/MASVS/</p>
   <p>OWASP Foundation. (2026). <i>OWASP Mobile Application Security Testing Guide (MASTG)</i> (Versión 2.0.0). https://mas.owasp.org/MASTG/</p>

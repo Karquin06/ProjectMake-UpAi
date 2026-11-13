@@ -26,7 +26,7 @@ corregir al menos cinco hallazgos y demostrar el antes y el después. Entrega: *
 | Secretos en código e historial | gitleaks 8.30 | `scripts/escanear_secretos.ps1` |
 | Dependencias | `flutter pub outdated`, `npm audit` (functions) | `scripts/revisar_dependencias.ps1` |
 | Manifiesto y permisos | Lectura del `AndroidManifest.xml` fuente y del fusionado en release | `scripts/revisar_manifiesto.ps1` |
-| Análisis del APK | MobSF (Docker) | `scripts/construir_apk.ps1` + `scripts/mobsf.ps1` |
+| Análisis del APK | MobSF (Docker) | `scripts/construir_apk.ps1`, `scripts/mobsf.ps1` y `scripts/mobsf_analizar.ps1` (API REST: sube, escanea y guarda reporte JSON, PDF y puntaje) |
 | Logs en ejecución | `adb logcat` (Android SDK) | `scripts/logcat.ps1` |
 | Tráfico de red | mitmproxy 12.3 (`mitmweb`) | `scripts/mitmproxy.ps1` |
 | Dispositivo de pruebas | Emulador `auditoria_api35` (Android 15, Google APIs, admite `adb root`) | `scripts/entorno.ps1 -Emulador` |
@@ -50,7 +50,8 @@ Desde la raíz del repo, en PowerShell:
 
 # 3. Análisis del APK
 .\auditoria\scripts\construir_apk.ps1
-.\auditoria\scripts\mobsf.ps1          # abre http://localhost:8000 y se sube el APK
+.\auditoria\scripts\mobsf.ps1          # levanta MobSF en http://localhost:8000 (mobsf / mobsf)
+.\auditoria\scripts\mobsf_analizar.ps1 -Apk build\app\outputs\flutter-apk\app-release.apk -Etiqueta despues
 
 # 4. Técnicas dinámicas (con el emulador encendido y la app instalada)
 .\auditoria\scripts\logcat.ps1
