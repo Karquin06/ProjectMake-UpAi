@@ -13,10 +13,11 @@ service firebase.storage {
           && request.resource.contentType.matches('image/.*');
     }
 
-    // Foto de perfil (Karlos / Jaider): la dueña la sube; cualquier usuaria
-    // con sesión puede verla. eliminarCuenta borra la carpeta con Admin SDK.
+    // Foto de perfil (Karlos / Jaider): la dueña la sube y solo ella (o la
+    // admin) la ve; ninguna pantalla muestra fotos de otras usuarias (H-08).
+    // eliminarCuenta borra la carpeta con Admin SDK.
     match /perfiles/{uid}/{archivo} {
-      allow read: if logueada();
+      allow read: if esDuena(uid) || esAdmin();
       allow create, update: if esDuena(uid) && imagenValida();
       allow delete: if esDuena(uid);
     }
