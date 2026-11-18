@@ -369,14 +369,18 @@ class _TarjetaTema extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            detalle,
-            textAlign: TextAlign.center,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.subtitulo.copyWith(
-              fontSize: 11.5,
-              height: 1.3,
+          // Flexible: la tarjeta tiene alto fijo; con letra grande el detalle
+          // usa solo el espacio que queda y se recorta con "…".
+          Flexible(
+            child: Text(
+              detalle,
+              textAlign: TextAlign.center,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.subtitulo.copyWith(
+                fontSize: 11.5,
+                height: 1.3,
+              ),
             ),
           ),
         ],
@@ -515,19 +519,37 @@ class _AvisoSinPerfil extends StatelessWidget {
         color: AppColors.fondoRosaSuave,
         borderRadius: BorderRadius.circular(12),
       ),
+      // El botón va debajo del texto: en una sola fila, con letra grande el
+      // botón dejaba al texto una franja angosta (una palabra por línea).
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 18, color: AppColors.violeta),
+          const Padding(
+            padding: EdgeInsets.only(top: 6),
+            child: Icon(Icons.info_outline, size: 18, color: AppColors.violeta),
+          ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              AppStrings.asistenteSinPerfil,
-              style: context.estilosTexto.bodySmall,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, right: 8),
+                  child: Text(
+                    AppStrings.asistenteSinPerfil,
+                    style: context.estilosTexto.bodySmall,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.irA(AppRoutes.colorimetria),
+                    child: const Text(AppStrings.hacerAnalisis),
+                  ),
+                ),
+              ],
             ),
-          ),
-          TextButton(
-            onPressed: () => context.irA(AppRoutes.colorimetria),
-            child: const Text(AppStrings.hacerAnalisis),
           ),
         ],
       ),

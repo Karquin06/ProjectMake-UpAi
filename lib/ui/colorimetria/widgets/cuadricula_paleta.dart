@@ -89,11 +89,14 @@ class CuadriculaPaleta extends StatelessWidget {
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.superficie,
+      // Desplazable: en pantallas bajas (o en horizontal) el contenido no
+      // cabe en la altura máxima de una hoja normal.
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (hoja) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,

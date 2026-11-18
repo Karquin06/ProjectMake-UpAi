@@ -45,7 +45,9 @@ class TarjetaResultado extends StatelessWidget {
                   ],
                 ),
               ),
-              EtiquetaEstacion(estacion: estacion, compacta: true),
+              Flexible(
+                child: EtiquetaEstacion(estacion: estacion, compacta: true),
+              ),
             ],
           ),
           const SizedBox(height: 18),

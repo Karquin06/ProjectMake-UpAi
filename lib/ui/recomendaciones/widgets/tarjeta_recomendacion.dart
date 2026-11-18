@@ -70,14 +70,19 @@ class TarjetaRecomendacion extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text(
-                      Formateadores.precio(item.precio),
-                      style: estilos.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.violeta,
+                    // Flexible: con letra grande o pantalla angosta el precio
+                    // se recorta en vez de desbordar la fila.
+                    Expanded(
+                      child: Text(
+                        Formateadores.precio(item.precio),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: estilos.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.violeta,
+                        ),
                       ),
                     ),
-                    const Spacer(),
                     if (item.calificacion != null) ...[
                       const Icon(
                         Icons.star_rounded,

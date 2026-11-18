@@ -526,11 +526,17 @@ class _FilaEstacion extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
-                    estacion.etiqueta,
-                    style: TextStyle(
-                      fontWeight: resaltada ? FontWeight.w800 : FontWeight.w600,
-                      color: AppColors.textoPrincipal,
+                  // Flexible: en pantallas angostas o con letra grande el nombre
+                  // se recorta con "…" y las cifras siguen visibles.
+                  Flexible(
+                    child: Text(
+                      estacion.etiqueta,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: resaltada ? FontWeight.w800 : FontWeight.w600,
+                        color: AppColors.textoPrincipal,
+                      ),
                     ),
                   ),
                   if (resaltada) ...[
