@@ -36,12 +36,18 @@ class EtiquetaEstacion extends StatelessWidget {
         children: [
           Icon(estacion.icono, size: compacta ? 13 : 16, color: color),
           const SizedBox(width: 6),
-          Text(
-            texto ?? estacion.etiqueta,
-            style: AppTextStyles.etiquetaCampo.copyWith(
-              color: color,
-              fontSize: compacta ? 11 : 13,
-              letterSpacing: 0.2,
+          // Flexible: si el espacio no alcanza (pantalla angosta, letra grande)
+          // el nombre se recorta con "…" en vez de desbordar.
+          Flexible(
+            child: Text(
+              texto ?? estacion.etiqueta,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.etiquetaCampo.copyWith(
+                color: color,
+                fontSize: compacta ? 11 : 13,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         ],

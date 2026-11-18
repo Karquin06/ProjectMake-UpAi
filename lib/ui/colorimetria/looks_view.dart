@@ -234,13 +234,20 @@ class _TarjetaLook extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      for (final p in look.maquillaje)
-                        if (p.categoria != 'base')
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: _Punto(colorHex: p.colorHex, tamano: 16),
-                          ),
-                      const Spacer(),
+                      // Wrap flexible: con muchos productos o letra grande los
+                      // puntos bajan de línea en vez de empujar el porcentaje.
+                      Expanded(
+                        child: Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            for (final p in look.maquillaje)
+                              if (p.categoria != 'base')
+                                _Punto(colorHex: p.colorHex, tamano: 16),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
                       Text(
                         '${look.puntaje}%',
                         style: const TextStyle(

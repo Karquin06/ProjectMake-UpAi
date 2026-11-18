@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "423754930566-nh9khp4uskfg51p8hiudies3j8g8gskc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mackeupai",
+            "certificate_hash": "903568238983b41f281872d8c04da7ab833d0920"
+          }
+        },
+        {
           "client_id": "423754930566-71i5fpq092nmunpbmuksic77ukgrl6il.apps.googleusercontent.com",
           "client_type": 3
         }
