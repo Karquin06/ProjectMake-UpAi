@@ -61,6 +61,12 @@ android {
         release {
             // Nunca con la llave de depuración: está en el repositorio público.
             if (hayLlaveRelease) signingConfig = signingConfigs.getByName("release")
+            // R8: quita y ofusca el código Java/Kotlin que no se usa, y elimina
+            // los recursos (imágenes, layouts) que nada referencia. Flutter lo
+            // activa por defecto; queda explícito para que no se apague sin querer.
+            // El código Dart se ofusca aparte con --obfuscate (construir_apk.ps1).
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }

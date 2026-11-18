@@ -103,7 +103,12 @@ class SelectorProductoAr extends StatelessWidget {
                   const Text(AppStrings.arSinLooks)
                 else
                   SizedBox(
-                    height: 126,
+                    // Crece con la letra del teléfono: con letra grande las
+                    // tarjetas de 126 px fijos ya no alcanzaban.
+                    height: MediaQuery.textScalerOf(context)
+                        .scale(126)
+                        .clamp(126.0, 220.0)
+                        .toDouble(),
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: vm.looks.length,
@@ -167,7 +172,11 @@ class SelectorProductoAr extends StatelessWidget {
               ],
               if (categorias.isNotEmpty)
                 SizedBox(
-                  height: 44,
+                  // Los chips también crecen con la letra del teléfono.
+                  height: MediaQuery.textScalerOf(context)
+                      .scale(44)
+                      .clamp(44.0, 72.0)
+                      .toDouble(),
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: [

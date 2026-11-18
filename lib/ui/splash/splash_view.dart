@@ -270,28 +270,43 @@ class _PaginaOnboarding extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Se encoge en pantallas bajas para que el texto siempre quepa.
-        Flexible(
-          child: FittedBox(
-            child: IlustracionOnboardingView(tipo: pagina.ilustracion),
+    // La ilustración usa hasta la mitad del alto disponible (su tamaño natural
+    // en un teléfono normal) y la página se desplaza si, con letra grande o en
+    // pantallas bajas, el texto no cabe: nunca se corta ni se desborda.
+    return LayoutBuilder(
+      builder: (context, limites) {
+        final lado = (limites.maxHeight * 0.5)
+            .clamp(96.0, IlustracionOnboardingView.lado)
+            .toDouble();
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: limites.maxHeight),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox.square(
+                  dimension: lado,
+                  child: FittedBox(
+                    child: IlustracionOnboardingView(tipo: pagina.ilustracion),
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  pagina.titulo,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.tituloPantalla.copyWith(fontSize: 21),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  pagina.descripcion,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.subtitulo,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          pagina.titulo,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.tituloPantalla.copyWith(fontSize: 21),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          pagina.descripcion,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.subtitulo,
-        ),
-      ],
+        );
+      },
     );
   }
 }
