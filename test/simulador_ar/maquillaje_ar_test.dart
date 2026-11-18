@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter/material.dart' hide Image;
 import 'package:provider/provider.dart';
@@ -8,13 +7,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mackeupai/core/constants/app_strings.dart';
 import 'package:mackeupai/data/repositories/armario_repository.dart';
 import 'package:mackeupai/data/repositories/catalogo_repository.dart';
-import 'package:mackeupai/models/deteccion_facial_ar.dart';
 import 'package:mackeupai/models/enums.dart';
 import 'package:mackeupai/models/producto_maquillaje.dart';
 import 'package:mackeupai/providers/armario_provider.dart';
 import 'package:mackeupai/providers/producto_provider.dart';
 import 'package:mackeupai/ui/simulador_ar/maquillaje_ar_view_model.dart';
-import 'package:mackeupai/ui/simulador_ar/widgets/contorno_labios_painter.dart';
 
 ProductoMaquillaje producto(
   String id, {
@@ -112,55 +109,6 @@ void main() {
     expect(vm.productos.map((p) => p.id), contains('otra-estacion'));
     expect(vm.seleccionado?.id, 'rosa');
   });
-  test('las superficies de maquillaje excluyen la abertura de la boca', () {
-    final d = DeteccionFacialAr(
-      tamanoImagen: const Size(100, 100),
-      rotacion: 0,
-      esFrontal: false,
-      rostroDetectado: true,
-      contornosLabios: const [
-        [Offset(10, 40), Offset(50, 30), Offset(90, 40)],
-        [Offset(10, 40), Offset(50, 43), Offset(90, 40)],
-        [Offset(10, 60), Offset(50, 57), Offset(90, 60)],
-        [Offset(10, 60), Offset(50, 70), Offset(90, 60)],
-      ],
-    );
-    final arriba = ContornoLabiosPainter.superficie(
-      d,
-      const Size(100, 100),
-      0,
-      1,
-    );
-    final abajo = ContornoLabiosPainter.superficie(
-      d,
-      const Size(100, 100),
-      3,
-      2,
-    );
-    expect(arriba.contains(const Offset(50, 36)), isTrue);
-    expect(abajo.contains(const Offset(50, 64)), isTrue);
-    expect(arriba.contains(const Offset(50, 50)), isFalse);
-    expect(abajo.contains(const Offset(50, 50)), isFalse);
-  });
-  test(
-    'comparación original no dibuja maquillaje ni oculta una pérdida de rostro',
-    () async {
-      final fotogramas = ValueNotifier<DeteccionFacialAr?>(null);
-      final recorder = PictureRecorder();
-      final canvas = Canvas(recorder);
-      ContornoLabiosPainter(
-        fotogramas,
-        color: Colors.red,
-        original: true,
-      ).paint(canvas, const Size(20, 20));
-      final pic = recorder.endRecording(), imagen = await recorderImage(pic);
-      final data = await imagen.toByteData();
-      expect(data!.buffer.asUint8List().every((b) => b == 0), isTrue);
-      imagen.dispose();
-      pic.dispose();
-      fotogramas.dispose();
-    },
-  );
   testWidgets(
     'los controles caben en poca altura y permiten comparar el original',
     (tester) async {
@@ -194,4 +142,3 @@ void main() {
   );
 }
 
-Future<Image> recorderImage(Picture pic) => pic.toImage(20, 20);

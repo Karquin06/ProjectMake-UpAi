@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/images/logo_proyecto.jpeg" alt="Make Up AI" width="260">
+  <img src="docs/logo_proyecto.jpeg" alt="Make Up AI" width="260">
 </p>
 
 # MAKE UP AI
