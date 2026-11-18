@@ -61,3 +61,6 @@ serviceAccountKey.json
 # Llave de publicacion de Android (H-01): nunca subirla
 /android/key.properties
 *.jks
+
+# APK compilados para distribuir (se publican en GitHub Releases, no en el repo)
+/dist/
