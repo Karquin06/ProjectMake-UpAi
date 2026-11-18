@@ -17,7 +17,7 @@
     <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove"/>
     <uses-feature android:name="android.hardware.camera.front" android:required="false"/>
     <application
-        android:label="mackeupai"
+        android:label="Make Up AI"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"

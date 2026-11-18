@@ -1,6 +1,6 @@
 {
-    "name": "mackeupai",
-    "short_name": "mackeupai",
+    "name": "Make Up AI",
+    "short_name": "Make Up AI",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#A22177",
