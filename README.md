@@ -561,10 +561,17 @@ Las Cloud Functions se prueban con `npm test` dentro de `functions/`.
 ## Generar el APK
 
 ```bash
-flutter build apk --release --split-per-abi
+flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/symbols --tree-shake-icons
 ```
 
-El archivo recomendado queda en `build/app/outputs/flutter-apk/app-arm64-v8a-release.apk` (sirve para casi todos los teléfonos Android actuales). La compilación necesita varios GB libres en disco. El APK de release usa la clave de depuración, por lo que sirve para pruebas y entregas, no para publicar en Play Store.
+O, en Windows, `.\auditoria\scripts\construir_apk.ps1 -PorArquitectura`, que corre ese comando, deja los APK en `dist/` como `MakeUpAI-<versión>-<arquitectura>.apk`, guarda una copia de `build/symbols` en `Documentos\MakeUpAI-simbolos\<versión>_<commit>` y verifica la firma.
+
+- **Un APK por procesador** (`--split-per-abi`): `arm64-v8a` sirve para casi todos los teléfonos actuales, `armeabi-v7a` para los antiguos de 32 bits y `x86_64` para emuladores.
+- **Código ofuscado** (`--obfuscate`): los nombres de clases y funciones de Dart no se pueden leer en el APK. Los símbolos para interpretar los errores quedan en `build/symbols`; **guarden esa carpeta por cada versión publicada**, porque `flutter clean` la borra y sin ella no se pueden leer los stack traces.
+- **Sin lo que no se usa:** R8 elimina el código y los recursos Android sin uso (`isMinifyEnabled` e `isShrinkResources` en `android/app/build.gradle.kts`), `--tree-shake-icons` deja solo los íconos de Material que la app usa y las imágenes van en WebP (`node auditoria/scripts/imagenes_webp.mjs` convierte las nuevas).
+- **Firma:** el release se firma con la llave de publicación del equipo (`android/key.properties` y `android/app/llave-release.jks`, fuera del repositorio). Sin ella la compilación de release se detiene con un aviso, en lugar de firmar con la clave de depuración.
+
+La compilación necesita varios GB libres en disco. Antes de entregar, prueben el APK instalado en un teléfono real.
 
 ## Estado del proyecto
 

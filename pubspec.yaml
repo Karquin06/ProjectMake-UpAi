@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.12.2
@@ -119,6 +119,8 @@ flutter:
 # Ícono de la app (flutter_launcher_icons). Las imágenes fuente están en
 # assets/icon/ (NO se empaquetan en la app). Regenerar con:
 #   dart run flutter_launcher_icons
+# y después pasar a WebP lo generado (el APK pesa menos):
+#   node auditoria/scripts/imagenes_webp.mjs
 flutter_launcher_icons:
   android: true
   ios: true
@@ -137,6 +139,7 @@ flutter_launcher_icons:
 # solo admite un ícono centrado sobre un color: un recorte de esa imagen
 # con el brillo, difuminado hacia el fondo (splash_rostro.png). Regenerar con:
 #   dart run flutter_native_splash:create
+# y luego: node auditoria/scripts/imagenes_webp.mjs
 flutter_native_splash:
   color: "#440537"
   background_image: "assets/icon/arranque.png"
