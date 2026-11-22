@@ -81,9 +81,11 @@ La versión UNICESAR toma su estilo de `informe/unicesar/estilo.css` y su portad
    ```
 2. Compilar siempre ofuscado (H-04); los símbolos sirven para leer los stack traces:
    ```powershell
-   flutter build apk --release --obfuscate --split-debug-info=..\simbolos-mackeupai
+   flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/symbols --tree-shake-icons
    ```
-   o `.\auditoria\scripts\construir_apk.ps1`, que además analiza el APK.
+   o `.\auditoria\scripts\construir_apk.ps1 -PorArquitectura`, que corre ese comando, copia los
+   APK a `dist\`, respalda `build\symbols` en `Documentos\MakeUpAI-simbolos\<versión>_<commit>`
+   (y en `evidencia\apk\`) y analiza el APK. Guarden los símbolos de cada versión publicada.
 
 ## Flujo de trabajo en Git
 
