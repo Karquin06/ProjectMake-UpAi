@@ -40,10 +40,13 @@ Make Up AI pone esa asesoría en el teléfono:
 
 - **Analiza la selfie** de la usuaria y determina su estación de color, subtono (cálido, frío o neutro), contraste e intensidad.
 - **Muestra su paleta personal**: colores básicos y para destacar en ropa, tonos de labial, rubor, sombra y base, y los colores que conviene evitar.
+- **Arma looks completos** (ropa y maquillaje) que combinan entre sí y con su colorimetría, en un tablero tipo Pinterest filtrable por ocasión.
 - **Recomienda** maquillaje y prendas acordes con su paleta, con filtros por tipo y ocasión y detalle de cada ítem.
-- **Simula** maquillaje con la cámara frontal en Android: looks recomendados por colorimetría y prueba libre, con varias categorías simultáneas.
+- **Simula** maquillaje con la cámara frontal en Android: looks recomendados por colorimetría y prueba libre, con varias categorías simultáneas que se mezclan con el tono real de la piel.
+- **Responde dudas de estilo** con un asistente de IA que conoce su estación y subtono, y que siempre contesta (si Gemini falla, responde un asesor de respaldo).
 - **Organiza el Armario personal**: guarda productos y prendas del catálogo, y consulta capturas del simulador. El escáner de prendas queda fuera del alcance.
 - **Gestiona un catálogo** de prendas y productos mediante un panel de administración (solo rol admin).
+- **Abre la plataforma a marcas de maquillaje**: la admin general crea marcas y asigna sus administradoras; cada marca carga o importa sus productos y ve un panel con sus estadísticas (calificaciones, "me gusta", vistas y pruebas en AR), siempre en totales anónimos.
 
 Además incluye registro con verificación de correo, inicio de sesión con correo o Google, recuperación de contraseña, perfil editable con foto, notificaciones y eliminación de cuenta.
 
@@ -61,6 +64,17 @@ Selfie ─► Detección de zona de piel ─► Análisis de color ─► Estaci
 2. La imagen se reduce y se analiza. El análisis puede hacerse **en el teléfono** o con **Cloud Functions**; la fuente se elige en un solo punto del código.
 3. El resultado (estación, subtono, contraste, intensidad y nivel de confianza) se guarda en el perfil de la usuaria. **La foto no se conserva**: se borra al terminar el análisis.
 4. La paleta correspondiente a la estación se muestra en la pantalla de paleta.
+
+### Looks por colorimetría
+
+El motor de looks (`lib/data/services/looks/motor_looks.dart`) corre en el teléfono y arma outfits completos con su maquillaje a partir del catálogo activo:
+
+- Solo usa prendas y productos de la estación y el subtono de la usuaria.
+- Une las prendas con una regla de armonía medida en CIELAB (tono h\*): **monocromático** (menos de 25°), **tonos vecinos** (hasta 90°), **complementario** (130° o más) o **básicos con un acento**. Los cruces de 90° a 130° chocan y se descartan.
+- Ajusta el contraste claro/oscuro del outfit al contraste natural de la usuaria.
+- Elige labial y rubor de la misma familia de color y coordinados con el color protagonista; la sombra acompaña el acento.
+- La intensidad del labial depende de la ocasión (más suave para trabajo o entrevista, más intensa para fiesta o cita) y de la intensidad de la usuaria.
+- No repite prendas ni nombres y alterna los productos de maquillaje entre looks.
 
 ## Tecnologías
 
@@ -115,7 +129,11 @@ Splash ─┬─ sin sesión ── onboarding (solo la primera vez) ── Logi
         └─ sesión verificada ── Home
 ```
 
-El splash muestra el logo animado y decide el destino con `SplashViewModel`. Si Firebase no responde en 8 segundos, o falla la lectura de la sesión, lleva a login con un aviso claro en lugar de quedarse esperando.
+Al tocar el ícono, Android muestra el arranque nativo con el logo y su brillo sobre fondo morado (Android 12 o superior solo admite un ícono centrado; en versiones anteriores se ve la imagen completa). Ese arranque se mantiene hasta que el splash animado tiene sus imágenes listas (`FlutterNativeSplash.preserve`), y el primer cuadro de Flutter es idéntico a él: el logo crece y se desplaza hasta su lugar mientras aparece la imagen de marca, sin cortes.
+
+El splash dura 6 segundos y decide el destino con `SplashViewModel`. Al terminar la animación espera a Firebase como máximo 8 segundos más; si no responde, o falla la lectura de la sesión, lleva a login con un aviso claro en lugar de quedarse esperando. El paso a la siguiente pantalla es un fundido de 1,2 segundos.
+
+En toda la app, el indicador de carga es el rostro del logo latiendo (`LogoCargando`). Home se muestra apenas llegan el perfil y la paleta; las recomendaciones cargan después, en paralelo, con tarjetas de espera.
 
 ## Diagramas
 
@@ -157,7 +175,7 @@ flowchart LR
     CF --> AU
     CF --> FCM
     CF --> SM
-    CF --> GE["Gemini 2.5 Flash"]
+    CF --> GE["Gemini<br/>(modelo en GEMINI_MODELO)"]
     SCH -- "cada 60 min" --> CF
     FCM -. "push" .-> UI
 ```
@@ -307,10 +325,16 @@ sequenceDiagram
     CF->>FS: catálogo compatible con su estación
     CF->>SM: GEMINI_API_KEY
     CF->>G: generateContent
-    G-->>CF: respuesta
+    alt Gemini responde
+        G-->>CF: respuesta
+    else Gemini falla (modelo retirado, sin créditos, red)
+        CF->>CF: respuestaDeRespaldo con su paleta y el catálogo
+    end
     CF-->>AP: respuesta
     AP->>FS: usuarias/uid/conversaciones
 ```
+
+El modelo se configura con `GEMINI_MODELO` en `functions/.env` (hoy `gemini-3.8-flash`).
 
 ### Eliminar cuenta
 
@@ -340,7 +364,7 @@ Se publican con `firebase deploy --only functions --project macke-up-ai` (plan B
 ```mermaid
 flowchart LR
     DEV["PC de desarrollo<br/>functions/src/*.ts"] -- "firebase deploy" --> B["npm run build<br/>(tsc → lib/)"]
-    B --> D["Descubre las 8 funciones<br/>de index.ts"]
+    B --> D["Descubre las 14 funciones<br/>de index.ts"]
     D --> CB["Cloud Build<br/>una imagen por función"]
     CB --> AR["Artifact Registry<br/>(limpieza: 1 día)"]
     AR --> CR["Cloud Run<br/>us-central1 · Node 22"]
@@ -363,6 +387,8 @@ erDiagram
     PERFILES_COLORIMETRIA }o--|| PALETAS : "estación"
     RECOMENDACIONES }o--o| PRODUCTOS_MAQUILLAJE : "productoId"
     RECOMENDACIONES }o--o| PRENDAS_ROPA : "prendaId"
+    MARCAS ||--o{ PRODUCTOS_MAQUILLAJE : "marcaId"
+    PRODUCTOS_MAQUILLAJE ||--o| ESTADISTICAS_PRODUCTOS : "totales anónimos"
 
     USUARIAS {
         string nombre
@@ -409,6 +435,18 @@ erDiagram
     LIMITES_CHAT {
         number mensajes
     }
+    MARCAS {
+        string nombre
+        string logoUrl
+        array admins
+        bool activa
+    }
+    ESTADISTICAS_PRODUCTOS {
+        number calificaciones
+        number meGusta
+        number vistas
+        number pruebasAr
+    }
 ```
 
 ## Estructura del proyecto
@@ -430,23 +468,30 @@ lib/
 │   ├── repositories/ auth, usuaria, sesion, credencial, perfil de colorimetría,
 │   │                 paleta, catálogo, recomendaciones, conversaciones
 │   ├── services/     storage, permisos, cloud functions, análisis de color y
-│   │                 de prendas, notificaciones, eliminación de cuenta
+│   │                 de prendas, notificaciones, eliminación de cuenta, marcas,
+│   │                 detección facial AR, tonos de piel y labios (tonos_rostro_ar)
+│   │   └── looks/    motor de looks por colorimetría
 │   └── datos/        paletas por estación y catálogo de ejemplo
 ├── providers/        app_providers, auth, usuaria, sesión, colorimetría,
 │                     paleta, notificaciones
 └── ui/
-    ├── splash/       logo animado y onboarding
+    ├── splash/       arranque animado, onboarding con ilustraciones
     ├── auth/         login, registro, verificación, recuperación, privacidad
     ├── home/         inicio y navegación inferior
     ├── perfil/       perfil, edición y eliminación de cuenta
-    ├── colorimetria/ selfie, análisis, resultado y paleta
+    ├── colorimetria/ selfie, análisis, resultado, paleta y looks para ti
     ├── recomendaciones/ recomendaciones, filtros y detalle
+    ├── asistente/    chat con el asistente de IA
     ├── simulador_ar/ cámara, modos, capas y renderizado de maquillaje
-    └── admin/        catálogo de prendas y productos
+    ├── armario/      productos guardados y capturas del simulador
+    ├── admin/        catálogo de prendas y productos
+    ├── marcas/       marcas, panel "Mi marca" e importación de productos
+    └── dashboard/    panel de la admin general
 
 functions/            Cloud Functions (TypeScript)
-assets/images/        logo del proyecto
+assets/images/        logo, rostro del logo y splash (WebP)
 assets/icon/          imágenes fuente del ícono y de la pantalla de arranque
+auditoria/            auditoría de seguridad (amenazas, OWASP, hallazgos, scripts)
 test/                 pruebas automatizadas
 ```
 
@@ -463,7 +508,11 @@ Proyecto de Firebase: `macke-up-ai`.
 | `usuarias` | Datos de la usuaria, rol (`usuaria` o `admin`), consentimientos y token de notificaciones |
 | `perfiles_colorimetria` | Resultado del análisis de cada usuaria |
 | `paletas` | Paleta de colores por estación |
-| `prendasRopa` y `productosMaquillaje` | Catálogo de prendas y productos |
+| `prendasRopa` y `productosMaquillaje` | Catálogo de prendas (46 de ejemplo) y productos (54 de ejemplo), con la marca de cada producto |
+| `marcas` | Marcas de maquillaje y sus administradoras |
+| `estadisticasProductos` | Totales anónimos por producto (solo los escriben las funciones) |
+
+El catálogo de ejemplo se carga desde la app con **Catálogo → Cargar catálogo de ejemplo** (cuenta admin) o con `npm run sembrar:catalogo` dentro de `functions/`.
 
 **Storage:**
 
@@ -479,9 +528,13 @@ Proyecto de Firebase: `macke-up-ai`.
 | `limpiarImagenesTemporales` | Tarea programada que elimina imágenes temporales vencidas |
 | `analizarPrenda` | Compara el color de una prenda con la paleta de la usuaria |
 | `generarRecomendaciones` | Genera recomendaciones de maquillaje y vestuario a partir del perfil y el catálogo |
-| `chatAsistente` | Respuestas del asistente de IA |
+| `chatAsistente` | Respuestas del asistente de IA, con respaldo si Gemini falla |
 | `eliminarCuenta` | Elimina la cuenta y los datos de la usuaria |
 | `enviarNotificacion` | Envía notificaciones push |
+| `asignarAdminMarca` | La admin general da o quita a una cuenta el permiso de administrar una marca |
+| `alCalificarProducto` y `alMarcarMeGusta` | Actualizan las estadísticas del producto cuando una usuaria lo califica o le da "me gusta" |
+| `registrarEvento` | Cuenta vistas del detalle y pruebas en AR (una por usuaria y producto) |
+| `resumenMarca` y `resumenAdmin` | Datos de los paneles de cada marca y de la admin general |
 
 ## Privacidad y seguridad
 
@@ -490,7 +543,11 @@ Proyecto de Firebase: `macke-up-ai`.
 - **"Recordarme" guarda únicamente el correo**, en almacenamiento seguro del dispositivo. Nunca la contraseña.
 - **Roles.** El rol de la usuaria no puede modificarse desde la app; las rutas y funciones de administración exigen rol `admin`.
 - **Derecho al olvido.** La usuaria puede eliminar su cuenta desde Perfil, tras reautenticarse (contraseña o Google).
-- **Sin secretos en el código.** Las claves que aparecen en `firebase_options.dart` son identificadores públicos de cliente de Firebase; la seguridad real depende de las reglas de Firestore y Storage.
+- **Sin secretos en el código.** Las claves que aparecen en `firebase_options.dart` son identificadores públicos de cliente de Firebase; la seguridad real depende de las reglas de Firestore y Storage (`firestore.rules` y `storage.rules`).
+- **Pantallas protegidas.** La selfie, el simulador AR y sus capturas activan `FLAG_SECURE`: Android bloquea capturas y grabaciones de pantalla y oculta la vista previa en apps recientes.
+- **Certificate pinning.** `network_security_config.xml` prohíbe el tráfico sin cifrar y fija las conexiones a Google (`*.googleapis.com`, `*.cloudfunctions.net`) a sus autoridades raíz, con fecha de renovación y un script para verificarlas (`auditoria/scripts/verificar_pines.ps1`).
+- **Marcas sin datos personales.** Las marcas solo ven totales. Las estadísticas identifican a cada usuaria con un código (hash), nunca con su uid, correo o nombre, y su aporte se resta si borra su calificación, su "me gusta" o su cuenta.
+- **Auditoría.** La carpeta `auditoria/` documenta el modelo de amenazas, la revisión OWASP Top 10, los hallazgos, su verificación y el análisis con MobSF antes y después.
 
 ## Puesta en marcha
 
@@ -522,7 +579,7 @@ El simulador permite probar maquillaje del catálogo sobre la imagen de la cáma
 
 ### Modalidades
 
-- **Looks para mí:** combina productos reales recomendados según la estación y el subtono del perfil de colorimetría. Las combinaciones dependen de los productos disponibles en el catálogo.
+- **Looks para mí:** combina productos reales recomendados según la estación y el subtono del perfil de colorimetría. Cada look se juzga completo: labial y rubor de la misma familia de color, un solo foco intenso (labios u ojos, nunca los dos) y descarte de las combinaciones que chocan. Las combinaciones dependen de los productos disponibles en el catálogo.
 - **Prueba libre:** permite explorar productos compatibles del catálogo, incluidos los no recomendados para el perfil personal.
 
 ### Maquillaje por capas
@@ -532,7 +589,24 @@ El simulador permite probar maquillaje del catálogo sobre la imagen de la cáma
 - Incluye comparación con la imagen original y limpieza de todas las capas.
 - Permite capturar el resultado, guardarlo por cuenta en el dispositivo, consultarlo desde el Armario y abrir el diálogo del sistema para compartirlo.
 
-Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Los pigmentos se mezclan con la luminosidad de la cámara mediante máscaras regionales suaves y contornos curvos, conservando las luces y sombras de la imagen original. El seguimiento facial emplea ML Kit Face Mesh y Face Detection; las máscaras se vinculan a las regiones del rostro y el renderizado se mantiene separado de la selección de productos y las recomendaciones.
+Ambas modalidades utilizan una sola cámara y el mismo motor de capas. El renderizado se mantiene separado de la selección de productos y las recomendaciones.
+
+### Cómo se ve realista
+
+La vista previa de la cámara es una textura nativa: el maquillaje no puede mezclarse con ella mediante modos de fusión y se pinta encima. Para que no parezca una calcomanía:
+
+- **Mezcla con el tono real.** En cada detección se mide, en el propio cuadro de la cámara (YUV), el color promedio de los labios y de las mejillas (`tonos_rostro_ar.dart`). Cada producto se pinta ya mezclado con ese tono, como un "multiplicar": labial al 55 %, rubor al 75 % y base al 50 %. Así tiñe la piel en vez de taparla: un labial claro sobre labios oscuros se ve profundo y no pálido.
+- **Labial:** color pleno en el centro que se difumina hacia el contorno y lo cruza un poco, con un sombreado más oscuro hacia el borde exterior de cada labio. Con la boca cerrada los dos labios se unen en la línea media, hasta las comisuras reales; con la boca abierta no se pintan los dientes.
+- **Rubor:** mancha redonda en la manzana del pómulo, ubicada con los puntos del pómulo de la malla facial, con un degradado amplio y suave.
+- **Sombra:** en el párpado, difuminada, con un tono más profundo en la esquina exterior del ojo.
+- **Base:** cubre el centro del rostro y se desvanece hacia la frente, la mandíbula y alrededor de los ojos, sin bordes marcados.
+
+### Seguimiento facial
+
+- Arranca con **ML Kit Face Mesh** (468 puntos), que sigue mejor la forma de los labios y ubica el pómulo. Si es lenta (más de 200 ms tres veces seguidas) o no entrega los labios, pasa sola a **Face Detection** (contornos).
+- Un filtro One Euro suaviza los puntos y una predicción corta compensa el retraso del detector.
+- Para que el maquillaje no parpadee con el look completo, se aceptan detecciones de hasta 400 ms y la última geometría válida se conserva hasta 600 ms.
+- El botón de rendimiento (arriba a la derecha) muestra los puntos detectados y el detector activo.
 
 ### Uso
 
@@ -543,9 +617,9 @@ Ambas modalidades utilizan una sola cámara y el mismo motor de capas. Los pigme
 
 ### Compatibilidad y alcance
 
-El maquillaje AR está orientado a Android y se encuentra en validación en dispositivos reales. La versión web ofrece vista previa de cámara, catálogo, selección de looks y Armario; no aplica maquillaje sobre el vídeo.
+El maquillaje AR está orientado a Android y se probó en un Samsung Galaxy A32. Con poca luz los colores se ven más tenues, igual que en la realidad. La versión web ofrece vista previa de cámara, catálogo, selección de looks y Armario; no aplica maquillaje sobre el vídeo.
 
-La base ofrece una cobertura uniforme sutil y ajustable sobre la región de piel; su representación es aproximada. Cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
+Cejas y brillo tienen representaciones aproximadas cuando existen esos productos en el catálogo. Delineador, pestañina, corrector, iluminador y contorno todavía no tienen efectos implementados. La simulación es una referencia visual: no reproduce con fidelidad física la cobertura, textura o acabado de cada producto.
 
 ## Pruebas
 
@@ -554,7 +628,7 @@ flutter analyze
 flutter test
 ```
 
-La suite cubre modelos, validadores, widgets, rutas y guardias, autenticación, splash, Home, Perfil, colorimetría, catálogo y el simulador AR. La prueba `test/integracion/flujo_completo_test.dart` arranca la app real con Firebase simulado y recorre registro, verificación de correo, Home, edición de perfil, cierre de sesión, login y eliminación de cuenta.
+La suite (330 pruebas) cubre modelos, validadores, widgets, rutas y guardias, autenticación, splash, Home, Perfil, colorimetría y motor de looks, catálogo, marcas, asistente, pantallas protegidas y el simulador AR (geometría, mezcla con el tono real, boca cerrada, armonía de looks y seguimiento). La prueba `test/integracion/flujo_completo_test.dart` arranca la app real con Firebase simulado y recorre registro, verificación de correo, Home, edición de perfil, cierre de sesión, login y eliminación de cuenta.
 
 Las Cloud Functions se prueban con `npm test` dentro de `functions/`.
 
@@ -577,27 +651,30 @@ La compilación necesita varios GB libres en disco. Antes de entregar, prueben e
 
 | Módulo | Estado |
 |---|---|
-| Autenticación (registro, verificación, login, recuperación, privacidad) | Disponible |
-| Splash con logo animado, onboarding, ícono y pantalla de arranque | Disponible |
-| Home y navegación | Disponible (la estación usa datos de ejemplo hasta activar el perfil real de colorimetría) |
-| Perfil (edición, foto, cierre de sesión, eliminación de cuenta) | Disponible (foto y eliminación completa con modo simulado hasta desplegar la función) |
-| Colorimetría y paleta | Disponible |
-| Catálogo de administración (prendas y productos) | Disponible |
-| Simulador AR | Prototipo por capas: looks, prueba libre, labial/rubor/sombra, captura y compartir; validación visual y rendimiento en Samsung pendientes |
+| Autenticación (registro, verificación, login con correo o Google, recuperación, privacidad) | Disponible |
+| Arranque nativo con el logo, splash animado, onboarding e ícono | Disponible |
+| Home y navegación | Disponible |
+| Perfil (datos, colorimetría, foto, cierre de sesión, eliminación de cuenta) | Disponible |
+| Colorimetría, paleta y looks para ti | Disponible |
 | Recomendaciones personalizadas (lista, filtros y detalle de prendas y productos) | Disponible |
-| Asistente de IA | En desarrollo (función en la nube y repositorio listos; pantalla pendiente) |
+| Asistente de IA | Disponible, con respuesta de respaldo si Gemini falla |
+| Simulador AR | Disponible: looks armónicos, prueba libre, base, labial, rubor y sombra mezclados con el tono real, captura y compartir |
 | Armario | Disponible: productos y prendas guardados, resultados y capturas privadas por cuenta |
+| Catálogo de administración (prendas y productos) | Disponible |
+| Marcas y paneles (admin general, "Mi marca", importación de productos) | Disponible |
+| Seguridad (FLAG_SECURE, certificate pinning, auditoría) | Disponible |
 
 **Limitaciones conocidas:**
 
-- Las reglas de seguridad de Firestore y Storage deben revisarse y publicarse en el proyecto `macke-up-ai`.
+- Las reglas de Firestore y Storage (`firestore.rules`, `storage.rules`) se publican aparte con `firebase deploy --only firestore:rules,storage --project macke-up-ai`; cada cambio en ellas hay que publicarlo.
 - La configuración de Firebase para iOS no está completa.
+- El simulador AR depende de la luz y del rendimiento del teléfono; con poca luz el maquillaje se ve tenue.
 
 ## Autores
 
 Proyecto desarrollado por un equipo de cuatro integrantes:
 
 - **Karlos Quintero**: base de la app (core, autenticación, home, perfil y splash).
-- **Jaider Monrroy**: colorimetría, paleta y servicios compartidos.
-- **Ana Cuellar**: recomendaciones, asistente de IA y catálogo.
+- **Jaider Monrroy**: colorimetría, paleta, looks por colorimetría y servicios compartidos.
+- **Ana Cuellar**: recomendaciones, asistente de IA, catálogo, marcas y paneles.
 - **Mauricio Parra**: simulador AR y armario.
